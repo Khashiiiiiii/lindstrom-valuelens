@@ -1,8 +1,9 @@
 // The Overview page data (#26, #27, #28): the first screen for the request, the change badges, the on-time gauge's
 // thresholds, the signal groups the priority blocks name and the KAM view's 2 charts. Every figure is a runKpi
-// answer or a value from data/processed (ADR 0001).
+// answer or a value from data/processed (ADR 0001). The donut's arc lengths are worked out here, on the server, so
+// the client computes nothing from a figure.
 
-import type { ComparisonPeriods, FirstScreenResult, HealthThresholds, KpiAnswer, Month, SignalGroup } from "../data.ts";
+import type { ComparisonPeriods, FirstScreenResult, HealthThresholds, KpiAnswer, KpiQuery, Month, SignalGroup } from "../data.ts";
 import {
   comparisonPeriods,
   firstScreen,
@@ -25,6 +26,19 @@ export interface ChangeBadge {
   periods: ComparisonPeriods | null;
 }
 
+/** The KAM view's 2 charts. */
+export interface KamCharts {
+  /** The waste route split for the request period. */
+  textile_waste_by_treatment_route: KpiAnswer;
+  /**
+   * Each route's part of the route split's value, for the donut's arc lengths, in breakdown order. Empty when the
+   * split is Withheld, not evaluated or 0. The dashboard draws these and never prints them.
+   */
+  textile_waste_route_arcs: { key: string; fraction: number }[];
+  /** The stage medians of each data month, in month order. in_period marks the months of the request period. */
+  turnaround_by_stage: { month: Month; in_period: boolean; answer: KpiAnswer }[];
+}
+
 export interface OverviewPage extends FirstScreenResult {
   /**
    * One badge per common tile whose KPI has a period comparison, in tile order: On-time service cycle share and
@@ -39,12 +53,7 @@ export interface OverviewPage extends FirstScreenResult {
    */
   block_signal_groups: SignalGroup[];
   /** KAM view only, else null. */
-  kam_charts: {
-    /** The waste route split for the request period. */
-    textile_waste_by_treatment_route: KpiAnswer;
-    /** The stage medians of each data month, in month order. in_period marks the months of the request period. */
-    turnaround_by_stage: { month: Month; in_period: boolean; answer: KpiAnswer }[];
-  } | null;
+  kam_charts: KamCharts | null;
 }
 
 /**
@@ -68,22 +77,33 @@ export function overviewPage(request: PageRequest): OverviewPage {
   const block_signal_groups = signalGroups({ customer_id, view, priorities: screen.priority_ids })
     .filter((g) => blockSignalIds.has(g.signal_id))
     .map((g) => ({ ...g, results: g.results.filter((r) => site_id === undefined || r.site_id === site_id) }));
-  const inPeriod = new Set(periodMonths(period));
   return {
     ...screen,
     change_badges,
     on_time_thresholds: view === "KAM" ? { ...getAccountHealth().data.defaults.account_health_on_time_service_cycle_share } : null,
     block_signal_groups,
-    kam_charts:
-      view === "KAM"
-        ? {
-            textile_waste_by_treatment_route: runKpi("textile_waste_by_treatment_route", { scope, period, view }),
-            turnaround_by_stage: getMasterData().data.months.map((month) => ({
-              month,
-              in_period: inPeriod.has(month),
-              answer: runKpi("turnaround_by_stage", { scope, period: month, view }),
-            })),
-          }
-        : null,
+    kam_charts: view === "KAM" ? kamCharts({ scope, period, view }) : null,
   };
+}
+
+/** The waste route split and its arcs for the query period, and turnaround by stage for every data month. */
+function kamCharts(query: KpiQuery): KamCharts {
+  const waste = runKpi("textile_waste_by_treatment_route", query);
+  const inPeriod = new Set(periodMonths(query.period));
+  return {
+    textile_waste_by_treatment_route: waste,
+    textile_waste_route_arcs: routeArcs(waste),
+    turnaround_by_stage: getMasterData().data.months.map((month) => ({
+      month,
+      in_period: inPeriod.has(month),
+      answer: runKpi("turnaround_by_stage", { ...query, period: month }),
+    })),
+  };
+}
+
+/** Each route's kg over the split's total, or none when the split is Withheld, not evaluated or 0. */
+function routeArcs(answer: KpiAnswer): { key: string; fraction: number }[] {
+  if ("withheld" in answer || !answer.value || answer.breakdown === null) return [];
+  const total = answer.value;
+  return answer.breakdown.map((b) => ({ key: b.key, fraction: b.value / total }));
 }

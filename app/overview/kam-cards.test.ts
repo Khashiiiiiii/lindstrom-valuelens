@@ -60,6 +60,7 @@ test("the waste route donut shows each route's kg and NorthStar's 2025 total, an
     ],
   );
   assert.ok(waste?.segments.every((s) => !s.kg.includes("%")));
+  assert.deepEqual(waste?.segments.map((s) => s.fraction), page.kam_charts!.textile_waste_route_arcs.map((a) => a.fraction));
   assert.equal(kamCards("sv", page, meta)!.waste?.segments[2].label, "Energiåtervinning");
 });
 

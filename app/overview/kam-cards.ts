@@ -8,7 +8,7 @@ import type { HealthRating, KpiAnswer, KpiResult } from "../../lib/data.ts";
 import type { Lang } from "../../lib/i18n.ts";
 import { dataLabel, formatNumber, monthName, t } from "../../lib/i18n.ts";
 import type { Metadata } from "../../lib/pages/metadata.ts";
-import type { OverviewPage } from "../../lib/pages/overview.ts";
+import type { KamCharts, OverviewPage } from "../../lib/pages/overview.ts";
 
 export interface HealthStrip {
   /** The rating label, or null when the period is not rated. */
@@ -32,7 +32,7 @@ export interface WasteDonut {
   total: string;
   unit: string;
   data_status: string;
-  /** fraction is the arc length only. It is never shown as a figure (ADR 0001). */
+  /** fraction is the arc length from the page data. It is never shown as a figure (ADR 0001). */
   segments: { key: string; label: string; kg: string; fraction: number }[];
   caveats: string[];
 }
@@ -67,7 +67,7 @@ export function kamCards(lang: Lang, page: OverviewPage, meta: Metadata): KamCar
       industry: dataLabel(lang, dashboard_emphasis.industry),
       texts: dashboard_emphasis.texts.map(({ term, text }) => ({ term, text })),
     },
-    waste: "withheld" in waste ? null : wasteDonut(lang, waste),
+    waste: "withheld" in waste ? null : wasteDonut(lang, waste, page.kam_charts.textile_waste_route_arcs),
     stages: stageBars(lang, months),
   };
 }
@@ -107,7 +107,7 @@ function inputValue(lang: Lang, input_id: string, value: number): string {
 }
 
 /** The donut, or null when the route split is not evaluated. */
-function wasteDonut(lang: Lang, result: KpiResult): WasteDonut | null {
+function wasteDonut(lang: Lang, result: KpiResult, arcs: KamCharts["textile_waste_route_arcs"]): WasteDonut | null {
   const { value, breakdown } = result;
   if (value === null || breakdown === null) return null;
   const kg = (v: number) => formatNumber(lang, v, { maximumFractionDigits: 0 });
@@ -120,14 +120,14 @@ function wasteDonut(lang: Lang, result: KpiResult): WasteDonut | null {
       key: b.key,
       label: dataLabel(lang, b.key),
       kg: kg(b.value),
-      fraction: value === 0 ? 0 : b.value / value,
+      fraction: arcs.find((a) => a.key === b.key)?.fraction ?? 0,
     })),
     caveats: [...result.caveats],
   };
 }
 
 /** The bars, or null when the first month is Withheld. */
-function stageBars(lang: Lang, months: NonNullable<OverviewPage["kam_charts"]>["turnaround_by_stage"]): StageBars | null {
+function stageBars(lang: Lang, months: KamCharts["turnaround_by_stage"]): StageBars | null {
   const results = months.map((m) => ("withheld" in m.answer ? null : m.answer));
   const first = results[0];
   if (!first) return null;

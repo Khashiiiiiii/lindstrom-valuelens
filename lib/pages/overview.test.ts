@@ -170,6 +170,16 @@ test("the Overview in the KAM view adds the waste route split for the period and
   // NorthStar's 2025 route kg in operational-circularity-kpis.json, rounded.
   const waste = whole.textile_waste_by_treatment_route;
   assert.deepEqual("withheld" in waste ? null : waste.breakdown?.map((b) => Math.round(b.value)), [12278, 819, 3243, 455]);
+  // Each route's kg over the 16,795 kg total, for the donut arcs: 12,278 kg of recycling is 73.1%.
+  assert.deepEqual(
+    whole.textile_waste_route_arcs.map((a) => [a.key, Math.round(a.fraction * 1000) / 1000]),
+    [
+      ["recycling", 0.731],
+      ["reuse", 0.049],
+      ["energy_recovery", 0.193],
+      ["incineration", 0.027],
+    ],
+  );
 });
 
 test("the Customer view holds no account health, no dashboard_emphasis and no turnaround by stage", () => {
