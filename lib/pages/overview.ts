@@ -2,15 +2,27 @@
 // thresholds, the signal groups the priority blocks name and the KAM view's 2 charts. Every figure is a runKpi
 // answer or a value from data/processed (ADR 0001).
 
-import type { FirstScreenResult, HealthThresholds, KpiAnswer, Month, SignalGroup } from "../data.ts";
-import { firstScreen, getAccountHealth, getMasterData, getPeriodComparisons, periodMonths, runKpi, signalGroups } from "../data.ts";
+import type { ComparisonPeriods, FirstScreenResult, HealthThresholds, KpiAnswer, Month, SignalGroup } from "../data.ts";
+import {
+  comparisonPeriods,
+  firstScreen,
+  getAccountHealth,
+  getMasterData,
+  getPeriodComparisons,
+  periodMonths,
+  runKpi,
+  signalGroups,
+} from "../data.ts";
 import type { PageRequest } from "./request.ts";
+import { pageScope } from "./request.ts";
 
 /** A common tile's change badge: the period comparison of the tile's KPI with the default compare_to. */
 export interface ChangeBadge {
   tile_id: string;
   /** Withheld for a Site in the Customer view (ADR 0011). The label is in detail.comparison. */
   comparison: KpiAnswer;
+  /** The months compared, for the badge text. null when the comparison is Withheld or has no comparison period. */
+  periods: ComparisonPeriods | null;
 }
 
 export interface OverviewPage extends FirstScreenResult {
@@ -42,11 +54,15 @@ export interface OverviewPage extends FirstScreenResult {
 export function overviewPage(request: PageRequest): OverviewPage {
   const screen = firstScreen(request);
   const { customer_id, site_id, period, view } = request;
-  const scope = site_id === undefined ? { customer_id } : { customer_id, site_id };
+  const scope = pageScope(request);
   const comparisons = getPeriodComparisons().catalogue;
+  const sides = comparisonPeriods({ scope, period, view });
   const change_badges = screen.tiles.flatMap((tile): ChangeBadge[] => {
     const entry = comparisons.find((c) => tile.kpi_ids.length === 1 && c.kpi_id === tile.kpi_ids[0]);
-    return entry ? [{ tile_id: tile.id, comparison: runKpi(entry.id, { scope, period, view }) }] : [];
+    if (!entry) return [];
+    const comparison = runKpi(entry.id, { scope, period, view });
+    const periods = "withheld" in comparison || "reason" in sides ? null : sides;
+    return [{ tile_id: tile.id, comparison, periods }];
   });
   const blockSignalIds = new Set(screen.priority_blocks.map((b) => b.signal_group_signal_id));
   const block_signal_groups = signalGroups({ customer_id, view, priorities: screen.priority_ids })

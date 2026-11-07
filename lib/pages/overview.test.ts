@@ -9,7 +9,8 @@ import { overviewPage } from "./overview.ts";
 /** The comparison a badge's answer holds, or null for a Withheld or not evaluated answer. */
 const comparison = (answer: KpiAnswer) =>
   !("withheld" in answer) && answer.detail?.kind === "period_comparison" ? answer.detail.comparison : null;
-const badge = (page: OverviewPage, tile_id: string) => page.change_badges.find((b) => b.tile_id === tile_id)!.comparison;
+const badgeOf = (page: OverviewPage, tile_id: string) => page.change_badges.find((b) => b.tile_id === tile_id)!;
+const badge = (page: OverviewPage, tile_id: string) => badgeOf(page, tile_id).comparison;
 
 test("the Overview for NorthStar, 2025 and default priorities holds firstScreen", () => {
   for (const view of ["KAM", "Customer"] as const) {
@@ -96,6 +97,21 @@ test("H2 compares H2 against H1, and a month compares with the month before", ()
   assert.deepEqual(sides("2025-H2"), ["H2 2025", "H1 2025"]);
   assert.deepEqual(sides("2025-03"), ["March 2025", "February 2025"]);
   assert.deepEqual(sides("2025-12"), ["December 2025", "November 2025"]);
+});
+
+test("a badge names the months of its period and comparison period", () => {
+  const periods = (period: string) => badgeOf(overviewPage({ customer_id: "CUST001", period, view: "KAM" }), "on_time_service_cycle_share").periods;
+  assert.deepEqual(periods("2025-03"), {
+    period: { name: "March 2025", months: ["2025-03"] },
+    comparison_period: { name: "February 2025", months: ["2025-02"] },
+  });
+  assert.deepEqual(periods("2025"), {
+    period: { name: "H2 2025", months: ["2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12"] },
+    comparison_period: { name: "H1 2025", months: ["2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06"] },
+  });
+  assert.equal(periods("2025-01"), null);
+  const withheld = overviewPage({ customer_id: "CUST001", site_id: "S008", period: "2025", view: "Customer" });
+  assert.ok(withheld.change_badges.every((b) => b.periods === null), "a Withheld badge names no periods");
 });
 
 test("January and H1 have no period before them in the data, so their badges are not evaluated", () => {

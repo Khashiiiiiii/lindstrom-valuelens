@@ -1,7 +1,7 @@
 // The body of every page data route (#23): one Customer, an optional Site, a period, a view and the priority list.
 // The view comes from the dashboard's toggle and goes to every calculation call (ADR 0001).
 
-import type { Period } from "../data.ts";
+import type { Period, Scope } from "../data.ts";
 import { periodMonths, resolvePriorities, resolveScope } from "../data.ts";
 
 export interface PageRequest {
@@ -12,6 +12,11 @@ export interface PageRequest {
   view: "KAM" | "Customer";
   /** Priority names or ids, in order. Missing means the Customer's default priorities. */
   priorities?: string[];
+}
+
+/** The request's scope: the Site when site_id is set, else the whole Customer. */
+export function pageScope({ customer_id, site_id }: PageRequest): Scope {
+  return site_id === undefined ? { customer_id } : { customer_id, site_id };
 }
 
 /** A request the routes answer with 400. The message says what is wrong. */

@@ -4,6 +4,7 @@
 import type { KpiAnswer, Month } from "../data.ts";
 import { getMasterData, getViewsAndReview, periodMonths, runKpi } from "../data.ts";
 import type { PageRequest } from "./request.ts";
+import { pageScope } from "./request.ts";
 
 /** One KPI over the data year. A Withheld first point means the chart does not show. */
 export interface MonthlySeries {
@@ -25,9 +26,10 @@ export interface SeriesPage {
  * The monthly series for the request's Customer or Site and view. Every series covers all data months whatever the
  * period. The period only sets period_months.
  */
-export function seriesPage({ customer_id, site_id, period, view }: PageRequest): SeriesPage {
+export function seriesPage(request: PageRequest): SeriesPage {
+  const { period, view } = request;
   const months = getMasterData().data.months;
-  const scope = site_id === undefined ? { customer_id } : { customer_id, site_id };
+  const scope = pageScope(request);
   const kpi_ids = getViewsAndReview().data.first_screen.common_tiles.flatMap((t) => t.kpi_ids);
   return {
     months: [...months],

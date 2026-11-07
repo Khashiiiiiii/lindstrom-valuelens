@@ -132,13 +132,13 @@ function entry(id: ComparisonId): ImprovementCatalogueEntry {
 }
 
 /** A named run of months, one side of a comparison. */
-interface NamedMonths {
+export interface NamedMonths {
   name: string;
   months: Month[];
 }
 
 /** The selected period and the period it is compared against. */
-interface ComparisonPeriods {
+export interface ComparisonPeriods {
   period: NamedMonths;
   comparison_period: NamedMonths;
 }
@@ -158,7 +158,7 @@ function periodName(months: Month[]): string {
  * The query's period and its comparison period, or the reason there is no comparison. compare_to defaults by
  * default_rule: H2 against H1 for all of the data year, else the previous period of the same length.
  */
-function comparisonPeriods(query: KpiQuery): ComparisonPeriods | { reason: string } {
+export function comparisonPeriods(query: KpiQuery): ComparisonPeriods | { reason: string } {
   const convention = getPeriodComparisons().data.compare_to;
   const { h1_months, h2_months } = convention;
   const all = [...h1_months, ...h2_months];

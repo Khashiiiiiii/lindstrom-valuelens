@@ -95,15 +95,17 @@ export type {
   CompareToConvention,
   ComparisonId,
   ComparisonLabel,
+  ComparisonPeriods,
   ComparisonResult,
   ComparisonSide,
   CustomerComparison,
   ImprovementCatalogueEntry,
   ImprovementDefaults,
   ImprovementResults,
+  NamedMonths,
   PeriodComparisons,
 } from "./data/period-comparisons.ts";
-export { getPeriodComparisons } from "./data/period-comparisons.ts";
+export { comparisonPeriods, getPeriodComparisons } from "./data/period-comparisons.ts";
 
 export type {
   CustomerPriorities,

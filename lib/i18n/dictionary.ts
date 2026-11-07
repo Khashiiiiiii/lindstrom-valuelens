@@ -407,6 +407,8 @@ export const DICTIONARY = {
     fi: "verrattuna asiakkaan omaan pesulaan",
   },
 
+  "{p} compared with {c}": { sv: "{p} jämfört med {c}", fi: "{p} verrattuna jaksoon {c}" },
+
   // Period comparison labels (period-comparisons.json)
   "better": { en: "Improved", sv: "Förbättrad", fi: "Parantunut" },
   "worse": { en: "Worse", sv: "Sämre", fi: "Heikentynyt" },

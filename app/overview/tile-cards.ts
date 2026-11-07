@@ -2,12 +2,13 @@
 // points are the page data's runKpi answers. This module only formats and translates them. Caveats stay English, as
 // the spec sets.
 
-import type { KpiAnswer, KpiResult } from "../../lib/data.ts";
+import type { KpiResult } from "../../lib/data.ts";
 import type { Lang } from "../../lib/i18n.ts";
-import { dataLabel, formatNumber, t } from "../../lib/i18n.ts";
+import { dataLabel, formatNumber, monthName, t } from "../../lib/i18n.ts";
 import type { Metadata } from "../../lib/pages/metadata.ts";
-import type { OverviewPage } from "../../lib/pages/overview.ts";
+import type { ChangeBadge, OverviewPage } from "../../lib/pages/overview.ts";
 import type { SeriesPage } from "../../lib/pages/series.ts";
+import { chartSeries } from "./chart-series.ts";
 
 export interface TileFigure {
   /** The KPI name, on a tile with more than one KPI. */
@@ -30,6 +31,8 @@ export interface TileFigure {
 export interface TileBadge {
   label: string;
   tone: "good" | "bad" | "neutral";
+  /** What the badge compares, for example "March 2025 compared with February 2025". null with no comparison period. */
+  compared: string | null;
   /** The comparison result's caveats, in English. A Site result carries the chance caveat (ADR 0010). */
   caveats: string[];
 }
@@ -43,26 +46,29 @@ export interface TileCard {
   badge: TileBadge | null;
 }
 
+/** What the tiles are built from. series is null until the monthly series loads. */
+export interface TileData {
+  page: OverviewPage;
+  meta: Metadata;
+  /** The Site filter, or null for the whole Customer. */
+  site_id: string | null;
+  series: SeriesPage | null;
+}
+
 /**
- * The common tiles in their fixed order, for the Site filter or null. A Withheld answer has no figure, and a tile
- * whose answers are all Withheld does not show. series is null until the monthly series loads.
+ * The common tiles in their fixed order. A Withheld answer has no figure, and a tile whose answers are all Withheld
+ * does not show.
  */
-export function tileCards(
-  lang: Lang,
-  page: OverviewPage,
-  meta: Metadata,
-  site_id: string | null,
-  series: SeriesPage | null,
-): TileCard[] {
+export function tileCards(lang: Lang, { page, meta, site_id, series }: TileData): TileCard[] {
   const shown = page.tiles.filter((tile) => tile.answers.length === 0 || tile.answers.some((a) => !("withheld" in a)));
   return shown.map((tile) => {
-    const comparison = page.change_badges.find((b) => b.tile_id === tile.id)?.comparison;
+    const change = page.change_badges.find((b) => b.tile_id === tile.id);
     const card: TileCard = {
       id: tile.id,
       name: dataLabel(lang, tile.name),
       figures: [],
       notes: [],
-      badge: comparison === undefined ? null : badge(lang, comparison),
+      badge: change === undefined ? null : badge(lang, change),
     };
     if (tile.id === "site_count") {
       const counted = meta.sites.filter((s) => site_id === null || s.site_id === site_id);
@@ -105,23 +111,35 @@ export function tileCards(
   });
 }
 
-/** The comparison label of a badge answer, or null when it is Withheld. A result with no comparison is not evaluated. */
-function badge(lang: Lang, answer: KpiAnswer): TileBadge | null {
+/** The badge's comparison label, or null when it is Withheld. A result with no comparison is not evaluated. */
+function badge(lang: Lang, { comparison: answer, periods }: ChangeBadge): TileBadge | null {
   if ("withheld" in answer) return null;
   const comparison = answer.detail?.kind === "period_comparison" ? answer.detail.comparison : null;
   const label = comparison?.label ?? "not_evaluated";
   return {
     label: dataLabel(lang, label),
     tone: label === "better" ? "good" : label === "worse" ? "bad" : "neutral",
+    compared:
+      periods === null
+        ? null
+        : capitalise(t(lang, "{p} compared with {c}", { p: sideName(lang, periods.period), c: sideName(lang, periods.comparison_period) })),
     caveats: comparison ? [...comparison.caveats] : [],
   };
 }
 
+/** A comparison side's name: a month in the language, or a half-year name such as "H1 2025", which every language uses. */
+function sideName(lang: Lang, side: { name: string; months: string[] }): string {
+  return side.months.length === 1 ? `${monthName(lang, side.months[0])} ${side.months[0].slice(0, 4)}` : side.name;
+}
+
+function capitalise(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
 /** The KPI's monthly values, or null when the series is not loaded, missing or Withheld from its first point. */
 function sparkline(series: SeriesPage | null, kpi_id: string): (number | null)[] | null {
-  const points = series?.series.find((s) => s.kpi_id === kpi_id)?.points;
-  if (!points || points.length === 0 || "withheld" in points[0]) return null;
-  return points.map((p) => ("withheld" in p ? null : p.value));
+  const found = series?.series.find((s) => s.kpi_id === kpi_id);
+  return found === undefined ? null : (chartSeries(found)?.values ?? null);
 }
 
 /** The value and unit as display text. A share shows as a percentage. A value not evaluated says so. */

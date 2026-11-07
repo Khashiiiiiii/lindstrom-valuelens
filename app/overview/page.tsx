@@ -7,14 +7,15 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import type { KpiResult } from "../../lib/data.ts";
 import { dataLabel, t } from "../../lib/i18n.ts";
 import type { Lang } from "../../lib/i18n.ts";
 import type { OverviewPage } from "../../lib/pages/overview.ts";
-import type { MonthlySeries, SeriesPage } from "../../lib/pages/series.ts";
+import type { SeriesPage } from "../../lib/pages/series.ts";
 import { useDashboard } from "../shell.tsx";
 import { usePageData } from "../use-page-data.ts";
 import type { BlockCard } from "./block-cards.ts";
+import type { ChartSeries } from "./chart-series.ts";
+import { chartSeries } from "./chart-series.ts";
 import { blockCards } from "./block-cards.ts";
 import { Donut, Gauge, Sparkline, StackedBars, TrendChart } from "./charts.tsx";
 import type { KamCards } from "./kam-cards.ts";
@@ -38,12 +39,17 @@ export default function Overview() {
       <section className="section">
         <h2 className="h2">{t(lang, "Common indicators")}</h2>
         <div className="tiles">
-          {tileCards(lang, data, meta, state.site_id, series).map((card) => (
+          {tileCards(lang, { page: data, meta, site_id: state.site_id, series }).map((card) => (
             <div key={card.id} className="card tile">
               <div className="tilehead">
                 <span className="muted tilename">{card.name}</span>
-                {card.badge && <span className={`badge change ${card.badge.tone}`}>{card.badge.label}</span>}
+                {card.badge && (
+                  <span className={`badge change ${card.badge.tone}`} title={card.badge.compared ?? undefined}>
+                    {card.badge.label}
+                  </span>
+                )}
               </div>
+              {card.badge?.compared && <div className="muted tilenote">{card.badge.compared}</div>}
               {card.badge?.caveats.map((c) => (
                 <div key={c} className="caveat">
                   {c}
@@ -245,18 +251,15 @@ function KamCharts({ lang, kam }: { lang: Lang; kam: KamCards }) {
   );
 }
 
-/** A series the trend chart can show: its first point is a result, and it has a value. */
-function shown(s: MonthlySeries): s is MonthlySeries & { points: KpiResult[] } {
-  return !("withheld" in s.points[0]) && s.points.some((p) => !("withheld" in p) && p.value !== null);
-}
 
 /** The monthly trend chart with its KPI select. It does not show when no series has a first point that is a result. */
 function Trend({ lang, series }: { lang: Lang; series: SeriesPage }) {
   const [kpi_id, setKpi] = useState<string | null>(null);
-  const options = series.series.filter(shown);
+  const options = series.series
+    .map(chartSeries)
+    .filter((s): s is ChartSeries => s !== null && s.values.some((v) => v !== null));
   const selected = options.find((s) => s.kpi_id === kpi_id) ?? options[0];
   if (!selected) return null;
-  const first = selected.points[0];
   return (
     <div className="card">
       <div className="cardhead">
@@ -265,7 +268,7 @@ function Trend({ lang, series }: { lang: Lang; series: SeriesPage }) {
         <select value={selected.kpi_id} onChange={(e) => setKpi(e.target.value)} aria-label={t(lang, "Monthly trend")}>
           {options.map((s) => (
             <option key={s.kpi_id} value={s.kpi_id}>
-              {dataLabel(lang, s.points[0].name)}
+              {dataLabel(lang, s.name)}
             </option>
           ))}
         </select>
@@ -274,8 +277,8 @@ function Trend({ lang, series }: { lang: Lang; series: SeriesPage }) {
         lang={lang}
         months={series.months}
         highlighted={series.period_months}
-        values={selected.points.map((p) => ("withheld" in p ? null : p.value))}
-        unit={first.unit}
+        values={selected.values}
+        unit={selected.unit}
       />
       <div className="muted">{t(lang, "Months in the selected period are highlighted.")}</div>
     </div>
