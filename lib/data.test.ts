@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { getMasterData, getOperationalCircularityKpis, getPublicReference, getServiceKpis } from "./data.ts";
+import {
+  getAccountHealth,
+  getMasterData,
+  getOperationalCircularityKpis,
+  getPublicReference,
+  getServiceKpis,
+} from "./data.ts";
 
 test("getMasterData reads the generated master data", () => {
   const master = getMasterData();
@@ -56,4 +62,16 @@ test("getPublicReference reads the generated public reference figures", () => {
   const line = file.data.context_lines.group_emissions_intensity;
   assert.equal(line.view, "Both");
   assert.equal(line.kam_notes.length, 2);
+});
+
+test("getAccountHealth reads the account health rules and ratings", () => {
+  const health = getAccountHealth();
+  assert.equal(health.meta.name, "account-health");
+  assert.equal(health.catalogue[0].id, "account_health");
+  assert.equal(health.catalogue[3].thresholds?.minimum_volume, 500);
+  assert.equal(health.data.defaults.account_health_on_time_service_cycle_share.green_threshold, 0.97);
+  const apex = health.data.ratings.find((r) => r.scope === "customer" && r.scope_id === "CUST002" && r.period === "2025-11");
+  assert.equal(apex?.rating, "amber");
+  assert.equal(apex?.inputs.length, 3);
+  assert.match(health.data.customer_experience_gap.text, /CSAT/);
 });

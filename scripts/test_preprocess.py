@@ -604,3 +604,140 @@ def test_baseline_factors_quoted_in_public_figures_match_the_workbook(public_ref
     for quoted in ["B_LOCAL baseline of 9.5 L/kg", "B_LOCAL baseline (1.05 kWh/kg)", "B_HOME baseline (20 L/kg)",
                    "1.18 kWh/kg", "B_LOCAL process factor (0.62 kgCO2e/kg)"]:
         assert quoted in text, quoted
+
+
+# account-health.json
+
+
+@pytest.fixture(scope="module")
+def health(out_dir) -> dict:
+    return json.loads((out_dir / "account-health.json").read_text(encoding="utf-8"))
+
+
+def _rating(health, scope, scope_id, period):
+    rows = [r for r in health["data"]["ratings"] if (r["scope"], r["scope_id"], r["period"]) == (scope, scope_id, period)]
+    assert len(rows) == 1, (scope, scope_id, period)
+    return rows[0]
+
+
+def _input(rating, input_id):
+    return next(i for i in rating["inputs"] if i["input_id"] == input_id)
+
+
+def test_every_customer_is_green_for_2025_on_all_three_inputs(health):
+    for customer_id in ("CUST001", "CUST002", "CUST003"):
+        rating = _rating(health, "customer", customer_id, "2025")
+        assert rating["rating"] == "green"
+        assert (rating["rated_inputs"], rating["total_inputs"]) == (3, 3)
+        assert rating["based_on"] == "Based on 3 of 3 inputs"
+    apex = _rating(health, "customer", "CUST002", "2025")
+    requests = _input(apex, "account_health_service_requests_per_100_wearers_per_month")
+    assert round(requests["value"], 2) == 0.54
+    assert requests["volume"] == 32178
+    assert requests["rating"] == "green"
+    assert requests["thresholds_used"] == {"better": "lower", "green_threshold": 1.0, "amber_threshold": 2.0,
+                                           "minimum_volume": 1000}
+
+
+def test_apex_november_and_mediora_july_are_amber_on_on_time_share(health):
+    apex = _rating(health, "customer", "CUST002", "2025-11")
+    assert apex["rating"] == "amber"
+    assert apex["reason"] == "Amber: on-time service cycles 96.9%."
+    assert _input(apex, "account_health_on_time_service_cycle_share")["volume"] == 128
+    mediora = _rating(health, "customer", "CUST003", "2025-07")
+    assert mediora["reason"] == "Amber: on-time service cycles 96.7%."
+    assert _input(mediora, "account_health_on_time_service_cycle_share")["volume"] == 123
+    amber = sorted((r["scope_id"], r["period"]) for r in health["data"]["ratings"]
+                   if r["scope"] == "customer" and r["rating"] == "amber")
+    assert amber == [("CUST002", "2025-11"), ("CUST003", "2025-07")]
+
+
+def test_mediora_august_on_time_share_is_not_rated_under_100_cycles(health):
+    august = _rating(health, "customer", "CUST003", "2025-08")
+    on_time = _input(august, "account_health_on_time_service_cycle_share")
+    assert on_time["rating"] == "not_rated"
+    assert on_time["volume"] == 61
+    assert round(100 * on_time["value"], 1) == 95.1
+    assert on_time["not_rated_reason"] == "61 sampled cycles, under the minimum of 100."
+    assert august["based_on"] == "Based on 2 of 3 inputs"
+
+
+def test_every_site_year_is_green_and_rated_on_two_inputs_at_most(health):
+    years = [r for r in health["data"]["ratings"] if r["scope"] == "site" and r["period"] == "2025"]
+    assert len(years) == 34
+    assert {r["rating"] for r in years} == {"green"}
+    assert {r["total_inputs"] for r in years} == {2}
+    assert {i["input_id"] for r in years for i in r["inputs"]} == {
+        "account_health_on_time_service_cycle_share", "account_health_scan_coverage",
+    }
+
+
+def test_site_months_on_scan_coverage(health):
+    months = [r for r in health["data"]["ratings"] if r["scope"] == "site" and r["period"] != "2025"]
+    assert len(months) == 408
+    scan = [_input(r, "account_health_scan_coverage") for r in months]
+    # 59 Site-months have scan coverage in the amber band. 3 of them hold under 500 allocated
+    # pieces, so the volume guard leaves them not rated and 56 are rated amber.
+    in_amber_band = [i for i in scan if 0.7 <= i["value"] < 0.8]
+    assert len(in_amber_band) == 59
+    assert sum(i["rating"] == "amber" for i in scan) == 56
+    assert sum(i["rating"] == "not_rated" for i in in_amber_band) == 3
+    assert not any(i["rating"] == "red" for i in scan)
+
+
+def test_a_rating_with_no_rated_input_reads_not_rated_never_green():
+    specs = [s for s in preprocess.ACCOUNT_HEALTH_INPUTS if "site" in s["scopes"]]
+    inputs = [preprocess.rate_input(s, 0.99, 10) for s in specs]
+    overall = preprocess.worst_of(specs, inputs)
+    assert overall["rating"] == "not_rated"
+    assert overall["based_on"] == "Based on 0 of 2 inputs"
+
+
+def test_worst_of_names_every_amber_and_red_input():
+    specs = [s for s in preprocess.ACCOUNT_HEALTH_INPUTS if "site" in s["scopes"]]
+    inputs = [preprocess.rate_input(specs[0], 0.96, 200), preprocess.rate_input(specs[1], 0.65, 900)]
+    overall = preprocess.worst_of(specs, inputs)
+    assert overall["rating"] == "red"
+    assert overall["reason"] == "Red: scan coverage 65.0%. Amber: on-time service cycles 96.0%."
+
+
+def test_account_health_catalogue_is_the_rule_and_its_three_kam_only_inputs(health):
+    catalogue = health["catalogue"]
+    assert [e["id"] for e in catalogue] == [
+        "account_health",
+        "account_health_on_time_service_cycle_share",
+        "account_health_service_requests_per_100_wearers_per_month",
+        "account_health_scan_coverage",
+    ]
+    for entry in catalogue:
+        assert entry["view"] == "KAM"
+        assert entry["data_status"] == "SYNTHETIC"
+        assert entry["threshold_data_status"] == "TEAM_ASSUMPTION"
+        assert entry["rationale"].startswith("No public benchmark exists.")
+        assert entry["id"] == preprocess.catalogue_id(entry["name"])
+    scan = catalogue[3]
+    assert scan["thresholds"] == {"better": "higher", "green_threshold": 0.8, "amber_threshold": 0.7,
+                                  "minimum_volume": 500}
+    assert health["data"]["defaults"]["account_health_scan_coverage"] == scan["thresholds"]
+
+
+def test_customer_experience_is_a_data_gap_beside_the_rating(health):
+    gap = health["data"]["customer_experience_gap"]
+    assert gap["view"] == "KAM"
+    assert "CSAT" in gap["text"] and "never an input" in gap["text"]
+
+
+def test_account_health_avoids_glossary_terms_and_em_dashes(out_dir):
+    text = (out_dir / "account-health.json").read_text(encoding="utf-8").lower()
+    assert "—" not in text
+    for term in ("rag_status", "rag status", "customer score", "customer satisfaction", "complaint", "idle",
+                 "unused", "baseline"):
+        assert term not in text, term
+
+
+def test_small_sites_are_not_rated_on_scan_coverage_even_for_the_year(health):
+    # S003 and S022 average under 500 allocated pieces a month, so the guard drops scan coverage in every period.
+    for site_id in ("S003", "S022"):
+        year = _rating(health, "site", site_id, "2025")
+        assert _input(year, "account_health_scan_coverage")["rating"] == "not_rated"
+        assert year["based_on"] == "Based on 1 of 2 inputs"
