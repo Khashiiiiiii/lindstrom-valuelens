@@ -83,16 +83,19 @@
     .card { break-inside: avoid; }
   }
 </style>
+<link rel="stylesheet" href="/variant-d.css">
 </head>
 <body>
 <div id="app">Loading...</div>
 <div id="modal"></div>
+<div id="ai"></div>
 <div id="switcher"></div>
+<script src="/variant-d.js"></script>
 <script>
-const VARIANTS = { A: "Top bar and tile grid", B: "Review-part sidebar", C: "Assistant and Sites matrix" };
+const VARIANTS = { A: "Top bar and tile grid", B: "Review-part sidebar", C: "Assistant and Sites matrix", D: "Modern: sidebar menu, AI button" };
 const url = new URL(location.href);
 const S = {
-  variant: url.searchParams.get("variant") || "A",
+  variant: url.searchParams.get("variant") || "D",
   page: url.searchParams.get("page") || "dashboard",
   customer_id: "CUST001", site_id: null, period: "2025", view: "KAM",
   priorities: null, prevPriorities: null, changedByAssistant: false,
@@ -370,7 +373,9 @@ async function load() {
 function render() {
   if (S.page === "review") return;
   const focused = document.activeElement?.id; const text = document.getElementById("prompt")?.value;
-  document.getElementById("app").innerHTML = { A: VariantA, B: VariantB, C: VariantC }[S.variant]();
+  document.body.classList.toggle("D", S.variant === "D");
+  document.getElementById("app").innerHTML = { A: VariantA, B: VariantB, C: VariantC, D: VariantD }[S.variant]();
+  renderAI();
   if (text !== undefined && document.getElementById("prompt") && !S.busy) document.getElementById("prompt").value = text;
   if (focused) document.getElementById(focused)?.focus();
   renderSwitcher();

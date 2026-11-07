@@ -182,6 +182,10 @@ createServer(async (req, res) => {
     res.end(JSON.stringify(json));
   };
   try {
+    if (req.method === "GET" && /^\/variant-d\.(js|css)$/.test(req.url!)) {
+      res.writeHead(200, { "content-type": req.url!.endsWith(".js") ? "text/javascript" : "text/css" });
+      return res.end(readFileSync(new URL("." + req.url, import.meta.url)));
+    }
     if (req.method === "GET") {
       res.writeHead(200, { "content-type": "text/html" });
       return res.end(readFileSync(new URL("./index.html", import.meta.url)));
