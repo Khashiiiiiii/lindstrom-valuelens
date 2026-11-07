@@ -4,11 +4,15 @@
 
 import type { KpiResult } from "../../lib/data.ts";
 import type { Lang } from "../../lib/i18n.ts";
-import { dataLabel, formatNumber, monthName, t } from "../../lib/i18n.ts";
+import { dataLabel, formatNumber, formatValue, monthName, t } from "../../lib/i18n.ts";
 import type { Metadata } from "../../lib/pages/metadata.ts";
 import type { ChangeBadge, OverviewPage } from "../../lib/pages/overview.ts";
 import type { SeriesPage } from "../../lib/pages/series.ts";
 import { chartSeries } from "./chart-series.ts";
+
+// The Sites table and the priority blocks import formatValue from here. It lives in lib/i18n.ts, so the deck builder
+// shares it.
+export { formatValue } from "../../lib/i18n.ts";
 
 export interface TileFigure {
   /** The KPI name, on a tile with more than one KPI. */
@@ -140,16 +144,6 @@ function capitalise(text: string): string {
 function sparkline(series: SeriesPage | null, kpi_id: string): (number | null)[] | null {
   const found = series?.series.find((s) => s.kpi_id === kpi_id);
   return found === undefined ? null : (chartSeries(found)?.values ?? null);
-}
-
-/** The value and unit as display text. A share shows as a percentage. A value not evaluated says so. */
-export function formatValue(lang: Lang, result: KpiResult): { value: string; unit: string } {
-  if (result.value === null) return { value: dataLabel(lang, "not_evaluated"), unit: "" };
-  if (result.unit === "share") {
-    return { value: formatNumber(lang, result.value, { style: "percent", maximumFractionDigits: 1 }), unit: "" };
-  }
-  const digits = Math.abs(result.value) >= 100 ? 0 : 2;
-  return { value: formatNumber(lang, result.value, { maximumFractionDigits: digits }), unit: dataLabel(lang, result.unit, result.value) };
 }
 
 /** The data statuses of the rows behind a figure, each once, as one label. */

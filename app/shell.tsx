@@ -14,6 +14,7 @@ import { monthName, t } from "../lib/i18n.ts";
 import type { Metadata } from "../lib/pages/metadata.ts";
 import type { OpportunitiesPage } from "../lib/pages/opportunities.ts";
 import type { PageRequest } from "../lib/pages/request.ts";
+import { ExportDeck } from "./export-deck.tsx";
 import type { PageId } from "./menu.ts";
 import { menuItems, translationNote } from "./menu.ts";
 import type { PageAction, PageState } from "./page-state.ts";
@@ -136,6 +137,7 @@ export function Shell({ children }: { children: ReactNode }) {
             {item.count && <span className="count">{item.count}</span>}
           </Link>
         ))}
+        {state && <ExportDeck lang={lang} state={state} onError={setError} />}
         <div className="navfoot label">
           {customer?.industry}
           <br />

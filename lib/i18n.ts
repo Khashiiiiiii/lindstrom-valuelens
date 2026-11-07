@@ -5,6 +5,7 @@
 // data/processed, such as a KPI name or a breakdown key. Caveats, transparency texts, the suggested prompts and
 // assistant replies are English only and go through neither.
 
+import type { KpiResult } from "./data.ts";
 import type { Entry, Plural, Text } from "./i18n/dictionary.ts";
 import { DICTIONARY } from "./i18n/dictionary.ts";
 
@@ -59,6 +60,16 @@ export function dataLabel(lang: Lang, value: string, n?: number | null): string 
 /** A number in the language's locale, for example a decimal comma in SV and FI. */
 export function formatNumber(lang: Lang, value: number, options?: Intl.NumberFormatOptions): string {
   return new Intl.NumberFormat(LOCALES[lang], options).format(value);
+}
+
+/** The value and unit as display text. A share shows as a percentage. A value not evaluated says so. */
+export function formatValue(lang: Lang, result: KpiResult): { value: string; unit: string } {
+  if (result.value === null) return { value: dataLabel(lang, "not_evaluated"), unit: "" };
+  if (result.unit === "share") {
+    return { value: formatNumber(lang, result.value, { style: "percent", maximumFractionDigits: 1 }), unit: "" };
+  }
+  const digits = Math.abs(result.value) >= 100 ? 0 : 2;
+  return { value: formatNumber(lang, result.value, { maximumFractionDigits: digits }), unit: dataLabel(lang, result.unit, result.value) };
 }
 
 /** The name of a data month such as "2025-01" in the language's locale. */

@@ -215,3 +215,8 @@ a.pill:hover { border-color: var(--line2); background: var(--hover); }
 .datatable .nowrap { white-space: nowrap; }
 .logocredit { margin-top: 16px; }
 .logocredit a { color: inherit; }
+
+/* The PowerPoint export in the left menu (#36) */
+.nav button.item { width: 100%; background: none; border: 0; font: inherit; text-align: left; cursor: pointer; }
+.nav button.item:disabled { cursor: progress; opacity: .7; }
+.item .ext { margin-left: auto; font-size: 10px; font-weight: 600; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 1px 6px; }
