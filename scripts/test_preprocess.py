@@ -122,7 +122,7 @@ import pipeline.account_health  # noqa: E402
 import pipeline.catalogue  # noqa: E402
 import pipeline.facts  # noqa: E402
 import pipeline.footprint_handprint_kpis  # noqa: E402
-import pipeline.improvement_trends  # noqa: E402
+import pipeline.period_comparisons  # noqa: E402
 import pipeline.service_kpis  # noqa: E402
 import pipeline.workbook  # noqa: E402
 
@@ -987,34 +987,34 @@ def test_footprint_handprint_labels_use_glossary_terms(footprint_handprint):
             assert not re.search(rf"\b{term}\b", text, re.IGNORECASE), (where, term)
 
 
-# improvement-trends.json
+# period-comparisons.json
 
 
 def test_fisher_exact_two_sided_matches_the_tea_tasting_example():
     # Fisher's lady tasting tea: 3 of 4 right in each cup group, two-sided p = 34/70.
-    assert pipeline.improvement_trends.fisher_exact_two_sided(3, 4, 1, 4) == pytest.approx(34 / 70)
+    assert pipeline.period_comparisons.fisher_exact_two_sided(3, 4, 1, 4) == pytest.approx(34 / 70)
 
 
 def test_fisher_exact_two_sided_for_northstar_turku():
     # 0 late of 296 sampled cycles, then 4 of 126. Only the observed table is as extreme as itself.
-    assert pipeline.improvement_trends.fisher_exact_two_sided(0, 296, 4, 126) == pytest.approx(0.0076833, rel=1e-4)
-    assert pipeline.improvement_trends.fisher_exact_two_sided(5, 300, 5, 300) == pytest.approx(1.0)
+    assert pipeline.period_comparisons.fisher_exact_two_sided(0, 296, 4, 126) == pytest.approx(0.0076833, rel=1e-4)
+    assert pipeline.period_comparisons.fisher_exact_two_sided(5, 300, 5, 300) == pytest.approx(1.0)
 
 
 def test_conditional_binomial_two_sided_with_equal_exposure_is_a_fair_coin():
     # 3 events against 7 on equal exposure: binomial(10, 0.5), P(X <= 3 or X >= 7) = 352/1024.
-    assert pipeline.improvement_trends.conditional_binomial_two_sided(3, 1000, 7, 1000) == pytest.approx(352 / 1024)
+    assert pipeline.period_comparisons.conditional_binomial_two_sided(3, 1000, 7, 1000) == pytest.approx(352 / 1024)
 
 
 def test_conditional_binomial_two_sided_handles_large_counts():
-    p = pipeline.improvement_trends.conditional_binomial_two_sided(252, 57897, 263, 57871)
+    p = pipeline.period_comparisons.conditional_binomial_two_sided(252, 57897, 263, 57871)
     assert 0.6 < p < 0.65
-    assert pipeline.improvement_trends.conditional_binomial_two_sided(0, 600, 0, 600) == 1.0
+    assert pipeline.period_comparisons.conditional_binomial_two_sided(0, 600, 0, 600) == 1.0
 
 
 @pytest.fixture(scope="module")
 def improvement(out_dir) -> dict:
-    return json.loads((out_dir / "improvement-trends.json").read_text(encoding="utf-8"))
+    return json.loads((out_dir / "period-comparisons.json").read_text(encoding="utf-8"))
 
 
 ON_TIME, REQUESTS, SCAN = (
@@ -1068,7 +1068,7 @@ def test_northstar_turku_on_time_cycles(improvement):
     assert turku["comparison_period"]["counts"] == {"late_cycles": 0, "sampled_cycles": 296}
     assert turku["period"]["counts"] == {"late_cycles": 4, "sampled_cycles": 126}
     assert turku["p_value"] < 0.05
-    assert turku["caveats"] == [pipeline.improvement_trends.SITE_CHANCE_CAVEAT, pipeline.catalogue.SAMPLE_CAVEAT]
+    assert turku["caveats"] == [pipeline.period_comparisons.SITE_CHANCE_CAVEAT, pipeline.catalogue.SAMPLE_CAVEAT]
     assert turku["view"] == "KAM"
 
 

@@ -17,7 +17,7 @@ from typing import Any, Callable
 
 from pipeline.account_health import build_account_health
 from pipeline.footprint_handprint_kpis import build_footprint_handprint_kpis
-from pipeline.improvement_trends import build_improvement_trends
+from pipeline.period_comparisons import build_period_comparisons
 from pipeline.master_data import build_master_data
 from pipeline.operational_circularity_kpis import build_operational_circularity_kpis
 from pipeline.public_reference import build_public_reference
@@ -48,7 +48,7 @@ BUILDERS: dict[str, Callable[[Workbook], Record]] = {
     "public-reference": build_public_reference,
     "account-health": build_account_health,
     "footprint-handprint-kpis": build_footprint_handprint_kpis,
-    "improvement-trends": build_improvement_trends,
+    "period-comparisons": build_period_comparisons,
 }
 
 

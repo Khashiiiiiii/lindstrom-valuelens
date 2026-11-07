@@ -99,6 +99,6 @@ export type {
   ImprovementCatalogueEntry,
   ImprovementDefaults,
   ImprovementResults,
-  ImprovementTrends,
-} from "./data/improvement-trends.ts";
-export { getImprovementTrends } from "./data/improvement-trends.ts";
+  PeriodComparisons,
+} from "./data/period-comparisons.ts";
+export { getPeriodComparisons } from "./data/period-comparisons.ts";

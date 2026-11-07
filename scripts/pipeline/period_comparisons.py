@@ -331,7 +331,7 @@ def improvement_results(
     }
 
 
-def build_improvement_trends(wb: Workbook) -> Record:
+def build_period_comparisons(wb: Workbook) -> Record:
     months = data_months(wb)
     if len(months) != 12:
         raise ValueError(f"H2 against H1 needs 12 data months, found {len(months)}")

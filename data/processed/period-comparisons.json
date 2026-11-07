@@ -3937,7 +3937,7 @@
     }
   },
   "meta": {
-    "name": "improvement-trends",
+    "name": "period-comparisons",
     "source_file": "Lindstrom_SinceAI_Customer_Value_Synthetic_Data_Pack.xlsx",
     "source_sha256": "b50603f7112956bbd49d81f6e83d1e3879be8329e2076c1b7aee9d861e08e217"
   }

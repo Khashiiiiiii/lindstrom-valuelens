@@ -4,7 +4,7 @@ import { test } from "node:test";
 import {
   getAccountHealth,
   getFootprintHandprintKpis,
-  getImprovementTrends,
+  getPeriodComparisons,
   getMasterData,
   getOperationalCircularityKpis,
   getPublicReference,
@@ -111,9 +111,9 @@ test("getFootprintHandprintKpis reads the footprint and handprint KPIs", () => {
   );
 });
 
-test("getImprovementTrends reads the period comparisons and the H2 against H1 results", () => {
-  const improvement = getImprovementTrends();
-  assert.equal(improvement.meta.name, "improvement-trends");
+test("getPeriodComparisons reads the period comparisons and the H2 against H1 results", () => {
+  const improvement = getPeriodComparisons();
+  assert.equal(improvement.meta.name, "period-comparisons");
   assert.deepEqual(
     improvement.catalogue.map((e) => e.kpi_id),
     ["on_time_service_cycle_share", "service_requests_per_100_wearers", "scan_coverage"],

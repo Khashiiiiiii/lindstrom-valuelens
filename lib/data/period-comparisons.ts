@@ -100,13 +100,13 @@ export interface ImprovementResults {
   comparisons: CustomerComparison[];
 }
 
-export interface ImprovementTrends {
+export interface PeriodComparisons {
   defaults: ImprovementDefaults;
   compare_to: CompareToConvention;
   results: ImprovementResults;
   data_transparency_notes: DataTransparencyNote[];
 }
 
-export function getImprovementTrends(): ProcessedFile<ImprovementTrends, ImprovementCatalogueEntry> {
-  return readProcessed<ImprovementTrends, ImprovementCatalogueEntry>("improvement-trends");
+export function getPeriodComparisons(): ProcessedFile<PeriodComparisons, ImprovementCatalogueEntry> {
+  return readProcessed<PeriodComparisons, ImprovementCatalogueEntry>("period-comparisons");
 }
