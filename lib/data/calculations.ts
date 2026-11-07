@@ -72,6 +72,7 @@ const footprintParameters = (fn: KpiFunction): Registered => ({ fn, parameters: 
 const handprintParameters = (fn: KpiFunction): Registered => ({ fn, parameters: ["baseline_id", "factor_case"] });
 const repairTypeBreakdown = (fn: KpiFunction): Registered => ({ fn, parameters: ["breakdown"] });
 const repairTypeAndRatio = (fn: KpiFunction): Registered => ({ fn, parameters: ["breakdown", "postponement_ratio"] });
+const comparisonParameters = (fn: KpiFunction): Registered => ({ fn, parameters: ["compare_to"] });
 
 const KPIS: Record<string, Registered> = {
   // service-kpis.json
@@ -112,9 +113,9 @@ const KPIS: Record<string, Registered> = {
   account_health_service_requests_per_100_wearers_per_month: noParameters(accountHealthServiceRequestsPer100WearersPerMonth),
   account_health_scan_coverage: noParameters(accountHealthScanCoverage),
   // period-comparisons.json
-  improvement_on_time_service_cycles: noParameters(improvementOnTimeServiceCycles),
-  improvement_service_requests: noParameters(improvementServiceRequests),
-  improvement_scan_coverage: noParameters(improvementScanCoverage),
+  improvement_on_time_service_cycles: comparisonParameters(improvementOnTimeServiceCycles),
+  improvement_service_requests: comparisonParameters(improvementServiceRequests),
+  improvement_scan_coverage: comparisonParameters(improvementScanCoverage),
 };
 
 /** Every catalogue entry of the 5 KPI files, in file order. Throws if an entry has no function or a function no entry. */

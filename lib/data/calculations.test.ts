@@ -2,7 +2,16 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import type { KpiAnswer, KpiQuery, KpiResult } from "../data.ts";
-import { getAccountHealth, getFootprintHandprintKpis, getMasterData, getServiceKpis, listKpis, periodMonths, runKpi } from "../data.ts";
+import {
+  getAccountHealth,
+  getFootprintHandprintKpis,
+  getMasterData,
+  getPeriodComparisons,
+  getServiceKpis,
+  listKpis,
+  periodMonths,
+  runKpi,
+} from "../data.ts";
 
 const NORTHSTAR: KpiQuery = { scope: { customer_id: "CUST001" }, period: "2025", view: "KAM" };
 
@@ -224,23 +233,132 @@ test("account health inputs return the input value, and a Site has no service re
   assert.match(requests.not_evaluated_reason ?? "", /Customer only/);
 });
 
-test("period comparisons return the precomputed H2 against H1 results for 2025 only", () => {
-  const northstar = result(runKpi("improvement_on_time_service_cycles", NORTHSTAR));
-  assert.ok(northstar.detail?.kind === "period_comparison");
-  assert.equal(northstar.detail.comparison.label, "no_clear_change");
-  assert.equal(northstar.value, -0.000447);
-  assert.equal(northstar.volume, 3402);
-  const turku = result(runKpi("improvement_on_time_service_cycles", { ...NORTHSTAR, scope: { customer_id: "CUST001", site_id: "S002" } }));
-  assert.ok(turku.detail?.kind === "period_comparison");
-  assert.equal(turku.detail.comparison.label, "worse");
-  for (const period of ["2025-H2", "2025-07"]) {
-    const other = result(runKpi("improvement_scan_coverage", { ...NORTHSTAR, period }));
-    assert.equal(other.value, null);
-    assert.ok(other.not_evaluated_reason);
-  }
+test("NorthStar on-time cycles show no clear change within 2025, and Turku got worse", () => {
+  const northstar = comparisonOf("improvement_on_time_service_cycles", NORTHSTAR);
+  assert.equal(northstar.comparison.label, "no_clear_change");
+  assert.equal(northstar.answer.value, -0.000447);
+  assert.equal(northstar.comparison.p_value, 0.873219);
+  assert.equal(northstar.answer.volume, 3402);
+  const turku = comparisonOf("improvement_on_time_service_cycles", { ...NORTHSTAR, scope: { customer_id: "CUST001", site_id: "S002" } });
+  assert.equal(turku.comparison.label, "worse");
   const product = result(runKpi("improvement_service_requests", { ...NORTHSTAR, scope: { customer_id: "CUST001", product_id: "P1001" } }));
   assert.equal(product.value, null);
   assert.ok(product.not_evaluated_reason);
+});
+
+test("a period with no previous period in the data gives the not available answer", () => {
+  for (const period of ["2025", "2025-H1", "2025-01"] as const) {
+    for (const kpi_id of ["improvement_on_time_service_cycles", "improvement_service_requests", "improvement_scan_coverage"]) {
+      const answer = result(runKpi(kpi_id, { ...NORTHSTAR, period, compare_to: "previous_period" }));
+      assert.equal(answer.value, null);
+      assert.equal(answer.detail, null);
+      assert.equal(answer.not_evaluated_reason, "not available: the data holds 2025 only");
+    }
+  }
+  const january = result(runKpi("improvement_scan_coverage", { ...NORTHSTAR, period: "2025-01" }));
+  assert.equal(january.not_evaluated_reason, "not available: the data holds 2025 only");
+});
+
+test("H2 against H1 is only for all of 2025 and H2 2025", () => {
+  for (const period of ["2025-H1", "2025-07"] as const) {
+    const answer = result(runKpi("improvement_scan_coverage", { ...NORTHSTAR, period, compare_to: "h2_vs_h1" }));
+    assert.equal(answer.value, null);
+    assert.equal(answer.detail, null);
+    assert.match(answer.not_evaluated_reason ?? "", /H2 2025 against H1 2025/);
+  }
+});
+
+test("compare_to none gives no comparison and says so", () => {
+  const answer = result(runKpi("improvement_service_requests", { ...NORTHSTAR, period: "2025-03", compare_to: "none" }));
+  assert.equal(answer.value, null);
+  assert.equal(answer.detail, null);
+  assert.match(answer.not_evaluated_reason ?? "", /No comparison/);
+  assert.throws(() => runKpi("improvement_service_requests", { ...NORTHSTAR, compare_to: "year_on_year" as "none" }), /compare_to/);
+});
+
+test("other KPIs ignore compare_to, and listKpis lists it for the 3 period comparisons only", () => {
+  close(value("on_time_service_cycle_share", { ...NORTHSTAR, compare_to: "previous_period" }), 0.983264);
+  const withCompareTo = listKpis("KAM").filter((k) => k.parameters.includes("compare_to")).map((k) => k.id);
+  assert.deepEqual(withCompareTo, ["improvement_on_time_service_cycles", "improvement_service_requests", "improvement_scan_coverage"]);
+});
+
+test("only Site results carry the Site chance caveat", () => {
+  const chance = "About 1 in 20 Sites shows a clear change by chance alone.";
+  const turku = { customer_id: "CUST001", site_id: "S002" };
+  for (const query of [NORTHSTAR, { ...NORTHSTAR, compare_to: "none" as const }, { ...NORTHSTAR, period: "2025-01" as const }]) {
+    for (const kpi_id of ["improvement_on_time_service_cycles", "improvement_service_requests", "improvement_scan_coverage"]) {
+      assert.ok(!result(runKpi(kpi_id, query)).caveats.includes(chance), `${kpi_id} ${JSON.stringify(query)}`);
+      assert.ok(result(runKpi(kpi_id, { ...query, scope: turku })).caveats.includes(chance), `${kpi_id} Site`);
+    }
+  }
+});
+
+test("a side under its minimum volume gives not evaluated with the pipeline's reason", () => {
+  const turku = { customer_id: "CUST001", site_id: "S002" };
+  const answer = result(runKpi("improvement_service_requests", { ...NORTHSTAR, period: "2025-03", scope: turku }));
+  assert.equal(answer.value, null);
+  assert.equal(
+    answer.not_evaluated_reason,
+    "515 wearer-months in February 2025, under the minimum of 600. 524 wearer-months in March 2025, under the minimum of 600.",
+  );
+  assert.ok(answer.detail?.kind === "period_comparison");
+  assert.equal(answer.detail.comparison.label, "not_evaluated");
+  assert.equal(answer.detail.comparison.change, -0.19751);
+  assert.equal(answer.detail.comparison.p_value, null);
+});
+
+function comparisonOf(kpi_id: string, query: KpiQuery) {
+  const answer = result(runKpi(kpi_id, query));
+  assert.ok(answer.detail?.kind === "period_comparison", `${kpi_id} has no comparison`);
+  return { answer, comparison: answer.detail.comparison };
+}
+
+test("all of 2025 and H2 2025 give every precomputed H2 against H1 result", () => {
+  const precomputed = getPeriodComparisons().data.results.comparisons.flatMap((c) => [c.customer_result, ...c.site_results]);
+  assert.equal(precomputed.length, 3 * 37);
+  const queries: Partial<KpiQuery>[] = [
+    { period: "2025" },
+    { period: "2025", compare_to: "h2_vs_h1" },
+    { period: "2025-H2" },
+    { period: "2025-H2", compare_to: "h2_vs_h1" },
+    { period: "2025-H2", compare_to: "previous_period" },
+  ];
+  for (const expected of precomputed) {
+    const scope = expected.scope === "customer" ? { customer_id: expected.scope_id } : { customer_id: expected.customer_id, site_id: expected.scope_id };
+    for (const query of queries) {
+      const { answer, comparison } = comparisonOf(expected.comparison_id, { ...NORTHSTAR, ...query, scope });
+      assert.deepEqual(comparison, expected, `${expected.comparison_id} ${expected.scope_id} ${JSON.stringify(query)}`);
+      assert.equal(answer.value, expected.label === "not_evaluated" ? null : expected.change);
+      assert.equal(answer.not_evaluated_reason, expected.not_evaluated_reason);
+    }
+  }
+});
+
+test("a month compares with the month before it by default", () => {
+  const march: KpiQuery = { ...NORTHSTAR, period: "2025-03" };
+  const requests = comparisonOf("improvement_service_requests", march);
+  assert.equal(requests.comparison.label, "worse");
+  assert.equal(requests.comparison.p_value, 0.049722);
+  assert.equal(requests.answer.value, 0.188567);
+  assert.equal(requests.comparison.relative_change, 0.553474);
+  assert.equal(requests.comparison.period.name, "March 2025");
+  assert.equal(requests.comparison.comparison_period.name, "February 2025");
+  assert.deepEqual(requests.comparison.period.counts, { service_requests: 51, wearer_months: 9636 });
+  assert.deepEqual(requests.comparison.comparison_period.counts, { service_requests: 33, wearer_months: 9686 });
+  const onTime = comparisonOf("improvement_on_time_service_cycles", march);
+  assert.equal(onTime.comparison.label, "no_clear_change");
+  assert.equal(onTime.comparison.p_value, 0.169464);
+  assert.equal(onTime.answer.value, -0.008913);
+  const helsinkiScan = comparisonOf("improvement_scan_coverage", { ...march, scope: { customer_id: "CUST001", site_id: "S001" } });
+  assert.equal(helsinkiScan.comparison.label, "no_clear_change");
+  assert.equal(helsinkiScan.answer.value, 0.042472);
+  assert.equal(helsinkiScan.comparison.period.volume, 2086);
+  assert.ok(helsinkiScan.comparison.caveats.includes("About 1 in 20 Sites shows a clear change by chance alone."));
+  const apex = comparisonOf("improvement_service_requests", { ...march, scope: { customer_id: "CUST002" } });
+  assert.equal(apex.comparison.p_value, 1);
+  // The exact p-value is 0.7265625. Like the pipeline, a tie rounds to the even digit.
+  const gdansk = comparisonOf("improvement_service_requests", { ...march, scope: { customer_id: "CUST003", site_id: "S033" } });
+  assert.equal(gdansk.comparison.p_value, 0.726562);
 });
 
 test("the Customer view withholds KAM-only entries and Site-grain period comparisons", () => {

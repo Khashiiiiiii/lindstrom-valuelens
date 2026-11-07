@@ -5,7 +5,7 @@ import type { AccountHealthRating, HealthInputResult } from "./account-health.ts
 import type { FactorCase } from "./footprint-handprint-kpis.ts";
 import type { BaselineId } from "./master-data.ts";
 import { getMasterData } from "./master-data.ts";
-import type { ComparisonResult, ImprovementCatalogueEntry, PeriodComparisons } from "./period-comparisons.ts";
+import type { CompareTo, ComparisonResult, ImprovementCatalogueEntry, PeriodComparisons } from "./period-comparisons.ts";
 import type { CatalogueEntry, DataStatus, Month, ReviewPart, View } from "./processed.ts";
 import { readProcessed } from "./processed.ts";
 
@@ -36,6 +36,8 @@ export interface KpiQuery {
   breakdown?: string;
   /** Replacements postponed per repair (A002). Default from operational-circularity-kpis.json. */
   postponement_ratio?: number;
+  /** Period comparisons only. Default from compare_to.default_rule in period-comparisons.json. */
+  compare_to?: CompareTo;
 }
 
 /** Values a KPI result carries beyond `value`, following the kind of KPI. */
@@ -90,7 +92,7 @@ export interface Withheld {
 export type KpiAnswer = KpiResult | Withheld;
 
 /** The query parameters beyond scope, period and view that a KPI accepts. */
-export type KpiParameter = "baseline_id" | "factor_case" | "unit" | "breakdown" | "postponement_ratio";
+export type KpiParameter = "baseline_id" | "factor_case" | "unit" | "breakdown" | "postponement_ratio" | "compare_to";
 
 /** A KPI's calculation. */
 export type KpiFunction = (query: KpiQuery) => KpiResult;
