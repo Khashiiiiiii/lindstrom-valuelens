@@ -202,6 +202,7 @@ export const DICTIONARY = {
 
   // Assistant
   "AI assistant": { sv: "AI-assistent", fi: "Tekoälyavustaja" },
+  "Close": { sv: "Stäng", fi: "Sulje" },
   "Ask": { sv: "Fråga", fi: "Kysy" },
   "Observations": { sv: "Observationer", fi: "Havainnot" },
   "AI observation {n}": { sv: "AI-observation {n}", fi: "Tekoälyhavainto {n}" },

@@ -1,7 +1,7 @@
 // The Overview's priority blocks as display text in the app language (#28). The figures are the page data's runKpi
 // answers. This module only formats and translates them. Caveats stay English, as the spec sets.
 
-import type { KpiResult } from "../../lib/data.ts";
+import type { KpiResult, SignalGroup } from "../../lib/data.ts";
 import type { Lang } from "../../lib/i18n.ts";
 import { dataLabel, t } from "../../lib/i18n.ts";
 import type { Metadata } from "../../lib/pages/metadata.ts";
@@ -20,14 +20,21 @@ export interface BlockFigure {
   caveats: string[];
 }
 
+export interface GroupCard {
+  name: string;
+  lever: string;
+  owner: string;
+  /** The Sites of the group's fired results, each once, in result order. */
+  sites: string[];
+}
+
 export interface BlockCard {
   position: number;
   /** The priority's name. */
   name: string;
   figures: BlockFigure[];
   /** The top fired signal group that matches the priority, or null. */
-  /** sites names the Sites of the group's fired results, each once, in result order. */
-  signal_group: { name: string; lever: string; owner: string; sites: string[] } | null;
+  signal_group: GroupCard | null;
   /** The text in place of a signal group, when the block has none. */
   no_signal: string | null;
 }
@@ -47,23 +54,31 @@ export function blockCards(lang: Lang, page: OverviewPage, meta: Metadata): Bloc
       name: dataLabel(lang, priority?.name ?? block.priority_id),
       figures: block.answers
         .filter((a): a is KpiResult => !("withheld" in a))
-        .map((result) => ({
-          label: dataLabel(lang, result.name),
-          ...formatValue(lang, result),
-          data_status: dataLabel(lang, result.data_status),
-          baseline: result.detail?.kind === "handprint" ? dataLabel(lang, result.detail.baseline_label) : null,
-          caveats: [...result.caveats],
-        })),
-      signal_group:
-        group && signal
-          ? {
-              name: dataLabel(lang, signal.name),
-              lever: dataLabel(lang, group.lever),
-              owner: t(lang, "Owner: {x}", { x: dataLabel(lang, `${group.lever_owner}_owner`) }),
-              sites: [...new Set(group.results.map((r) => r.site_id))].map((id) => meta.sites.find((s) => s.site_id === id)?.site_name ?? id),
-            }
-          : null,
+        .map((result) => kpiFigure(lang, result)),
+      signal_group: group && signal ? groupCard(lang, group, meta) : null,
       no_signal: group ? null : t(lang, "No fired signal for this priority."),
     };
   });
+}
+
+/** A KPI result as display text: its name, value, unit, data status, baseline and caveats. */
+export function kpiFigure(lang: Lang, result: KpiResult): BlockFigure {
+  return {
+    label: dataLabel(lang, result.name),
+    ...formatValue(lang, result),
+    data_status: dataLabel(lang, result.data_status),
+    baseline: result.detail?.kind === "handprint" ? dataLabel(lang, result.detail.baseline_label) : null,
+    caveats: [...result.caveats],
+  };
+}
+
+/** A signal group as display text: the signal's name, the lever, its owner and the Sites of the fired results. */
+export function groupCard(lang: Lang, group: SignalGroup, meta: Metadata): GroupCard {
+  const signal = meta.signals.find((s) => s.id === group.signal_id);
+  return {
+    name: dataLabel(lang, signal?.name ?? group.signal_id),
+    lever: dataLabel(lang, group.lever),
+    owner: t(lang, "Owner: {x}", { x: dataLabel(lang, `${group.lever_owner}_owner`) }),
+    sites: [...new Set(group.results.map((r) => r.site_id))].map((id) => meta.sites.find((s) => s.site_id === id)?.site_name ?? id),
+  };
 }

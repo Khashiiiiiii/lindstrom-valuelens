@@ -1,0 +1,60 @@
+/* The AI button and the assistant modal (#34), from the prototype's layout D. */
+.ai-fab {
+  position: fixed; right: 26px; bottom: 26px; z-index: 60; width: 58px; height: 58px; padding: 0; border: none;
+  border-radius: 50%; background: linear-gradient(135deg, var(--navy), var(--accent-h)); color: #fff;
+  box-shadow: 0 8px 24px var(--ring); display: flex; align-items: center; justify-content: center;
+  transition: transform .2s;
+}
+.ai-fab:hover:not(:disabled) { background: linear-gradient(135deg, var(--navy), var(--accent-h)); transform: translateY(-2px); }
+.ai-fab svg { width: 26px; height: 26px; }
+.ai-fab.busy::after {
+  content: ""; position: absolute; inset: -5px; border-radius: 50%; border: 3px solid transparent;
+  border-top-color: var(--red); animation: ai-spin 1s linear infinite;
+}
+.ai-dot { position: absolute; top: 3px; right: 3px; width: 13px; height: 13px; border-radius: 50%; background: var(--good); border: 2px solid #fff; }
+
+.ai-backdrop { position: fixed; inset: 0; z-index: 70; background: rgba(15, 18, 30, .28); animation: ai-fade .15s ease-out; }
+.ai-modal {
+  position: fixed; right: 26px; bottom: 98px; z-index: 80; width: min(480px, calc(100vw - 52px));
+  height: min(680px, calc(100vh - 130px)); display: flex; flex-direction: column; overflow: hidden;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 20px; box-shadow: 0 24px 60px rgba(16, 24, 40, .25);
+  animation: ai-pop .18s ease-out; transform-origin: bottom right;
+}
+.ai-head { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.ai-logo { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, var(--c1), var(--c2)); color: #fff; display: inline-flex; align-items: center; justify-content: center; }
+.ai-logo svg { width: 16px; height: 16px; }
+.ai-x { border: none; background: transparent; font-size: 20px; line-height: 1; padding: 2px 10px; }
+.ai-body { flex: 1; overflow: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.ai-body .chip { font-size: 12px; text-align: left; border-radius: 14px; }
+.ai-body .chip:disabled { opacity: .5; cursor: default; }
+.ai-body .note { margin: 0; align-self: flex-start; }
+.ai-bubble { background: var(--hover); border-radius: 14px 14px 14px 4px; padding: 10px 12px; white-space: pre-wrap; animation: ai-pop .2s ease-out; }
+.ai-bubble.me { align-self: flex-end; max-width: 85%; background: var(--accent); color: #fff; border-radius: 14px 14px 4px 14px; }
+.ai-working { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
+.ai-working::before { content: ""; width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--accent-line); border-top-color: var(--accent); animation: ai-spin .8s linear infinite; }
+.ai-error { display: flex; align-items: center; gap: 10px; padding: 10px 12px; }
+.ai-error span { flex: 1; }
+.ai-sources summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text2); }
+.ai-source { border-top: 1px solid var(--line); padding: 8px 0; font-size: 13px; display: flex; flex-direction: column; gap: 2px; }
+.ai-source:first-of-type { border-top: none; }
+.ai-group { padding: 12px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; box-shadow: inset 4px 0 0 var(--red), var(--shadow); }
+.ai-foot { border-top: 1px solid var(--line); padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; }
+.ai-row { display: flex; gap: 8px; align-items: flex-end; }
+.ai-row textarea { flex: 1; font: inherit; resize: none; border: 1px solid var(--line); border-radius: var(--r-sm); padding: 8px 10px; background: var(--panel); color: var(--text); }
+.ai-row textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--ring); }
+.ai-row textarea:disabled { background: var(--hover); color: var(--muted); }
+.ai-row .primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+.ai-row .primary:hover:not(:disabled) { background: var(--accent-h); }
+.ai-row .primary:disabled { opacity: .5; cursor: default; }
+.ai-context { font-size: 12px; }
+
+@keyframes ai-spin { to { transform: rotate(360deg); } }
+@keyframes ai-fade { from { opacity: 0; } }
+@keyframes ai-pop { from { opacity: 0; transform: translateY(8px) scale(.98); } }
+
+/* Reduced motion: no movement. The busy ring stays, still, so a running request still shows. */
+@media (prefers-reduced-motion: reduce) {
+  .ai-fab, .ai-backdrop, .ai-modal, .ai-bubble { transition: none; animation: none; }
+  .ai-fab:hover:not(:disabled) { transform: none; }
+  .ai-fab.busy::after, .ai-working::before { animation: none; }
+}
