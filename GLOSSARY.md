@@ -69,7 +69,7 @@ A short statement the LLM writes from KPI, opportunity signal or period comparis
 _Avoid_: Insight, AI finding, recommendation
 
 **Assistant answer**:
-The LLM's reply to a prompt the KAM or Customer decision-maker writes. It follows the same rules as an AI observation, and it may also change the Customer priorities the dashboard shows.
+The LLM's reply to a prompt the KAM or Customer decision-maker writes. It follows the same rules as an AI observation, and it may also change the Customer priorities the dashboard shows. Each prompt stands alone: the LLM sees no earlier prompt or answer, so there is no conversation.
 _Avoid_: Insight, chat response, AI summary
 
 **Lever**:
