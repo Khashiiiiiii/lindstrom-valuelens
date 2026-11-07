@@ -1,0 +1,14 @@
+{
+  "name": "lindstrom-valuelens",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "preprocess": "python scripts/preprocess.py",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test 'lib/**/*.test.ts'"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "typescript": "^7.0.2"
+  }
+}

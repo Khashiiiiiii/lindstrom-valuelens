@@ -1,0 +1,822 @@
+{
+  "catalogue": [],
+  "data": {
+    "assumptions": [
+      {
+        "assumption": "Default comparison baseline",
+        "assumption_id": "A001",
+        "category": "Business decision",
+        "confidence": "Medium",
+        "rationale": "Local laundry is the default; user may select home or in-house.",
+        "treatment": "Editable",
+        "value_or_rule": "Outsourced local laundry"
+      },
+      {
+        "assumption": "Repair handprint",
+        "assumption_id": "A002",
+        "category": "Handprint",
+        "confidence": "Low-Medium",
+        "rationale": "Prototype assumption; not an audited avoided-purchase claim.",
+        "treatment": "Sensitivity-test",
+        "value_or_rule": "1 completed repair postpones 1 replacement event"
+      },
+      {
+        "assumption": "Waste attribution",
+        "assumption_id": "A003",
+        "category": "Waste",
+        "confidence": "Medium",
+        "rationale": "Source waste is laundry-level; customer result is estimated.",
+        "treatment": "Required disclosure",
+        "value_or_rule": "Laundry waste allocated by customer share of washed kg"
+      },
+      {
+        "assumption": "Waste baseline",
+        "assumption_id": "A004",
+        "category": "Handprint",
+        "confidence": "Low-Medium",
+        "rationale": "Illustrative linear scenario; adjust by market where evidence exists.",
+        "treatment": "Editable",
+        "value_or_rule": "100% mixed-waste treatment in baseline"
+      },
+      {
+        "assumption": "Product footprint",
+        "assumption_id": "A005",
+        "category": "Product",
+        "confidence": "Low",
+        "rationale": "Structurally representative only, not approved product footprints.",
+        "treatment": "Replace for production",
+        "value_or_rule": "Synthetic kgCO2e values by product"
+      },
+      {
+        "assumption": "Customer hierarchy",
+        "assumption_id": "A006",
+        "category": "Architecture",
+        "confidence": "High",
+        "rationale": "Hackathon demonstrates value of hierarchy; does not solve enterprise master data.",
+        "treatment": "Prototype",
+        "value_or_rule": "Synthetic parent customer/site hierarchy"
+      },
+      {
+        "assumption": "Industry emphasis",
+        "assumption_id": "A007",
+        "category": "Personalization",
+        "confidence": "Medium",
+        "rationale": "Industry rules guide display; they do not provide legal advice.",
+        "treatment": "Review",
+        "value_or_rule": "Rules use customer industry and stated priority"
+      },
+      {
+        "assumption": "Data status",
+        "assumption_id": "A008",
+        "category": "Credibility",
+        "confidence": "High",
+        "rationale": "Measured, calculated, allocated, estimated and synthetic must remain visible.",
+        "treatment": "Mandatory",
+        "value_or_rule": "Every output retains source/status label"
+      }
+    ],
+    "baselines": [
+      {
+        "assumption_note": "No systematic repair; textile waste assumed mixed waste. Values illustrative.",
+        "baseline_id": "B_LOCAL",
+        "baseline_name": "Outsourced local laundry",
+        "delivery_kgco2e_per_kg": 0.035,
+        "energy_kwh_per_kg": 1.05,
+        "mixed_waste_share": 1,
+        "process_kgco2e_per_kg": 0.62,
+        "selection_status": "DEFAULT",
+        "water_l_per_kg": 9.5
+      },
+      {
+        "assumption_note": "53% load-utilization concept; no centralized delivery; no systematic repair. Values illustrative.",
+        "baseline_id": "B_HOME",
+        "baseline_name": "Home washing",
+        "delivery_kgco2e_per_kg": 0,
+        "energy_kwh_per_kg": 1.18,
+        "mixed_waste_share": 1,
+        "process_kgco2e_per_kg": 0.78,
+        "selection_status": "OPTION",
+        "water_l_per_kg": 20
+      },
+      {
+        "assumption_note": "Customer-operated laundry scenario; no systematic repair. Values illustrative.",
+        "baseline_id": "B_INHOUSE",
+        "baseline_name": "In-house customer laundry",
+        "delivery_kgco2e_per_kg": 0.015,
+        "energy_kwh_per_kg": 1.12,
+        "mixed_waste_share": 1,
+        "process_kgco2e_per_kg": 0.68,
+        "selection_status": "OPTION",
+        "water_l_per_kg": 12.5
+      }
+    ],
+    "customers": [
+      {
+        "customer_id": "CUST001",
+        "customer_name": "NorthStar Foods Group",
+        "data_status": "SYNTHETIC",
+        "hq_country": "Finland",
+        "industry": "Food & Beverage",
+        "priority_topics": [
+          "Water efficiency",
+          "Hygiene",
+          "Service continuity",
+          "Scope 3 evidence"
+        ],
+        "segment": "Strategic High Value"
+      },
+      {
+        "customer_id": "CUST002",
+        "customer_name": "Apex Industrial Systems",
+        "data_status": "SYNTHETIC",
+        "hq_country": "Sweden",
+        "industry": "Manufacturing",
+        "priority_topics": [
+          "Cost optimization",
+          "Garment utilization",
+          "Repair",
+          "Safety"
+        ],
+        "segment": "High Value"
+      },
+      {
+        "customer_id": "CUST003",
+        "customer_name": "Mediora Health Network",
+        "data_status": "SYNTHETIC",
+        "hq_country": "Poland",
+        "industry": "Healthcare",
+        "priority_topics": [
+          "Hygiene",
+          "Compliance",
+          "Traceability",
+          "Service reliability"
+        ],
+        "segment": "High Value"
+      }
+    ],
+    "data_quality": [
+      {
+        "confidence": "High",
+        "dataset": "Customers",
+        "fields": "customer_id/site_id/industry",
+        "note": "Complete fictional master data",
+        "status": "SYNTHETIC"
+      },
+      {
+        "confidence": "Medium",
+        "dataset": "Service_Activity",
+        "fields": "wearers/allocation/washing",
+        "note": "Patterns informed by available Tableau structures",
+        "status": "SYNTHETIC_STRUCTURAL"
+      },
+      {
+        "confidence": "Medium",
+        "dataset": "Service_Cycles",
+        "fields": "scan timestamps/cycle hours",
+        "note": "No personal or real asset identifiers",
+        "status": "SYNTHETIC_STRUCTURAL"
+      },
+      {
+        "confidence": "Medium",
+        "dataset": "Repairs",
+        "fields": "repair count/type/product/site",
+        "note": "Granularity validated by report structure",
+        "status": "SYNTHETIC_STRUCTURAL"
+      },
+      {
+        "confidence": "Medium",
+        "dataset": "Laundry_Resources",
+        "fields": "water/energy/emissions",
+        "note": "Scenario values patterned on calculator structure",
+        "status": "SYNTHETIC_FACTOR"
+      },
+      {
+        "confidence": "Medium",
+        "dataset": "Waste_Circularity",
+        "fields": "treatment routes",
+        "note": "Laundry-level allocation logic retained",
+        "status": "SYNTHETIC_STRUCTURAL"
+      },
+      {
+        "confidence": "Low-Medium",
+        "dataset": "Customer_Impacts",
+        "fields": "allocated footprint/handprint",
+        "note": "Depends on baseline and allocation assumptions",
+        "status": "CALCULATED_ESTIMATE"
+      }
+    ],
+    "default_baseline_id": "B_LOCAL",
+    "industry_priorities": [
+      {
+        "dashboard_emphasis": "Show service continuity, food-industry garment control and hygiene-related performance.",
+        "industry": "Food & Beverage",
+        "priority_rank": 1,
+        "priority_theme": "Hygiene and compliance"
+      },
+      {
+        "dashboard_emphasis": "Prioritize water use/savings and washed-kg efficiency.",
+        "industry": "Food & Beverage",
+        "priority_rank": 2,
+        "priority_theme": "Water efficiency"
+      },
+      {
+        "dashboard_emphasis": "Highlight turnaround, service-request-free days and delivery performance.",
+        "industry": "Food & Beverage",
+        "priority_rank": 3,
+        "priority_theme": "Service reliability"
+      },
+      {
+        "dashboard_emphasis": "Highlight unused allocation, garments per wearer and optimization potential.",
+        "industry": "Manufacturing",
+        "priority_rank": 1,
+        "priority_theme": "Cost and allocation efficiency"
+      },
+      {
+        "dashboard_emphasis": "Highlight repairs, postponed replacements and circularity value.",
+        "industry": "Manufacturing",
+        "priority_rank": 2,
+        "priority_theme": "Repair and lifetime"
+      },
+      {
+        "dashboard_emphasis": "Highlight product/service reliability and exception signals.",
+        "industry": "Manufacturing",
+        "priority_rank": 3,
+        "priority_theme": "Safety and availability"
+      },
+      {
+        "dashboard_emphasis": "Prioritize garment flow, service-cycle completion and traceability.",
+        "industry": "Healthcare",
+        "priority_rank": 1,
+        "priority_theme": "Hygiene and traceability"
+      },
+      {
+        "dashboard_emphasis": "Highlight turnaround and reliable availability.",
+        "industry": "Healthcare",
+        "priority_rank": 2,
+        "priority_theme": "Service continuity"
+      },
+      {
+        "dashboard_emphasis": "Highlight transparent sources, data quality and reporting boundaries.",
+        "industry": "Healthcare",
+        "priority_rank": 3,
+        "priority_theme": "Compliance-ready evidence"
+      }
+    ],
+    "laundries": [
+      {
+        "country": "Finland",
+        "country_code": "FI",
+        "laundry_id": "L001",
+        "laundry_name": "Aurora Helsinki WWS",
+        "note": "Synthetic WWS laundry A"
+      },
+      {
+        "country": "Finland",
+        "country_code": "FI",
+        "laundry_id": "L002",
+        "laundry_name": "Aurora Turku WWS",
+        "note": "Synthetic WWS laundry B"
+      },
+      {
+        "country": "Sweden",
+        "country_code": "SE",
+        "laundry_id": "L003",
+        "laundry_name": "Nordic Malmö WWS",
+        "note": "Synthetic WWS laundry C"
+      },
+      {
+        "country": "Poland",
+        "country_code": "PL",
+        "laundry_id": "L004",
+        "laundry_name": "Vistula Warsaw WWS",
+        "note": "Synthetic WWS laundry D"
+      }
+    ],
+    "months": [
+      "2025-01",
+      "2025-02",
+      "2025-03",
+      "2025-04",
+      "2025-05",
+      "2025-06",
+      "2025-07",
+      "2025-08",
+      "2025-09",
+      "2025-10",
+      "2025-11",
+      "2025-12"
+    ],
+    "product_presets": [
+      {
+        "name": "Food industry garments",
+        "preset_id": "food_industry_garments",
+        "product_ids": [
+          "P1004"
+        ]
+      },
+      {
+        "name": "Safety garments",
+        "preset_id": "safety_garments",
+        "product_ids": [
+          "P1003",
+          "P1006"
+        ]
+      },
+      {
+        "name": "Healthcare garments",
+        "preset_id": "healthcare_garments",
+        "product_ids": [
+          "P1005"
+        ]
+      }
+    ],
+    "products": [
+      {
+        "avg_weight_kg": 0.85,
+        "material_note": "poly-cotton",
+        "product_group": "Jackets",
+        "product_id": "P1001",
+        "product_name": "Work Jacket Standard",
+        "synthetic_product_footprint_kgco2e": 18.5,
+        "synthetic_purchase_cost_eur": 54
+      },
+      {
+        "avg_weight_kg": 0.62,
+        "material_note": "poly-cotton",
+        "product_group": "Trousers",
+        "product_id": "P1002",
+        "product_name": "Work Trouser Standard",
+        "synthetic_product_footprint_kgco2e": 13.2,
+        "synthetic_purchase_cost_eur": 39
+      },
+      {
+        "avg_weight_kg": 0.95,
+        "material_note": "polyester blend",
+        "product_group": "Hi-Vis",
+        "product_id": "P1003",
+        "product_name": "High-Visibility Jacket",
+        "synthetic_product_footprint_kgco2e": 24.8,
+        "synthetic_purchase_cost_eur": 78
+      },
+      {
+        "avg_weight_kg": 0.55,
+        "material_note": "poly-cotton",
+        "product_group": "Food Industry",
+        "product_id": "P1004",
+        "product_name": "Food Industry Coat",
+        "synthetic_product_footprint_kgco2e": 11.4,
+        "synthetic_purchase_cost_eur": 34
+      },
+      {
+        "avg_weight_kg": 0.38,
+        "material_note": "poly-cotton",
+        "product_group": "Healthcare",
+        "product_id": "P1005",
+        "product_name": "Healthcare Tunic",
+        "synthetic_product_footprint_kgco2e": 8.2,
+        "synthetic_purchase_cost_eur": 28
+      },
+      {
+        "avg_weight_kg": 1.15,
+        "material_note": "poly-cotton",
+        "product_group": "Coveralls",
+        "product_id": "P1006",
+        "product_name": "Protective Coverall",
+        "synthetic_product_footprint_kgco2e": 29,
+        "synthetic_purchase_cost_eur": 92
+      }
+    ],
+    "site_type_groups": [
+      {
+        "customer_id": "CUST001",
+        "site_count": 6,
+        "site_ids": [
+          "S003",
+          "S008",
+          "S012",
+          "S015",
+          "S021",
+          "S023"
+        ],
+        "site_type": "Distribution Center"
+      },
+      {
+        "customer_id": "CUST001",
+        "site_count": 11,
+        "site_ids": [
+          "S001",
+          "S004",
+          "S005",
+          "S010",
+          "S013",
+          "S014",
+          "S017",
+          "S019",
+          "S020",
+          "S022",
+          "S024"
+        ],
+        "site_type": "Office & Operations"
+      },
+      {
+        "customer_id": "CUST001",
+        "site_count": 7,
+        "site_ids": [
+          "S002",
+          "S006",
+          "S007",
+          "S009",
+          "S011",
+          "S016",
+          "S018"
+        ],
+        "site_type": "Production Plant"
+      },
+      {
+        "customer_id": "CUST002",
+        "site_count": 5,
+        "site_ids": [
+          "S026",
+          "S027",
+          "S028",
+          "S029",
+          "S030"
+        ],
+        "site_type": "Manufacturing Plant"
+      },
+      {
+        "customer_id": "CUST002",
+        "site_count": 1,
+        "site_ids": [
+          "S025"
+        ],
+        "site_type": "Service Center"
+      },
+      {
+        "customer_id": "CUST003",
+        "site_count": 2,
+        "site_ids": [
+          "S033",
+          "S034"
+        ],
+        "site_type": "Central Laundry Hub"
+      },
+      {
+        "customer_id": "CUST003",
+        "site_count": 2,
+        "site_ids": [
+          "S031",
+          "S032"
+        ],
+        "site_type": "Hospital"
+      }
+    ],
+    "sites": [
+      {
+        "city": "Helsinki",
+        "country": "Finland",
+        "customer_id": "CUST001",
+        "data_status": "SYNTHETIC",
+        "primary_laundry_id": "L001",
+        "site_id": "S001",
+        "site_name": "NorthStar Helsinki",
+        "site_type": "Office & Operations"
+      },
+      {
+        "city": "Turku",
+        "country": "Finland",
+        "customer_id": "CUST001",
+        "data_status": "SYNTHETIC",
+        "primary_laundry_id": "L001",
+        "site_id": "S002",
+        "site_name": "NorthStar Turku",
+        "site_type": "Production Plant"
+      },
+      {
+        "city": "Tampere",
+        "country": "Finland",
+        "customer_id": "CUST001",
+        "data_status": "SYNTHETIC",
+        "primary_laundry_id": "L001",
+        "site_id": "S003",
+        "site_name": "NorthStar Tampere",
+        "site_type": "Distribution Center"
+      },
+      {
+        "city": "Oulu",
+        "country": "Finland",
+        "customer_id": "CUST001",
+        "data_status": "SYNTHETIC",
+        "primary_laundry_id": "L001",
+        "site_id": "S004",
+        "site_name": "NorthStar Oulu",
+        "site_type": "Office & Operations"
+      },
+      {
+        "city": "Lahti",
+        "country": "Finland",
+        "customer_id": "CUST001",
+        "data_status": "SYNTHETIC",
+        "primary_laundry_id": "L001",
+        "site_id": "S005",
+        "site_name": "NorthStar Lahti",
+        "site_type": "Office & Operations"
+      },
+      {
+        "city": "Kuopio",
+        "country": "Finland",
+        "customer_id": "CUST001",
+        "data_status": "SYNTHETIC",
+        "primary_laundry_id": "L001",
+        "site_id": "S006",
+        "site_name": "NorthStar Kuopio",
+        "site_type": "Production Plant"
+      },
+      {
+        "city": "Vaasa",
+        "country": "Finland",
+        "customer_id": "CUST001",
+        "data_status": "SYNTHETIC",
+        "primary_laundry_id": "L001",
+        "site_id": "S007",
+        "site_name": "NorthStar Vaasa",
+        "site_type": "Production Plant"
+      },
+      {
+        "city": "Pori",
+        "country": "Finland",
+        "customer_id": "CUST001",
+        "data_status": "SYNTHETIC",
+        "primary_laundry_id": "L001",
+        "site_id": "S008",
+        "site_name": "NorthStar Pori",
+        "site_type": "Distribution Center"
+      },
+      {
+        "city": "Jyväskylä",
+        "country": "Finland",
+        "customer_id": "CUST001",
+        "data_status": "SYNTHETIC",
+        "primary_laundry_id": "L001",
+        "site_id": "S009",
+        "site_name": "NorthStar Jyväskylä",
+        "site_type": "Production Plant"
+      },
+      {
+        "city": "Kotka",
+        "country": "Finland",
+        "customer_id": "CUST001",
+        "data_status": "SYNTHETIC",
+        "primary_laundry_id": "L001",
+        "site_id": "S010",
+        "site_name": "NorthStar Kotka",
+        "site_type": "Office & Operations"
+      },
+      {
+        "city": "Lappeenranta",
+        "country": "Finland",
+        "customer_id": "CUST001",
+        "data_status": "SYNTHETIC",
+        "primary_laundry_id": "L001",
+        "site_id": "S011",
+        "site_name": "NorthStar Lappeenranta",
+        "site_type": "Production Plant"
+      },
+      {
+        "city": "Seinäjoki",
+        "country": "Finland",
+        "customer_id": "CUST001",
+        "data_status": "SYNTHETIC",
+        "primary_laundry_id": "L001",
+        "site_id": "S012",
+        "site_name": "NorthStar Seinäjoki",
+        "site_type": "Distribution Center"
+      },
+      {
+        "city": "Malmö",
+        "country": "Sweden",
+        "customer_id": "CUST001",
+        "data_status": "SYNTHETIC",
+        "primary_laundry_id": "L003",
+        "site_id": "S013",
+        "site_name": "NorthStar Malmö",
+        "site_type": "Office & Operations"
+      },
+      {
+        "city": "Gothenburg",
+        "country": "Sweden",
+        "customer_id": "CUST001",
+        "data_status": "SYNTHETIC",
+        "primary_laundry_id": "L003",
+        "site_id": "S014",
+        "site_name": "NorthStar Gothenburg",
+        "site_type": "Office & Operations"
+      },
+      {
+        "city": "Stockholm",
+        "country": "Sweden",
+        "customer_id": "CUST001",
+        "data_status": "SYNTHETIC",
+        "primary_laundry_id": "L003",
+        "site_id": "S015",
+        "site_name": "NorthStar Stockholm",
+        "site_type": "Distribution Center"
+      },
+      {
+        "city": "Uppsala",
+        "country": "Sweden",
+        "customer_id": "CUST001",
+        "data_status": "SYNTHETIC",
+        "primary_laundry_id": "L003",
+        "site_id": "S016",
+        "site_name": "NorthStar Uppsala",
+        "site_type": "Production Plant"
+      },
+      {
+        "city": "Örebro",
+        "country": "Sweden",
+        "customer_id": "CUST001",
+        "data_status": "SYNTHETIC",
+        "primary_laundry_id": "L003",
+        "site_id": "S017",
+        "site_name": "NorthStar Örebro",
+        "site_type": "Office & Operations"
+      },
+      {
+        "city": "Västerås",
+        "country": "Sweden",
+        "customer_id": "CUST001",
+        "data_status": "SYNTHETIC",
+        "primary_laundry_id": "L003",
+        "site_id": "S018",
+        "site_name": "NorthStar Västerås",
+        "site_type": "Production Plant"
+      },
+      {
+        "city": "Warsaw",
+        "country": "Poland",
+        "customer_id": "CUST001",
+        "data_status": "SYNTHETIC",
+        "primary_laundry_id": "L004",
+        "site_id": "S019",
+        "site_name": "NorthStar Warsaw",
+        "site_type": "Office & Operations"
+      },
+      {
+        "city": "Poznań",
+        "country": "Poland",
+        "customer_id": "CUST001",
+        "data_status": "SYNTHETIC",
+        "primary_laundry_id": "L004",
+        "site_id": "S020",
+        "site_name": "NorthStar Poznań",
+        "site_type": "Office & Operations"
+      },
+      {
+        "city": "Wrocław",
+        "country": "Poland",
+        "customer_id": "CUST001",
+        "data_status": "SYNTHETIC",
+        "primary_laundry_id": "L004",
+        "site_id": "S021",
+        "site_name": "NorthStar Wrocław",
+        "site_type": "Distribution Center"
+      },
+      {
+        "city": "Gdańsk",
+        "country": "Poland",
+        "customer_id": "CUST001",
+        "data_status": "SYNTHETIC",
+        "primary_laundry_id": "L004",
+        "site_id": "S022",
+        "site_name": "NorthStar Gdańsk",
+        "site_type": "Office & Operations"
+      },
+      {
+        "city": "Kraków",
+        "country": "Poland",
+        "customer_id": "CUST001",
+        "data_status": "SYNTHETIC",
+        "primary_laundry_id": "L004",
+        "site_id": "S023",
+        "site_name": "NorthStar Kraków",
+        "site_type": "Distribution Center"
+      },
+      {
+        "city": "Łódź",
+        "country": "Poland",
+        "customer_id": "CUST001",
+        "data_status": "SYNTHETIC",
+        "primary_laundry_id": "L004",
+        "site_id": "S024",
+        "site_name": "NorthStar Łódź",
+        "site_type": "Office & Operations"
+      },
+      {
+        "city": "Malmö",
+        "country": "Sweden",
+        "customer_id": "CUST002",
+        "data_status": "SYNTHETIC",
+        "primary_laundry_id": "L003",
+        "site_id": "S025",
+        "site_name": "Apex Malmö",
+        "site_type": "Service Center"
+      },
+      {
+        "city": "Gothenburg",
+        "country": "Sweden",
+        "customer_id": "CUST002",
+        "data_status": "SYNTHETIC",
+        "primary_laundry_id": "L003",
+        "site_id": "S026",
+        "site_name": "Apex Gothenburg",
+        "site_type": "Manufacturing Plant"
+      },
+      {
+        "city": "Stockholm",
+        "country": "Sweden",
+        "customer_id": "CUST002",
+        "data_status": "SYNTHETIC",
+        "primary_laundry_id": "L003",
+        "site_id": "S027",
+        "site_name": "Apex Stockholm",
+        "site_type": "Manufacturing Plant"
+      },
+      {
+        "city": "Örebro",
+        "country": "Sweden",
+        "customer_id": "CUST002",
+        "data_status": "SYNTHETIC",
+        "primary_laundry_id": "L003",
+        "site_id": "S028",
+        "site_name": "Apex Örebro",
+        "site_type": "Manufacturing Plant"
+      },
+      {
+        "city": "Västerås",
+        "country": "Sweden",
+        "customer_id": "CUST002",
+        "data_status": "SYNTHETIC",
+        "primary_laundry_id": "L003",
+        "site_id": "S029",
+        "site_name": "Apex Västerås",
+        "site_type": "Manufacturing Plant"
+      },
+      {
+        "city": "Uppsala",
+        "country": "Sweden",
+        "customer_id": "CUST002",
+        "data_status": "SYNTHETIC",
+        "primary_laundry_id": "L003",
+        "site_id": "S030",
+        "site_name": "Apex Uppsala",
+        "site_type": "Manufacturing Plant"
+      },
+      {
+        "city": "Warsaw",
+        "country": "Poland",
+        "customer_id": "CUST003",
+        "data_status": "SYNTHETIC",
+        "primary_laundry_id": "L004",
+        "site_id": "S031",
+        "site_name": "Mediora Warsaw",
+        "site_type": "Hospital"
+      },
+      {
+        "city": "Kraków",
+        "country": "Poland",
+        "customer_id": "CUST003",
+        "data_status": "SYNTHETIC",
+        "primary_laundry_id": "L004",
+        "site_id": "S032",
+        "site_name": "Mediora Kraków",
+        "site_type": "Hospital"
+      },
+      {
+        "city": "Gdańsk",
+        "country": "Poland",
+        "customer_id": "CUST003",
+        "data_status": "SYNTHETIC",
+        "primary_laundry_id": "L004",
+        "site_id": "S033",
+        "site_name": "Mediora Gdańsk",
+        "site_type": "Central Laundry Hub"
+      },
+      {
+        "city": "Poznań",
+        "country": "Poland",
+        "customer_id": "CUST003",
+        "data_status": "SYNTHETIC",
+        "primary_laundry_id": "L004",
+        "site_id": "S034",
+        "site_name": "Mediora Poznań",
+        "site_type": "Central Laundry Hub"
+      }
+    ]
+  },
+  "meta": {
+    "name": "master-data",
+    "source_file": "Lindstrom_SinceAI_Customer_Value_Synthetic_Data_Pack.xlsx",
+    "source_sha256": "b50603f7112956bbd49d81f6e83d1e3879be8329e2076c1b7aee9d861e08e217"
+  }
+}
