@@ -58,3 +58,9 @@
   .ai-fab:hover:not(:disabled) { transform: none; }
   .ai-fab.busy::after, .ai-working::before { animation: none; }
 }
+
+/* The Observations tab (#35). */
+.ai-head .seg button { padding: 4px 12px; font-size: 12px; }
+.ai-body .ai-row { align-items: center; }
+.ai-body .banner { margin: 0; }
+.ai-observation { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; border-top: 1px solid var(--line); }

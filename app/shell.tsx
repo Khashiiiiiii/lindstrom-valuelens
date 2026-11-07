@@ -21,6 +21,7 @@ import type { PageId } from "./menu.ts";
 import { menuItems, translationNote } from "./menu.ts";
 import type { PageAction, PageState } from "./page-state.ts";
 import { pageRequest, pageState } from "./page-state.ts";
+import { PriorityBanner } from "./priority-banner.tsx";
 
 /** The Customer the app opens on: NorthStar Foods Group, the demo Customer. */
 const FIRST_CUSTOMER_ID = "CUST001";
@@ -198,6 +199,7 @@ export function Shell({ children }: { children: ReactNode }) {
             </div>
           )}
           {note && <div className="note">{note}</div>}
+          {state?.undo && <PriorityBanner lang={lang} onUndo={() => dispatch({ type: "undo" })} />}
           {error && <div className="card warn">{error}</div>}
           {state && meta ? (
             <DashboardContext.Provider value={{ lang, state, dispatch, meta }}>{children}</DashboardContext.Provider>

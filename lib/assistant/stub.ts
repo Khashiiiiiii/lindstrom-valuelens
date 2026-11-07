@@ -5,12 +5,14 @@
 // Test hooks, read from the prompt:
 // - A prompt with "error" in it fails with a timeout.
 // - The steering committee prompt has an unmatched number.
+// - A prompt with "focus" or "priorit" in it that names Customer priorities moves them to the top, in the order the
+//   prompt names them (#35). The suggested water and emissions prompt does this.
 
-import type { KpiAnswer, KpiQuery } from "../data.ts";
+import type { CustomerPriorityId, KpiAnswer, KpiQuery } from "../data.ts";
 import { firstScreen, getMasterData, runKpi, signalGroups } from "../data.ts";
 import type { PageRequest } from "../pages/request.ts";
 import { BadRequest, pageScope, parsePageRequest } from "../pages/request.ts";
-import type { AssistantAnswer, AssistantError, AssistantFailure, ObservationsReply } from "./contract.ts";
+import type { AssistantAnswer, AssistantError, AssistantFailure, ObservationsReply, PriorityChange } from "./contract.ts";
 
 export interface StubReply<T> {
   status: number;
@@ -36,7 +38,7 @@ export function stubAnswer(body: unknown): StubReply<AssistantAnswer> {
         answer: `STUB ANSWER to "${prompt}" For ${customer.customer_name} in ${request.period}: ${figures.slice(0, 3).join("; ")}.`,
         sources,
         signal_groups: groups.slice(0, 2),
-        priority_change: null,
+        priority_change: stubPriorityChange(prompt, screen.priority_ids),
         unmatched_numbers: /steering/i.test(prompt) ? ["12%"] : [],
       },
     };
@@ -61,6 +63,33 @@ export function stubObservations(body: unknown): StubReply<ObservationsReply> {
       },
     };
   });
+}
+
+/** The words in a prompt that name each Customer priority. */
+const PRIORITY_WORDS: [RegExp, CustomerPriorityId][] = [
+  [/water/i, "water"],
+  [/emission|co2|carbon/i, "emissions"],
+  [/circular|repair|waste/i, "circularity"],
+  [/reliab|on-time|late|turnaround/i, "service_reliability"],
+  [/utili[sz]|allocation/i, "garment_utilisation"],
+  [/trace|scan/i, "traceability"],
+  [/improv/i, "improvement"],
+];
+
+/**
+ * For a focus prompt, the priorities it names in the order it names them, then the rest of the current list. Null
+ * when the prompt asks for no focus, names no priority, or leaves the order as it is.
+ */
+function stubPriorityChange(prompt: string, current: CustomerPriorityId[]): PriorityChange | null {
+  if (!/focus|priorit/i.test(prompt)) return null;
+  const named = PRIORITY_WORDS.flatMap(([words, id]) => {
+    const at = prompt.search(words);
+    return at < 0 ? [] : [{ at, id }];
+  })
+    .sort((a, b) => a.at - b.at)
+    .map((n) => n.id);
+  const priorities = [...new Set([...named, ...current])];
+  return priorities.join() === current.join() ? null : { priorities };
 }
 
 /**

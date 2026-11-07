@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import type { AssistantAnswer } from "../../lib/assistant/contract.ts";
+import type { AssistantAnswer, Observation } from "../../lib/assistant/contract.ts";
 import { runKpi, signalGroups } from "../../lib/data.ts";
 import { metadataPage } from "../../lib/pages/metadata.ts";
-import { answerCard } from "./answer-cards.ts";
+import { answerCard, observationCard } from "./answer-cards.ts";
 
 const query = { scope: { customer_id: "CUST001" }, period: "2025", view: "Customer" } as const;
 const meta = metadataPage({ customer_id: "CUST001", period: "2025", view: "Customer" });
@@ -55,4 +55,10 @@ test("a signal group in the answer shows as a group card with its lever, owner a
       sites: ["NorthStar Pori", "NorthStar Gdańsk", "NorthStar Kraków", "NorthStar Lahti"],
     },
   ]);
+});
+
+test("an observation shows as an answer card, with its sources, warning and group cards", () => {
+  const observation: Observation = { text: answer.answer, sources: answer.sources, signal_groups: answer.signal_groups, unmatched_numbers: ["12%"] };
+  assert.deepEqual(observationCard("sv", observation, meta), answerCard("sv", { ...answer, unmatched_numbers: ["12%"] }, meta));
+  assert.equal(observationCard("en", observation, meta).warning, "Numbers not found in the sources: 12%");
 });

@@ -1,7 +1,7 @@
 // An Assistant answer as display text in the app language (#34). The answer text and caveats stay English, as the
 // spec sets. The figures are the sources' runKpi answers. This module only formats and translates them.
 
-import type { AssistantAnswer } from "../../lib/assistant/contract.ts";
+import type { AssistantAnswer, Observation } from "../../lib/assistant/contract.ts";
 import type { KpiAnswer } from "../../lib/data.ts";
 import type { Lang } from "../../lib/i18n.ts";
 import { dataLabel, t } from "../../lib/i18n.ts";
@@ -32,6 +32,12 @@ export function answerCard(lang: Lang, answer: AssistantAnswer, meta: Metadata):
         : t(lang, "Numbers not found in the sources: {x}", { x: answer.unmatched_numbers.join(", ") }),
     groups: answer.signal_groups.map((group) => groupCard(lang, group, meta)),
   };
+}
+
+/** An AI observation as the same card as an answer (#35). */
+export function observationCard(lang: Lang, observation: Observation, meta: Metadata): AnswerCard {
+  const { text, ...rest } = observation;
+  return answerCard(lang, { answer: text, ...rest, priority_change: null }, meta);
 }
 
 /** A source's figure, or for a Withheld source its KPI id as words and "KAM view only". */

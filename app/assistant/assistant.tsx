@@ -1,29 +1,49 @@
 "use client";
 
-// The round AI button and the assistant modal's Ask tab (#34). The modal posts to /api/assistant in the contract's
-// shapes (#15). One request runs at a time. The state rules are in assistant-state.ts and the display text in
-// answer-cards.ts.
+// The round AI button and the assistant modal (#34, #35). The Ask tab posts to /api/assistant and the Observations
+// tab to /api/observations, in the contract's shapes (#15). One request runs at a time. A reply's priority_change
+// applies to the page at once, with Undo. A view or Customer change clears the modal and drops a pending reply. The
+// state rules are in assistant-state.ts and the display text in answer-cards.ts.
 
 import "./assistant.css";
 
 import { useEffect, useReducer, useRef, useState } from "react";
 
-import type { AssistantAnswer, AssistantError, AssistantFailure, AssistantRequest } from "../../lib/assistant/contract.ts";
+import type {
+  AssistantAnswer,
+  AssistantError,
+  AssistantFailure,
+  AssistantRequest,
+  ObservationsReply,
+  ObservationsRequest,
+} from "../../lib/assistant/contract.ts";
 import { SUGGESTED_PROMPTS } from "../../lib/assistant/contract.ts";
 import type { Lang } from "../../lib/i18n.ts";
 import { monthName, t } from "../../lib/i18n.ts";
 import { translationNote } from "../menu.ts";
 import type { PageState } from "../page-state.ts";
 import { pageRequest } from "../page-state.ts";
+import { PriorityBanner } from "../priority-banner.tsx";
 import { errorMessage, useDashboard } from "../shell.tsx";
 import type { AnswerCard, SourceCard } from "./answer-cards.ts";
-import { answerCard } from "./answer-cards.ts";
+import { answerCard, observationCard } from "./answer-cards.ts";
+import type { AssistantTab } from "./assistant-state.ts";
 import { assistantState, INITIAL, workingSeconds } from "./assistant-state.ts";
+
+const TABS: { tab: AssistantTab; label: "Ask" | "Observations" }[] = [
+  { tab: "ask", label: "Ask" },
+  { tab: "observations", label: "Observations" },
+];
 
 /** The AI button at the bottom right and, when it is open, the modal over the page. */
 export function Assistant() {
-  const { lang, state: page, meta } = useDashboard();
+  const { lang, state: page, dispatch: pageDispatch, meta } = useDashboard();
   const [state, dispatch] = useReducer(assistantState, INITIAL);
+  // The answer and observations belong to one Customer and view. A switch clears them during this render, so a
+  // KAM-only answer never shows in the Customer view, not even for one frame.
+  if (state.scope?.customer_id !== page.customer_id || state.scope.view !== page.view) {
+    dispatch({ type: "scope", customer_id: page.customer_id, view: page.view });
+  }
   const [draft, setDraft] = useState("");
   const [now, setNow] = useState(0);
   const lastId = useRef(0);
@@ -47,10 +67,18 @@ export function Assistant() {
     return () => removeEventListener("keydown", onKey);
   }, [state.open]);
 
-  // The prompt box takes the focus when the modal opens and when a reply arrives.
+  // The prompt box takes the focus when the modal opens on the Ask tab and when a reply arrives.
   useEffect(() => {
     if (state.open && !busy) promptBox.current?.focus();
-  }, [state.open, busy]);
+  }, [state.open, busy, state.tab]);
+
+  // A reply's priority_change applies to the page at once. The reducer drops a reply that a view or Customer change
+  // made stale, so its change never applies. A new answer is a new object, so each change applies once.
+  useEffect(() => {
+    const change = state.answer?.priority_change;
+    if (change) pageDispatch({ type: "assistant priorities", priorities: change.priorities });
+    // pageDispatch is the shell's reducer dispatch, which never changes.
+  }, [state.answer]);
 
   function ask(prompt: string) {
     if (busy || prompt.trim() === "") return;
@@ -59,8 +87,20 @@ export function Assistant() {
     setNow(at);
     setDraft("");
     dispatch({ type: "ask", prompt, request_id, at });
-    postAssistant(assistantRequest(prompt.trim(), page)).then(
+    postJson<AssistantAnswer>("/api/assistant", assistantRequest(prompt.trim(), page)).then(
       (answer) => dispatch({ type: "answer", request_id, answer }),
+      (error: AssistantFailure) => dispatch({ type: "failed", request_id, error }),
+    );
+  }
+
+  function observe() {
+    if (busy) return;
+    const request_id = ++lastId.current;
+    const at = Date.now();
+    setNow(at);
+    dispatch({ type: "observe", request_id, at });
+    postJson<ObservationsReply>("/api/observations", observationsRequest(page)).then(
+      (reply) => dispatch({ type: "observations", request_id, observations: reply.observations }),
       (error: AssistantFailure) => dispatch({ type: "failed", request_id, error }),
     );
   }
@@ -68,6 +108,7 @@ export function Assistant() {
   const customer = meta.customers.find((c) => c.customer_id === page.customer_id);
   const site = meta.sites.find((s) => s.site_id === page.site_id);
   const card = state.answer && answerCard(lang, state.answer, meta);
+  const working = busy && <div className="ai-working">{t(lang, "Working... {n} s", { n: workingSeconds(state, now) })}</div>;
   const note = translationNote(lang);
   const title = t(lang, "AI assistant");
 
@@ -83,31 +124,67 @@ export function Assistant() {
               </span>
               <b>{title}</b>
               <span className="grow" />
+              <span className="seg" role="tablist">
+                {TABS.map(({ tab, label }) => (
+                  <button
+                    key={tab}
+                    role="tab"
+                    aria-selected={state.tab === tab}
+                    className={state.tab === tab ? "on" : ""}
+                    onClick={() => dispatch({ type: "tab", tab })}
+                  >
+                    {t(lang, label)}
+                  </button>
+                ))}
+              </span>
               <button className="ai-x" aria-label={t(lang, "Close")} title={t(lang, "Close")} onClick={() => dispatch({ type: "close" })}>
                 &times;
               </button>
             </div>
             <div className="ai-body" aria-live="polite">
               {note && <div className="note">{note}</div>}
-              <div className="muted">{t(lang, "Try one of these:")}</div>
-              <div className="chips">
-                {SUGGESTED_PROMPTS.map((p) => (
-                  <button key={p} className="chip" disabled={busy} onClick={() => ask(p)}>
-                    {p}
-                  </button>
-                ))}
-              </div>
-              {state.prompt !== null && (busy || state.answer || state.error) && <div className="ai-bubble me">{state.prompt}</div>}
-              {busy && <div className="ai-working">{t(lang, "Working... {n} s", { n: workingSeconds(state, now) })}</div>}
-              {state.error && (
-                <div className="card warn ai-error">
-                  <span>{state.error.message}</span>
-                  <button onClick={() => state.prompt !== null && ask(state.prompt)}>{t(lang, "Try again")}</button>
-                </div>
+              {page.undo && <PriorityBanner lang={lang} onUndo={() => pageDispatch({ type: "undo" })} />}
+              {state.tab === "ask" ? (
+                <>
+                  <div className="muted">{t(lang, "Try one of these:")}</div>
+                  <div className="chips">
+                    {SUGGESTED_PROMPTS.map((p) => (
+                      <button key={p} className="chip" disabled={busy} onClick={() => ask(p)}>
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+                  {state.prompt !== null && (state.pending?.kind === "ask" || state.answer || state.error) && (
+                    <div className="ai-bubble me">{state.prompt}</div>
+                  )}
+                  {working}
+                  {state.error && <Failure lang={lang} error={state.error} onRetry={() => state.prompt !== null && ask(state.prompt)} />}
+                  {card && <Answer lang={lang} card={card} />}
+                </>
+              ) : (
+                <>
+                  <div className="ai-row">
+                    <button className="primary" disabled={busy} onClick={observe}>
+                      {t(lang, "Generate observations")}
+                    </button>
+                    {working}
+                  </div>
+                  {state.observations_error && <Failure lang={lang} error={state.observations_error} onRetry={observe} />}
+                  {state.observations === null
+                    ? !busy && !state.observations_error && (
+                        <div className="muted">{t(lang, 'No AI observations yet. They appear only when you click "Generate observations".')}</div>
+                      )
+                    : state.observations.map((o, i) => (
+                        <div key={i} className="ai-observation">
+                          <div className="figlabel">{t(lang, "AI observation {n}", { n: String(i + 1) })}</div>
+                          <Answer lang={lang} card={observationCard(lang, o, meta)} />
+                        </div>
+                      ))}
+                </>
               )}
-              {card && <Answer lang={lang} card={card} />}
             </div>
             <div className="ai-foot">
+              {state.tab === "ask" && (
               <div className="ai-row">
                 <textarea
                   ref={promptBox}
@@ -128,11 +205,12 @@ export function Assistant() {
                   {t(lang, "Ask")}
                 </button>
               </div>
+              )}
               <div className="muted ai-context">
                 {[t(lang, page.view === "KAM" ? "KAM view" : "Customer view"), periodName(lang, page.period), site?.site_name]
                   .filter(Boolean)
                   .join(", ")}
-                . {t(lang, "Each question stands alone.")}
+                .{state.tab === "ask" && ` ${t(lang, "Each question stands alone.")}`}
               </div>
             </div>
           </div>
@@ -181,6 +259,16 @@ function Answer({ lang, card }: { lang: Lang; card: AnswerCard }) {
   );
 }
 
+/** A failed request's message and "Try again". */
+function Failure({ lang, error, onRetry }: { lang: Lang; error: AssistantFailure; onRetry: () => void }) {
+  return (
+    <div className="card warn ai-error">
+      <span>{error.message}</span>
+      <button onClick={onRetry}>{t(lang, "Try again")}</button>
+    </div>
+  );
+}
+
 function Source({ lang, source }: { lang: Lang; source: SourceCard }) {
   if (source.withheld) {
     return (
@@ -215,18 +303,23 @@ function assistantRequest(prompt: string, page: PageState): AssistantRequest {
   return { ...pageRequest(page), prompt, priorities: page.priorities };
 }
 
-/** POST /api/assistant. Rejects with the reply's error, or a model_error when the reply holds none. */
-async function postAssistant(body: AssistantRequest): Promise<AssistantAnswer> {
+/** The request body for "Generate observations" and the page state. */
+function observationsRequest(page: PageState): ObservationsRequest {
+  return { ...pageRequest(page), priorities: page.priorities };
+}
+
+/** POST to an assistant route. Rejects with the reply's error, or a model_error when the reply holds none. */
+async function postJson<T>(route: "/api/assistant" | "/api/observations", body: AssistantRequest | ObservationsRequest): Promise<T> {
   let response: Response;
   try {
-    response = await fetch("/api/assistant", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+    response = await fetch(route, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
   } catch (e) {
     throw { code: "model_error", message: errorMessage(e) } satisfies AssistantFailure;
   }
   const json: unknown = await response.json().catch(() => null);
-  if (response.ok) return json as AssistantAnswer;
+  if (response.ok) return json as T;
   const error = (json as Partial<AssistantError> | null)?.error;
-  throw (error ?? { code: "model_error", message: `/api/assistant answered ${response.status}.` }) satisfies AssistantFailure;
+  throw (error ?? { code: "model_error", message: `${route} answered ${response.status}.` }) satisfies AssistantFailure;
 }
 
 /** The period as the period pills name it: a month name, "H1 2025", "H2 2025" or "2025". */

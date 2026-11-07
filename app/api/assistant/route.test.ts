@@ -28,8 +28,22 @@ test("POST /api/assistant answers each suggested prompt with runKpi answers as i
       const expected = runKpi(source.kpi_id, { scope: { customer_id: "CUST001" }, period: "2025", view: "KAM" });
       assert.deepEqual(source, JSON.parse(JSON.stringify(expected)), `${prompt}: ${source.kpi_id}`);
     }
-    assert.equal(reply.priority_change, null);
   }
+});
+
+test("POST /api/assistant moves the priorities a focus prompt names to the top, and no other suggested prompt changes them", async () => {
+  for (const prompt of SUGGESTED_PROMPTS) {
+    const reply = (await (await post({ ...request, prompt })).json()) as AssistantAnswer;
+    const expected = prompt === SUGGESTED_PROMPTS[1] ? { priorities: ["water", "emissions", "service_reliability"] } : null;
+    assert.deepEqual(reply.priority_change, expected, prompt);
+  }
+});
+
+test("POST /api/assistant adds a named priority that is not in the list, and sends no change when the order stays", async () => {
+  const added = (await (await post({ ...request, prompt: "Prioritise circularity." })).json()) as AssistantAnswer;
+  assert.deepEqual(added.priority_change, { priorities: ["circularity", "water", "service_reliability", "emissions"] });
+  const same = (await (await post({ ...request, prompt: "Focus on water." })).json()) as AssistantAnswer;
+  assert.equal(same.priority_change, null);
 });
 
 test("POST /api/assistant in the Customer view returns account health as a Withheld source", async () => {

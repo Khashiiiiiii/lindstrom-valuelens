@@ -1,5 +1,6 @@
 // The dashboard's page state (#26): the Customer, Site filter, period, view and priority list that every page
-// request carries. The priority list is client state only and is never stored (#13).
+// request carries. The priority list is client state only and is never stored (#13). An assistant priority change
+// (#35) keeps the list from before it, so the KAM can undo it.
 
 import type { CustomerPriorityId, Period } from "../lib/data.ts";
 import type { Metadata } from "../lib/pages/metadata.ts";
@@ -12,6 +13,11 @@ export interface PageState {
   period: Period;
   view: "KAM" | "Customer";
   priorities: CustomerPriorityId[];
+  /**
+   * The priority list from before the assistant's last change, while "Priorities changed by the assistant. Undo."
+   * shows. Null when the assistant has not changed the list, or the KAM has changed it since.
+   */
+  undo: CustomerPriorityId[] | null;
 }
 
 export type PageAction =
@@ -19,11 +25,16 @@ export type PageAction =
   | { type: "site"; site_id: string | null }
   | { type: "period"; period: Period }
   | { type: "view"; view: PageState["view"] }
-  | { type: "priorities"; priorities: CustomerPriorityId[] };
+  /** The KAM's own change to the priority list. */
+  | { type: "priorities"; priorities: CustomerPriorityId[] }
+  /** A reply's priority_change. */
+  | { type: "assistant priorities"; priorities: CustomerPriorityId[] }
+  | { type: "undo" };
 
 /**
  * The state after an action. Before the first Customer, the state is null. A Customer switch loads that
- * Customer's default priorities and clears the Site filter. A view switch keeps the priorities.
+ * Customer's default priorities and clears the Site filter. A view switch keeps the priorities. An assistant
+ * priority change keeps the list before it for Undo, and a KAM change or a Customer switch drops that list.
  */
 export function pageState(state: PageState | null, action: Extract<PageAction, { type: "customer" }>): PageState;
 export function pageState(state: PageState, action: PageAction): PageState;
@@ -36,6 +47,7 @@ export function pageState(state: PageState | null, action: PageAction): PageStat
       period: state?.period ?? "2025",
       view: state?.view ?? "KAM",
       priorities: [...action.customer.default_priorities],
+      undo: null,
     };
   }
   if (state === null) return null;
@@ -47,7 +59,11 @@ export function pageState(state: PageState | null, action: PageAction): PageStat
     case "view":
       return { ...state, view: action.view };
     case "priorities":
-      return { ...state, priorities: [...action.priorities] };
+      return { ...state, priorities: [...action.priorities], undo: null };
+    case "assistant priorities":
+      return { ...state, priorities: [...action.priorities], undo: state.priorities };
+    case "undo":
+      return state.undo === null ? state : { ...state, priorities: state.undo, undo: null };
   }
 }
 

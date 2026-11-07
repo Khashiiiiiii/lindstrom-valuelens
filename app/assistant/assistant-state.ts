@@ -1,34 +1,65 @@
-// The assistant modal's client state (#34): whether the modal is open, the one request that may run, and the last
-// prompt with its answer or error. Each prompt stands alone, so a new prompt replaces the last answer.
+// The assistant modal's client state (#34, #35): whether the modal is open and on which tab, the one request that
+// may run, the last prompt with its answer or error, and the last observations or their error. Each prompt stands
+// alone, so a new prompt replaces the last answer, and each "Generate observations" replaces the last observations.
 
-import type { AssistantAnswer, AssistantFailure } from "../../lib/assistant/contract.ts";
+import type { AssistantAnswer, AssistantFailure, Observation } from "../../lib/assistant/contract.ts";
+
+export type AssistantTab = "ask" | "observations";
+
+/** The Customer and view that the answers and observations belong to. */
+export interface AssistantScope {
+  customer_id: string;
+  view: "KAM" | "Customer";
+}
 
 export interface AssistantState {
   open: boolean;
+  tab: AssistantTab;
   /** The last prompt sent. It shows as the asker's bubble, and "Try again" sends it again. */
   prompt: string | null;
-  /** The request that runs, or null. There is at most one. */
-  pending: { request_id: number; started_at: number } | null;
+  /** The request that runs, or null. There is at most one, a prompt or a "Generate observations". */
+  pending: { kind: "ask" | "observe"; request_id: number; started_at: number } | null;
   answer: AssistantAnswer | null;
   error: AssistantFailure | null;
+  /** Null until the first "Generate observations" reply. They never load with the page. */
+  observations: Observation[] | null;
+  observations_error: AssistantFailure | null;
   /** A reply arrived while the modal was closed. The AI button shows a dot until the modal opens. */
   unread: boolean;
+  /** The scope of the answer and observations, or null before the first scope action. */
+  scope: AssistantScope | null;
 }
 
 export type AssistantAction =
   | { type: "open" }
   | { type: "close" }
+  | { type: "tab"; tab: AssistantTab }
   /** request_id names the request, so a reply to it can be matched. at is the time in ms. */
   | { type: "ask"; prompt: string; request_id: number; at: number }
+  | { type: "observe"; request_id: number; at: number }
   | { type: "answer"; request_id: number; answer: AssistantAnswer }
-  | { type: "failed"; request_id: number; error: AssistantFailure };
+  | { type: "observations"; request_id: number; observations: Observation[] }
+  | { type: "failed"; request_id: number; error: AssistantFailure }
+  /** The page's Customer and view. A change clears the answer and observations and drops the pending request. */
+  | ({ type: "scope" } & AssistantScope);
 
 /** The state before the first request. */
-export const INITIAL: AssistantState = { open: false, prompt: null, pending: null, answer: null, error: null, unread: false };
+export const INITIAL: AssistantState = {
+  open: false,
+  tab: "ask",
+  prompt: null,
+  pending: null,
+  answer: null,
+  error: null,
+  observations: null,
+  observations_error: null,
+  unread: false,
+  scope: null,
+};
 
 /**
- * The state after an action. A prompt while a request runs, or a blank prompt, is ignored. A reply to any request
- * but the pending one is ignored.
+ * The state after an action. A request while one runs, or a blank prompt, is ignored. A reply to any request but
+ * the pending one is ignored, so a reply that a scope change dropped never shows.
  */
 export function assistantState(state: AssistantState, action: AssistantAction): AssistantState {
   switch (action.type) {
@@ -36,16 +67,33 @@ export function assistantState(state: AssistantState, action: AssistantAction): 
       return { ...state, open: true, unread: false };
     case "close":
       return { ...state, open: false };
+    case "tab":
+      return { ...state, tab: action.tab };
     case "ask": {
       const prompt = action.prompt.trim();
       if (state.pending !== null || prompt === "") return state;
-      return { ...state, prompt, pending: { request_id: action.request_id, started_at: action.at }, answer: null, error: null };
+      const pending = { kind: "ask", request_id: action.request_id, started_at: action.at } as const;
+      return { ...state, prompt, pending, answer: null, error: null };
+    }
+    case "observe": {
+      if (state.pending !== null) return state;
+      const pending = { kind: "observe", request_id: action.request_id, started_at: action.at } as const;
+      return { ...state, pending, observations: null, observations_error: null };
     }
     case "answer":
+    case "observations":
     case "failed": {
-      if (state.pending?.request_id !== action.request_id) return state;
-      const reply = action.type === "answer" ? { answer: action.answer, error: null } : { answer: null, error: action.error };
-      return { ...state, ...reply, pending: null, unread: !state.open };
+      const pending = state.pending;
+      if (pending?.request_id !== action.request_id) return state;
+      const replied = { ...state, pending: null, unread: !state.open };
+      if (action.type === "answer") return { ...replied, answer: action.answer };
+      if (action.type === "observations") return { ...replied, observations: action.observations };
+      return pending.kind === "ask" ? { ...replied, error: action.error } : { ...replied, observations_error: action.error };
+    }
+    case "scope": {
+      const scope = { customer_id: action.customer_id, view: action.view };
+      if (state.scope?.customer_id === scope.customer_id && state.scope.view === scope.view) return state;
+      return { ...INITIAL, open: state.open, tab: state.tab, scope };
     }
   }
 }

@@ -289,3 +289,7 @@ body, .nav, .top, .card, .sitetable { transition: background-color .25s, border-
 .nav button.item { width: 100%; background: none; border: 0; font: inherit; text-align: left; cursor: pointer; }
 .nav button.item:disabled { cursor: progress; opacity: .7; }
 .item .ext { margin-left: auto; font-size: 10px; font-weight: 600; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 1px 6px; }
+
+/* "Priorities changed by the assistant. Undo." on the page and in the assistant modal (#35). */
+.banner { display: flex; align-items: center; gap: 10px; padding: 10px 14px; margin-bottom: 14px; background: var(--accent-soft); border: 1px solid var(--accent-line); border-radius: var(--r-sm); }
+.banner span { flex: 1; }
