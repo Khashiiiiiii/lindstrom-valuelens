@@ -23,7 +23,7 @@ export interface Entry {
 
 export const AI_TRANSLATION_NOTE = "AI translation. Caveats and assistant answers are in English.";
 
-export const DICTIONARY: Record<string, Entry> = {
+export const DICTIONARY = {
   // Navigation and header
   "Overview": { sv: "Översikt", fi: "Yleiskatsaus" },
   "Sites": { sv: "Anläggningar", fi: "Toimipaikat" },
@@ -63,7 +63,6 @@ export const DICTIONARY: Record<string, Entry> = {
     sv: "Ingen utlöst signal för den här prioriteringen.",
     fi: "Tälle painopisteelle ei ole lauennutta signaalia.",
   },
-  "may be overstated": { sv: "kan vara överskattad", fi: "voi olla yliarvioitu" },
   "fired results across {n} signals": {
     en: { one: "fired results across {n} signal", other: "fired results across {n} signals" },
     sv: { one: "utlösta resultat i {n} signal", other: "utlösta resultat i {n} signaler" },
@@ -127,10 +126,6 @@ export const DICTIONARY: Record<string, Entry> = {
   "Median hours per stage, by month": {
     sv: "Mediantimmar per steg och månad",
     fi: "Mediaanitunnit vaiheittain kuukausittain",
-  },
-  "Laundry outcome, the Customer cannot influence the route mix.": {
-    sv: "Tvätteriets utfall, kunden kan inte påverka fördelningen.",
-    fi: "Pesulan tulos, asiakas ei voi vaikuttaa jakaumaan.",
   },
   "Compare Sites": { sv: "Jämför anläggningar", fi: "Vertaa toimipaikkoja" },
   "recycling": { en: "Recycling", sv: "Återvinning", fi: "Kierrätys" },
@@ -276,6 +271,15 @@ export const DICTIONARY: Record<string, Entry> = {
   },
   "Improvement service requests": { sv: "Förbättring, serviceärenden", fi: "Parannus, palvelupyynnöt" },
   "Improvement scan coverage": { sv: "Förbättring, skanningstäckning", fi: "Parannus, skannauskattavuus" },
+  "Account health on-time service cycle share": {
+    sv: "Kundhälsa, andel servicecykler i tid",
+    fi: "Asiakkuuden tila, ajallaan toteutuneiden palvelukierrosten osuus",
+  },
+  "Account health service requests per 100 wearers per month": {
+    sv: "Kundhälsa, serviceärenden per 100 bärare och månad",
+    fi: "Asiakkuuden tila, palvelupyynnöt 100 käyttäjää kohden kuukaudessa",
+  },
+  "Account health scan coverage": { sv: "Kundhälsa, skanningstäckning", fi: "Asiakkuuden tila, skannauskattavuus" },
 
   // Units. Pass the value as n to pick the form, for example t(lang, "Sites_unit", { n: 24 }).
   "Sites_unit": {
@@ -311,6 +315,17 @@ export const DICTIONARY: Record<string, Entry> = {
     fi: { one: "pesu vaatetta kohden kuukaudessa", other: "pesua vaatetta kohden kuukaudessa" },
   },
   "per 1,000 packed pieces": { sv: "per 1 000 packade plagg", fi: "1 000 pakattua kappaletta kohden" },
+  "share": { sv: "andel", fi: "osuus" },
+  "rating": { sv: "bedömning", fi: "arvio" },
+  // The symbols read the same in all 3 languages. The entries say so, so the dev warning stays quiet.
+  "kg": { sv: "kg", fi: "kg" },
+  "l": { sv: "l", fi: "l" },
+  "kWh": { sv: "kWh", fi: "kWh" },
+  "kg CO2e": { sv: "kg CO2e", fi: "kg CO2e" },
+  "kg per active wearer": { sv: "kg per aktiv bärare", fi: "kg aktiivista käyttäjää kohden" },
+  "l per active wearer": { sv: "l per aktiv bärare", fi: "l aktiivista käyttäjää kohden" },
+  "kWh per active wearer": { sv: "kWh per aktiv bärare", fi: "kWh aktiivista käyttäjää kohden" },
+  "kg CO2e per active wearer": { sv: "kg CO2e per aktiv bärare", fi: "kg CO2e aktiivista käyttäjää kohden" },
 
   // Signal names, levers and lever owners (opportunity-signals.json). Peers are the Customer's other Sites
   // (ADR 0008).
@@ -366,13 +381,20 @@ export const DICTIONARY: Record<string, Entry> = {
   "Lindström_owner": { en: "Lindström", sv: "Lindström", fi: "Lindström" },
   "Joint_owner": { en: "Joint", sv: "Gemensamt", fi: "Yhteinen" },
   "Owner: {x}": { sv: "Ansvarig: {x}", fi: "Vastuu: {x}" },
+
+  // Baseline labels of the handprint KPIs (runKpi detail.baseline_label)
   "vs outsourced local laundry": {
     sv: "jämfört med lokalt tvätteri på entreprenad",
     fi: "verrattuna ulkoistettuun paikalliseen pesulaan",
   },
+  "vs home washing": { sv: "jämfört med hemtvätt", fi: "verrattuna kotipesuun" },
+  "vs in-house customer laundry": {
+    sv: "jämfört med kundens eget tvätteri",
+    fi: "verrattuna asiakkaan omaan pesulaan",
+  },
 
   // Period comparison labels (period-comparisons.json)
-  "improved": { en: "Improved", sv: "Förbättrad", fi: "Parantunut" },
+  "better": { en: "Better", sv: "Bättre", fi: "Parantunut" },
   "worse": { en: "Worse", sv: "Sämre", fi: "Heikentynyt" },
   "no_clear_change": { en: "No clear change", sv: "Ingen tydlig förändring", fi: "Ei selvää muutosta" },
   "not_evaluated": { en: "Not evaluated", sv: "Ej bedömd", fi: "Ei arvioitu" },
@@ -424,14 +446,6 @@ export const DICTIONARY: Record<string, Entry> = {
     fi: "Säästetyt päästöt kuukausittain, kg CO2e",
   },
   "Full year 2025, by month.": { sv: "Hela 2025, per månad.", fi: "Koko vuosi 2025 kuukausittain." },
-  "Compared with outsourced local laundry. The savings may be overstated.": {
-    sv: "Jämfört med lokalt tvätteri på entreprenad. Besparingen kan vara överskattad.",
-    fi: "Verrattuna ulkoistettuun paikalliseen pesulaan. Säästö voi olla yliarvioitu.",
-  },
-  "Financial value is not shown, because the data holds no Customer cost or price.": {
-    sv: "Ekonomiskt värde visas inte, eftersom datan saknar kundens kostnader och priser.",
-    fi: "Taloudellista arvoa ei näytetä, koska tiedoissa ei ole asiakkaan kustannuksia tai hintoja.",
-  },
   "Largest gap to the Customer's other Sites, by signal": {
     sv: "Största avvikelse mot kundens övriga anläggningar, per signal",
     fi: "Suurin ero asiakkaan muihin toimipaikkoihin signaaleittain",
@@ -446,14 +460,6 @@ export const DICTIONARY: Record<string, Entry> = {
     sv: "Alla siffror kommer från syntetisk data för 2025.",
     fi: "Kaikki luvut perustuvat synteettiseen vuoden 2025 dataan.",
   },
-  "Savings are compared with outsourced local laundry and may be overstated.": {
-    sv: "Besparingar jämförs med lokalt tvätteri på entreprenad och kan vara överskattade.",
-    fi: "Säästöjä verrataan ulkoistettuun paikalliseen pesulaan, ja ne voivat olla yliarvioituja.",
-  },
-  "Customer Experience data is not available yet, so satisfaction is not shown.": {
-    sv: "Data om kundupplevelse finns inte än, så nöjdhet visas inte.",
-    fi: "Asiakaskokemuksen tietoja ei vielä ole, joten tyytyväisyyttä ei näytetä.",
-  },
   "Proposed by Lindström. We agree the final steps together in the meeting.": {
     sv: "Föreslaget av Lindström. Vi kommer överens om de slutliga stegen tillsammans på mötet.",
     fi: "Lindströmin ehdotus. Sovimme lopulliset toimet yhdessä kokouksessa.",
@@ -461,4 +467,4 @@ export const DICTIONARY: Record<string, Entry> = {
   "Sites: {x}": { sv: "Anläggningar: {x}", fi: "Toimipaikat: {x}" },
   "Thank you": { sv: "Tack", fi: "Kiitos" },
   "Questions and discussion": { sv: "Frågor och diskussion", fi: "Kysymykset ja keskustelu" },
-};
+} satisfies Record<string, Entry>;
