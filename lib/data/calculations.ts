@@ -1,4 +1,6 @@
-// The one entry point to the KPI calculations (#12). Every catalogue id maps to one function in its module.
+// The one entry point to the calculations. Every KPI catalogue id maps to one function in its module (#12), and the
+// priority, signal and first-screen functions are re-exported here (#13). views-and-review.ts imports runKpi from
+// this module, so the two import each other. That is safe because neither calls the other while it loads.
 
 import {
   accountHealth,
@@ -54,6 +56,10 @@ import {
 import type { CatalogueEntry, View } from "./processed.ts";
 import type { KpiAnswer, KpiFunction, KpiParameter, KpiQuery } from "./query.ts";
 import { applyView, resolveScope, withheldInView } from "./query.ts";
+
+export { defaultPriorities, priorityKpis } from "./customer-priorities.ts";
+export { signalGroups, signalResults } from "./opportunity-signals.ts";
+export { firstScreen, proposedNextSteps } from "./views-and-review.ts";
 
 /** A catalogue id's function and the query parameters it reads beyond scope, period and view. */
 interface Registered {

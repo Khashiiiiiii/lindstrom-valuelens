@@ -1,4 +1,4 @@
-// Customer priorities (#7).
+// Customer priorities (#7), and the defaults and KPI sets the first screen reads (#13).
 
 import type { CatalogueEntry, DataStatus, ProcessedFile, View } from "./processed.ts";
 import { readProcessed } from "./processed.ts";
@@ -66,4 +66,49 @@ export interface CustomerPriorities {
 
 export function getCustomerPriorities(): ProcessedFile<CustomerPriorities, CustomerPriorityCatalogueEntry> {
   return readProcessed<CustomerPriorities, CustomerPriorityCatalogueEntry>("customer-priorities");
+}
+
+/** A Customer's default priorities, in order (ADR 0006). Throws on an unknown Customer. */
+export function defaultPriorities(customer_id: string): CustomerPriorityId[] {
+  return [...defaultOrder(customer_id).priority_ids];
+}
+
+/** A Customer's default_order row. Throws on an unknown Customer. */
+function defaultOrder(customer_id: string): DefaultPriorityOrder {
+  const row = getCustomerPriorities().data.default_order.find((o) => o.customer_id === customer_id);
+  if (!row) throw new Error(`Unknown customer_id "${customer_id}".`);
+  return row;
+}
+
+/** The dashboard_emphasis texts for the Customer's industry, or null if it has none. KAM view only. */
+export function dashboardEmphasis(customer_id: string): DashboardEmphasis | null {
+  const { industry } = defaultOrder(customer_id);
+  return getCustomerPriorities().data.dashboard_emphasis.find((d) => d.industry === industry) ?? null;
+}
+
+/** The catalogue entry of a Customer priority, given by its name ("Water") or its id ("water"). Throws on any other. */
+function priorityEntry(priority: string): CustomerPriorityCatalogueEntry {
+  const catalogue = getCustomerPriorities().catalogue;
+  const entry = catalogue.find((e) => e.name === priority || e.id === priority);
+  if (!entry) {
+    throw new Error(`Unknown Customer priority "${priority}". Use one of ${catalogue.map((e) => e.name).join(", ")}.`);
+  }
+  return entry;
+}
+
+/** The KPI set of a Customer priority, given by its name or id, as catalogue ids from the KPI files. */
+export function priorityKpis(priority: string): string[] {
+  return [...priorityEntry(priority).kpi_ids];
+}
+
+/**
+ * The priority ids for a list of priority names or ids, in order. Without a list, the Customer's default
+ * priorities. Throws on an unknown or repeated priority.
+ */
+export function resolvePriorities(customer_id: string, priorities?: string[]): CustomerPriorityId[] {
+  if (priorities === undefined) return defaultPriorities(customer_id);
+  const ids = priorities.map((p) => priorityEntry(p).id);
+  const repeated = ids.filter((id, i) => ids.indexOf(id) !== i);
+  if (repeated.length) throw new Error(`Customer priority "${repeated[0]}" is given more than once.`);
+  return ids;
 }

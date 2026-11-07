@@ -114,7 +114,7 @@ export type {
   PriorityTerm,
   PriorityTermSource,
 } from "./data/customer-priorities.ts";
-export { getCustomerPriorities } from "./data/customer-priorities.ts";
+export { dashboardEmphasis, defaultPriorities, getCustomerPriorities, priorityKpis, resolvePriorities } from "./data/customer-priorities.ts";
 
 export type {
   CustomerSignalRanking,
@@ -123,7 +123,10 @@ export type {
   RankedSignal,
   SignalCatalogueEntry,
   SignalEvaluation,
+  SignalGroup,
+  SignalGroupQuery,
   SignalId,
+  SignalQuery,
   SignalResult,
   SignalSize,
   SignalThresholds,
@@ -131,29 +134,32 @@ export type {
   SiteProductMonthInput,
   TurnaroundByStage,
 } from "./data/opportunity-signals.ts";
-export { getOpportunitySignals } from "./data/opportunity-signals.ts";
+export { getOpportunitySignals, signalGroups, signalResults } from "./data/opportunity-signals.ts";
 
 export type {
   CustomerViewDefaults,
   DataStatusLegendEntry,
   DataTransparencyItem,
   FirstScreen,
+  FirstScreenQuery,
+  FirstScreenResult,
   FirstScreenTile,
   HeadlineKpis,
   PriorityBlock,
+  PriorityBlockResult,
   ProcessedRef,
   ProposedNextStep,
   ResolvedView,
   ReviewConfig,
   ReviewPartConfig,
-  SignalGroup,
   SplitGroup,
   ThresholdAndGuard,
+  TileResult,
   ViewItem,
   ViewsAndReview,
   ViewsConfig,
 } from "./data/views-and-review.ts";
-export { getViewsAndReview } from "./data/views-and-review.ts";
+export { firstScreen, getViewsAndReview, proposedNextSteps } from "./data/views-and-review.ts";
 
 export type {
   KpiAnswer,
