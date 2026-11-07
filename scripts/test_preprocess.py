@@ -291,3 +291,182 @@ def test_catalogue_labels_use_glossary_terms(circularity):
         assert "—" not in text, entry["id"]
         for term in avoid:
             assert not re.search(rf"\b{term}\b", text, re.IGNORECASE), (entry["id"], term)
+
+
+# service-kpis.json
+
+
+@pytest.fixture(scope="module")
+def service(out_dir) -> dict:
+    return json.loads((out_dir / "service-kpis.json").read_text(encoding="utf-8"))
+
+
+def _cycle_totals(facts, **match):
+    rows = [f for f in facts if all(f[k] == v for k, v in match.items())]
+    return sum(f["cycles"] for f in rows), sum(f["late_cycles"] for f in rows)
+
+
+def test_cycles_count_all_sampled_cycles_and_late_ones(service):
+    assert _cycle_totals(service["data"]["cycles"]) == (16415, 275)
+
+
+def test_on_time_share_2025_per_customer(service):
+    facts = [f for f in service["data"]["cycles"] if f["month"].startswith("2025-")]
+    shares = {}
+    for customer_id in ("CUST001", "CUST002", "CUST003"):
+        cycles, late = _cycle_totals(facts, customer_id=customer_id)
+        shares[customer_id] = round(100 * (cycles - late) / cycles, 1)
+    assert shares == {"CUST001": 98.3, "CUST002": 98.3, "CUST003": 98.4}
+
+
+def test_northstar_food_industry_garments_on_time_share(service):
+    facts = service["data"]["cycles"]
+    # 3,694 cycles across all buckets; 5 of them were delivered in January 2026.
+    assert _cycle_totals(facts, customer_id="CUST001", product_id="P1004") == (3694, 71)
+    in_2025 = [f for f in facts if f["month"].startswith("2025-")]
+    cycles, late = _cycle_totals(in_2025, customer_id="CUST001", product_id="P1004")
+    assert (cycles, late) == (3689, 71)
+    assert round(100 * (cycles - late) / cycles, 1) == 98.1
+
+
+def test_cycles_delivered_in_january_2026_keep_their_own_bucket_and_a_note(service):
+    assert _cycle_totals(service["data"]["cycles"], month="2026-01") == (23, 0)
+    notes = service["data"]["data_transparency_notes"]
+    assert [n["id"] for n in notes] == ["cycles_delivered_in_2026_01"]
+    assert "23" in notes[0]["text"] and "2025" in notes[0]["text"]
+
+
+def test_activity_holds_one_row_per_month_site_and_product(service):
+    activity = service["data"]["activity"]
+    assert len(activity) == 1248
+    first = next(r for r in activity if (r["site_id"], r["product_id"], r["month"]) == ("S001", "P1002", "2025-01"))
+    assert first == {
+        "customer_id": "CUST001", "site_id": "S001", "product_id": "P1002", "month": "2025-01",
+        "active_wearers": 654, "allocated_pieces": 723, "active_assets_scanned": 629,
+        "washed_pieces": 1863, "packed_pieces": 1851, "service_requests": 1,
+    }
+
+
+def test_service_requests_total_and_for_northstar(service):
+    activity = service["data"]["activity"]
+    assert sum(r["service_requests"] for r in activity) == 750
+    assert sum(r["service_requests"] for r in activity if r["customer_id"] == "CUST001") == 515
+    assert sum(r["service_requests"] for r in service["data"]["site_month"]) == 750
+
+
+def test_site_month_counts_active_wearers_by_the_largest_product_row(service):
+    site_month = service["data"]["site_month"]
+    assert len(site_month) == 408
+    december = [r for r in site_month if r["customer_id"] == "CUST001" and r["month"] == "2025-12"]
+    assert sum(r["active_wearers"] for r in december) == 9607
+
+
+def test_helsinki_january_garments_per_wearer(service):
+    helsinki = next(r for r in service["data"]["site_month"] if (r["site_id"], r["month"]) == ("S001", "2025-01"))
+    assert (helsinki["allocated_pieces"], helsinki["active_wearers"]) == (2132, 654)
+    assert round(helsinki["allocated_pieces"] / helsinki["active_wearers"], 1) == 3.3
+
+
+def test_turnaround_over_all_sampled_cycles(workbook):
+    stats = preprocess.turnaround_stats(preprocess.cycle_rows(workbook.records("Service_Cycles")))
+    assert stats == {
+        "cycles": 16415,
+        "median_cycle_hours": 82.0,
+        "p90_cycle_hours": 107.0,
+        "median_pickup_to_in_laundry_hours": 22.0,
+        "median_in_laundry_to_out_laundry_hours": 36.0,
+        "median_out_laundry_to_delivered_hours": 24.0,
+    }
+
+
+def _turnaround(service, **match):
+    rows = [r for r in service["data"]["turnaround"] if all(r[k] == v for k, v in match.items())]
+    assert len(rows) == 1, match
+    return rows[0]
+
+
+def test_turnaround_covers_customer_and_site_scopes_products_presets_and_periods(service):
+    rows = service["data"]["turnaround"]
+    assert {r["scope"] for r in rows} == {"customer", "site"}
+    assert {r["product_scope"] for r in rows} == {"all", "product", "preset"}
+    assert {r["period"] for r in rows} == {"2025"} | {f"2025-{m:02d}" for m in range(1, 13)}
+    northstar = _turnaround(service, scope="customer", scope_id="CUST001", product_scope="all", period="2025")
+    assert northstar["cycles"] == 11353
+    assert northstar["customer_id"] == "CUST001"
+
+
+def test_turnaround_for_a_preset_uses_its_products(service):
+    preset = _turnaround(service, scope="customer", scope_id="CUST001", product_scope="preset",
+                         product_scope_id="food_industry_garments", period="2025")
+    product = _turnaround(service, scope="customer", scope_id="CUST001", product_scope="product",
+                          product_scope_id="P1004", period="2025")
+    assert preset["cycles"] == product["cycles"] == 3689
+    assert {k: v for k, v in preset.items() if k not in ("product_scope", "product_scope_id")} == \
+        {k: v for k, v in product.items() if k not in ("product_scope", "product_scope_id")}
+
+
+def test_turnaround_for_a_site_month(service):
+    row = _turnaround(service, scope="site", scope_id="S001", product_scope="all", period="2025-01")
+    assert row["customer_id"] == "CUST001"
+    assert row["cycles"] > 0
+    assert row["median_cycle_hours"] <= row["p90_cycle_hours"]
+
+
+SERVICE_PERFORMANCE_IDS = [
+    "on_time_service_cycle_share",
+    "late_service_cycles",
+    "turnaround_hours_median",
+    "turnaround_hours_90th_percentile",
+    "turnaround_by_stage",
+    "service_requests",
+    "service_requests_per_100_wearers",
+    "service_request_free_site_months",
+]
+SERVICE_ADOPTION_IDS = [
+    "active_wearers",
+    "garments_per_wearer",
+    "scan_coverage",
+    "allocated_garments_with_no_scan_activity",
+    "washes_per_garment",
+    "garments_in_circulation",
+]
+
+
+def test_service_catalogue_holds_the_fourteen_kpis(service):
+    catalogue = service["catalogue"]
+    assert [e["id"] for e in catalogue] == SERVICE_PERFORMANCE_IDS + SERVICE_ADOPTION_IDS
+    areas = {e["id"]: (e["evidence_area"], e["customer_question"]) for e in catalogue}
+    assert areas["late_service_cycles"] == ("Service Performance", "Is the service reliable?")
+    assert areas["scan_coverage"] == ("Service Adoption", "Are we using the service effectively?")
+    for entry in catalogue:
+        assert set(entry) == {
+            "id", "name", "evidence_area", "core_or_industry", "customer_question", "definition", "source_fields",
+            "grain", "view", "review_part", "data_status", "assumptions", "caveats",
+        }
+        assert entry["core_or_industry"] == "Core KPI"
+        assert entry["data_status"] == "SYNTHETIC"
+        assert entry["review_part"] == "Look back"
+        assert entry["grain"] == "Customer, Site, product, month"
+        assert entry["caveats"]
+
+
+def test_turnaround_by_stage_is_kam_only_and_the_rest_are_both(service):
+    views = {e["id"]: e["view"] for e in service["catalogue"]}
+    assert views.pop("turnaround_by_stage") == "KAM"
+    assert set(views.values()) == {"Both"}
+
+
+def test_garments_in_circulation(service):
+    entry = next(e for e in service["catalogue"] if e["id"] == "garments_in_circulation")
+    assert entry["name"] == "Garments in circulation"
+    assert entry["source_fields"] == ["Service_Activity.allocated_pieces"]
+    assert entry["caveats"] == ["Garments assigned to the Customer, not garments in use."]
+
+
+def test_service_kpis_avoid_glossary_terms_and_em_dashes(out_dir):
+    text = (out_dir / "service-kpis.json").read_text(encoding="utf-8").lower()
+    assert "—" not in text
+    # Avoid terms from GLOSSARY.md for the Service terms. "Garments in use" stays in the caveat the decision
+    # wrote for Garments in circulation, where it says what the KPI is not.
+    for term in ("idle", "complaint", "ticket", "unused garments", "fleet", "garment stock", "loop", "rotation"):
+        assert term not in text, term

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { getMasterData, getOperationalCircularityKpis } from "./data.ts";
+import { getMasterData, getOperationalCircularityKpis, getServiceKpis } from "./data.ts";
 
 test("getMasterData reads the generated master data", () => {
   const master = getMasterData();
@@ -27,4 +27,18 @@ test("getOperationalCircularityKpis reads the generated operational and circular
     file.data.laundry_waste_factors.map((f) => f.laundry_id),
     ["L001", "L002", "L003", "L004"],
   );
+});
+
+test("getServiceKpis reads the service performance and adoption KPIs", () => {
+  const service = getServiceKpis();
+  assert.equal(service.meta.name, "service-kpis");
+  assert.equal(service.catalogue.length, 14);
+  assert.equal(service.data.activity.length, 1248);
+  assert.equal(service.data.site_month.length, 408);
+  assert.equal(service.data.cycles.reduce((sum, f) => sum + f.late_cycles, 0), 275);
+  const northstar = service.data.turnaround.find(
+    (r) => r.scope === "customer" && r.scope_id === "CUST001" && r.product_scope === "all" && r.period === "2025",
+  );
+  assert.equal(northstar?.cycles, 11353);
+  assert.equal(service.data.data_transparency_notes[0].id, "cycles_delivered_in_2026_01");
 });
