@@ -1,4 +1,5 @@
-"""Shared helpers: the period rule, the wearer counting rule, product presets and the default baseline (#2)."""
+"""Shared helpers: the period rule, the wearer counting rule, product presets, the default baseline and
+turnaround statistics (#2)."""
 
 from __future__ import annotations
 
@@ -32,6 +33,11 @@ def month_facts(rows: list[Record], keys: list[str], fields: list[str]) -> list[
             fact[f] = round(value, FLOAT_DIGITS) if isinstance(value, float) else value
         facts.append(fact)
     return facts
+
+
+def round_or_none(value: float | None) -> float | None:
+    """value rounded to FLOAT_DIGITS places, or None."""
+    return None if value is None else round(value, FLOAT_DIGITS)
 
 
 def ratio_of_totals(facts: list[Record], numerator: str, denominator: str) -> float | None:
@@ -155,3 +161,38 @@ def cycles_outside_data_months_notes(cycles: list[Record], months: list[str]) ->
         }
         for month, count in sorted(outside.items())
     ]
+
+
+# Turnaround: medians and percentiles of sampled cycles do not add up, so builders precompute them.
+
+TURNAROUND_DIGITS = 1
+CYCLE_STAGES = (
+    ("median_pickup_to_in_laundry_hours", "pickup_timestamp", "in_laundry_timestamp"),
+    ("median_in_laundry_to_out_laundry_hours", "in_laundry_timestamp", "out_laundry_timestamp"),
+    ("median_out_laundry_to_delivered_hours", "out_laundry_timestamp", "delivered_timestamp"),
+)
+
+
+def percentile(values: list[float], q: float) -> float:
+    """The q-th quantile (0 to 1) by linear interpolation between closest ranks; q=0.5 is the median."""
+    if not values:
+        raise ValueError("a percentile needs at least one value")
+    ordered = sorted(values)
+    pos = (len(ordered) - 1) * q
+    low = int(pos)
+    high = min(low + 1, len(ordered) - 1)
+    return ordered[low] + (ordered[high] - ordered[low]) * (pos - low)
+
+
+def turnaround_stats(cycles: list[Record]) -> Record:
+    """Median and 90th percentile of cycle_hours, and the median hours of each stage, over some cycles."""
+    hours = [c["cycle_hours"] for c in cycles]
+    stats: Record = {
+        "cycles": len(cycles),
+        "median_cycle_hours": round(percentile(hours, 0.5), TURNAROUND_DIGITS),
+        "p90_cycle_hours": round(percentile(hours, 0.9), TURNAROUND_DIGITS),
+    }
+    for key, start, end in CYCLE_STAGES:
+        stage = [(c[end] - c[start]).total_seconds() / 3600 for c in cycles]
+        stats[key] = round(percentile(stage, 0.5), TURNAROUND_DIGITS)
+    return stats

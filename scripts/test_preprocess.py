@@ -123,6 +123,7 @@ import pipeline.catalogue  # noqa: E402
 import pipeline.customer_priorities  # noqa: E402
 import pipeline.facts  # noqa: E402
 import pipeline.footprint_handprint_kpis  # noqa: E402
+import pipeline.opportunity_signals  # noqa: E402
 import pipeline.period_comparisons  # noqa: E402
 import pipeline.service_kpis  # noqa: E402
 import pipeline.workbook  # noqa: E402
@@ -375,7 +376,7 @@ def test_helsinki_january_garments_per_wearer(service):
 
 
 def test_turnaround_over_all_sampled_cycles(workbook):
-    stats = pipeline.service_kpis.turnaround_stats(pipeline.facts.cycle_rows(workbook.records("Service_Cycles")))
+    stats = pipeline.facts.turnaround_stats(pipeline.facts.cycle_rows(workbook.records("Service_Cycles")))
     assert stats == {
         "cycles": 16415,
         "median_cycle_hours": 82.0,
@@ -1172,7 +1173,7 @@ def test_kpi_references_fail_on_an_id_no_catalogue_holds():
 
 
 def test_default_order_follows_the_stated_topics_deduplicated_and_skipping_unmapped():
-    order = pipeline.customer_priorities.default_order(
+    order = pipeline.catalogue.default_order(
         ["Cost optimization", "Garment utilization", "Repair", "Safety"],
         ["Cost and allocation efficiency", "Repair and lifetime", "Safety and availability"],
     )
@@ -1184,7 +1185,7 @@ def test_default_order_follows_the_stated_topics_deduplicated_and_skipping_unmap
 
 
 def test_default_order_falls_back_to_the_industry_ranking_only_without_stated_topics():
-    order = pipeline.customer_priorities.default_order(
+    order = pipeline.catalogue.default_order(
         [], ["Hygiene and traceability", "Service continuity", "Compliance-ready evidence"],
     )
     assert order == {
@@ -1196,7 +1197,7 @@ def test_default_order_falls_back_to_the_industry_ranking_only_without_stated_to
 
 def test_a_source_term_missing_from_the_term_map_stops_the_build():
     with pytest.raises(ValueError, match="Hygiene first"):
-        pipeline.customer_priorities.default_order(["Hygiene first"], [])
+        pipeline.catalogue.default_order(["Hygiene first"], [])
 
 
 @pytest.fixture(scope="module")
@@ -1282,3 +1283,265 @@ def test_kpi_references_do_not_count_ids_from_the_referencing_file_itself():
     outputs = {"b": {"catalogue": [{"id": "water"}, {"id": "emissions", "kpi_ids": ["water"]}], "data": {}}}
     with pytest.raises(ValueError, match="'water'"):
         pipeline.catalogue.check_kpi_references(outputs)
+
+
+# opportunity-signals.json
+
+
+def _unit(site_id, value, customer_id="C1", product_id=None, guard_reason=None):
+    return {"customer_id": customer_id, "site_id": site_id, "product_id": product_id, "value": value,
+            "guard_reason": guard_reason}
+
+
+def _by_site(results):
+    return {(r["site_id"], r["product_id"]): r for r in results}
+
+
+def test_a_site_fires_when_its_gap_to_the_median_of_its_other_sites_reaches_the_threshold():
+    units = [_unit("S1", 1.3), _unit("S2", 1.0), _unit("S3", 0.9), _unit("S4", 1.1)]
+    results = _by_site(pipeline.opportunity_signals.compare_with_peers(units, threshold=0.3, minimum_peers=3))
+    s1 = results[("S1", None)]
+    assert (s1["peer_median"], s1["peer_count"], s1["fired"]) == (1.0, 3, True)
+    assert s1["gap"] == pytest.approx(0.3)
+    # S2's peers are S1, S3 and S4 (median 1.1): it sits below them, and rules are one-sided.
+    assert results[("S2", None)]["fired"] is False
+    assert results[("S2", None)]["gap"] == pytest.approx(-1 / 11)
+
+
+def test_peers_are_the_same_customer_and_product_and_a_guarded_site_still_counts_as_a_peer():
+    units = [
+        _unit("S1", 2.0, product_id="P1"),
+        _unit("S2", 1.0, product_id="P1", guard_reason="Under the minimum."),
+        _unit("S3", 1.0, product_id="P1"),
+        _unit("S4", 1.0, product_id="P1"),
+        _unit("S5", 9.0, product_id="P2"),
+        _unit("X1", 9.0, customer_id="C2", product_id="P1"),
+    ]
+    results = _by_site(pipeline.opportunity_signals.compare_with_peers(units, threshold=0.3, minimum_peers=3))
+    assert results[("S1", "P1")]["peer_median"] == 1.0 and results[("S1", "P1")]["fired"] is True
+    guarded = results[("S2", "P1")]
+    assert (guarded["fired"], guarded["gap"], guarded["not_evaluated_reason"]) == (False, None, "Under the minimum.")
+    assert results[("S5", "P2")]["not_evaluated_reason"] == "0 peer Sites, under the minimum of 3."
+
+
+def test_a_zero_peer_median_leaves_the_site_not_evaluated():
+    units = [_unit("S1", 0.2), _unit("S2", 0.0), _unit("S3", 0.0), _unit("S4", 0.0)]
+    s1 = _by_site(pipeline.opportunity_signals.compare_with_peers(units, threshold=0.5, minimum_peers=3))[("S1", None)]
+    assert (s1["gap"], s1["fired"]) == (None, False)
+    assert s1["not_evaluated_reason"] == "The peer median is 0, so no relative gap exists."
+
+
+def test_fired_signals_rank_by_their_highest_matching_priority_then_by_gap():
+    fired = [
+        {"signal_id": "a", "customer_id": "C1", "site_id": "S1", "product_id": None, "gap": 0.9},
+        {"signal_id": "b", "customer_id": "C1", "site_id": "S2", "product_id": None, "gap": 0.2},
+        {"signal_id": "c", "customer_id": "C1", "site_id": "S3", "product_id": None, "gap": 2.0},
+        {"signal_id": "d", "customer_id": "C1", "site_id": "S1", "product_id": None, "gap": 0.5},
+    ]
+    signal_priorities = {"a": ["service_reliability"], "b": ["water"], "c": ["circularity"],
+                         "d": ["garment_utilisation", "water"]}
+    ranking = pipeline.opportunity_signals.rank_fired(fired, signal_priorities, {"C1": ["water", "service_reliability"]})
+    assert [r["customer_id"] for r in ranking] == ["C1"]
+    ranked = ranking[0]["results"]
+    assert [r["signal_id"] for r in ranked] == ["d", "b", "a", "c"]
+    assert [r["rank"] for r in ranked] == [1, 2, 3, 4]
+    assert [r["matched_priority_id"] for r in ranked] == ["water", "water", "service_reliability", None]
+
+
+SIGNAL_IDS = [
+    "garment_allocation_above_peers",
+    "allocated_garments_with_no_scan_activity_above_peers",
+    "washes_per_garment_above_peers",
+    "service_request_rate_above_peers",
+    "late_service_cycles_above_peers",
+    "repair_rate_above_peers",
+]
+
+
+@pytest.fixture(scope="module")
+def signals(out_dir) -> dict:
+    return json.loads((out_dir / "opportunity-signals.json").read_text(encoding="utf-8"))
+
+
+def _signal_results(signals, signal_id):
+    return next(e["results"] for e in signals["data"]["evaluations"] if e["signal_id"] == signal_id)
+
+
+def _fired_names(signals, master, signal_id):
+    sites = _site_names(master)
+    products = {p["product_id"]: p["product_name"] for p in master["data"]["products"]}
+    names = []
+    for r in _signal_results(signals, signal_id):
+        if r["fired"]:
+            product = f" ({products[r['product_id']]})" if r["product_id"] else ""
+            names.append(sites[r["site_id"]] + product)
+    return sorted(names)
+
+
+def test_fired_counts_per_signal_and_customer(signals):
+    counts = {
+        signal_id: [sum(r["fired"] and r["customer_id"] == c for r in _signal_results(signals, signal_id))
+                    for c in ("CUST001", "CUST002", "CUST003")]
+        for signal_id in SIGNAL_IDS
+    }
+    assert list(counts.values()) == [[5, 2, 0], [1, 2, 1], [4, 2, 2], [5, 2, 0], [1, 0, 0], [2, 0, 0]]
+    assert [sum(c[i] for c in counts.values()) for i in range(3)] == [18, 8, 3]
+
+
+def test_fired_sites_match_the_decision(signals, master):
+    assert _fired_names(signals, master, SIGNAL_IDS[0]) == [
+        "Apex Stockholm (Work Trouser Standard)", "Apex Västerås (Work Trouser Standard)",
+        "NorthStar Gothenburg (Work Trouser Standard)", "NorthStar Kraków (Work Jacket Standard)",
+        "NorthStar Lappeenranta (Food Industry Coat)", "NorthStar Malmö (Work Jacket Standard)",
+        "NorthStar Vaasa (Work Jacket Standard)",
+    ]
+    assert _fired_names(signals, master, SIGNAL_IDS[1]) == [
+        "Apex Malmö", "Apex Västerås", "Mediora Poznań", "NorthStar Västerås",
+    ]
+    assert sorted({n.split(" (")[0] for n in _fired_names(signals, master, SIGNAL_IDS[2])}) == [
+        "Apex Uppsala", "Mediora Kraków", "Mediora Poznań", "NorthStar Gdańsk", "NorthStar Kraków",
+        "NorthStar Lahti", "NorthStar Pori",
+    ]
+    assert _fired_names(signals, master, SIGNAL_IDS[3]) == [
+        "Apex Gothenburg", "Apex Västerås", "NorthStar Gdańsk", "NorthStar Lahti", "NorthStar Poznań",
+        "NorthStar Västerås", "NorthStar Łódź",
+    ]
+    assert _fired_names(signals, master, SIGNAL_IDS[4]) == ["NorthStar Pori"]
+    assert _fired_names(signals, master, SIGNAL_IDS[5]) == [
+        "NorthStar Gothenburg (Work Trouser Standard)", "NorthStar Lappeenranta (Food Industry Coat)",
+    ]
+
+
+def test_northstar_ranks_washes_then_service_requests_then_late_cycles(signals):
+    northstar = next(r for r in signals["data"]["ranking"] if r["customer_id"] == "CUST001")
+    assert northstar["priority_order"] == ["water", "service_reliability", "emissions"]
+    sequence = []
+    for result in northstar["results"]:
+        if not sequence or sequence[-1] != result["signal_id"]:
+            sequence.append(result["signal_id"])
+    # Signals 4 and 5 share Service reliability, so their results interleave by gap: NorthStar Pori's late
+    # cycles (gap 0.63) sit between service request results with gaps 0.69 and 0.61.
+    assert sequence == [SIGNAL_IDS[2], SIGNAL_IDS[3], SIGNAL_IDS[4], SIGNAL_IDS[3], SIGNAL_IDS[0], SIGNAL_IDS[1],
+                        SIGNAL_IDS[5]]
+    assert len(northstar["results"]) == 18
+    # Signals 1, 2 and 6 match none of NorthStar's priorities: 5 + 1 + 2 results come last.
+    assert {r["matched_priority_id"] for r in northstar["results"][-8:]} == {None}
+
+
+def test_signals_on_the_same_site_and_product_stay_separate(signals, master):
+    krakow = next(s["site_id"] for s in master["data"]["sites"] if s["site_name"] == "NorthStar Kraków")
+    northstar = next(r for r in signals["data"]["ranking"] if r["customer_id"] == "CUST001")
+    fired = [r["signal_id"] for r in northstar["results"] if r["site_id"] == krakow]
+    assert sorted(fired) == sorted([SIGNAL_IDS[0], SIGNAL_IDS[2]])
+
+
+def test_evaluations_are_ordered_by_gap_with_not_evaluated_last(signals):
+    for evaluation in signals["data"]["evaluations"]:
+        results = evaluation["results"]
+        gaps = [r["gap"] for r in results if r["not_evaluated_reason"] is None]
+        assert gaps == sorted(gaps, reverse=True)
+        first_skipped = next((i for i, r in enumerate(results) if r["not_evaluated_reason"]), len(results))
+        assert all(r["not_evaluated_reason"] for r in results[first_skipped:])
+
+
+def test_mediora_warsaw_late_cycles_are_not_evaluated_under_10_late_cycles(signals, master):
+    warsaw = next(s["site_id"] for s in master["data"]["sites"] if s["site_name"] == "Mediora Warsaw")
+    result = next(r for r in _signal_results(signals, SIGNAL_IDS[4]) if r["site_id"] == warsaw)
+    # The decision notes say 8 late of 349. One of the 349 was delivered in January 2026, so it falls
+    # outside 2025 by the delivery-month rule.
+    assert (result["volume"], result["events"]) == (348, 8)
+    assert result["not_evaluated_reason"] == "8 late cycles, under the minimum of 10."
+    assert set(result["turnaround_by_stage"]) == {
+        "median_pickup_to_in_laundry_hours", "median_in_laundry_to_out_laundry_hours",
+        "median_out_laundry_to_delivered_hours",
+    }
+
+
+def test_size_figures_for_signals_1_to_3(signals):
+    allocation = next(r for r in _signal_results(signals, SIGNAL_IDS[0]) if r["fired"])
+    assert allocation["size"]["garments_above_peer_level"] > 0
+    no_scan = next(r for r in _signal_results(signals, SIGNAL_IDS[1]) if r["fired"])
+    assert no_scan["size"]["allocated_garments_with_no_scan_activity"] > 0
+    washes = next(r for r in _signal_results(signals, SIGNAL_IDS[2]) if r["fired"])
+    assert washes["size"]["data_status"] == "ALLOCATED_ESTIMATE_SYNTHETIC"
+    assert washes["size"]["water_l_above_peer_level"] > 0
+    assert washes["size"]["emissions_kgco2e_above_peer_level"] > 0
+    for signal_id in SIGNAL_IDS[3:]:
+        assert {r["size"] for r in _signal_results(signals, signal_id)} == {None}
+
+
+def test_signal_views_and_review_part(signals):
+    for entry in signals["catalogue"]:
+        assert entry["review_part"] == "Look forward"
+        assert entry["view"] == ("KAM" if entry["id"] == SIGNAL_IDS[3] else "Both")
+        assert (entry["data_status"], entry["threshold_data_status"]) == ("SYNTHETIC", "TEAM_ASSUMPTION")
+        assert entry["rationale"] == (
+            "Roughly the top 10 to 20% of the 2025 synthetic spread. No public benchmark exists."
+        )
+    for evaluation in signals["data"]["evaluations"]:
+        for r in evaluation["results"]:
+            kam_only = evaluation["signal_id"] == SIGNAL_IDS[3] or not r["fired"]
+            assert r["view"] == ("KAM" if kam_only else "Both")
+
+
+def test_signal_catalogue_and_defaults(signals):
+    catalogue = signals["catalogue"]
+    assert [e["id"] for e in catalogue] == SIGNAL_IDS
+    assert [e["lever_owner"] for e in catalogue] == ["Joint", "Joint", "Customer", "Joint", "Lindström", "Joint"]
+    assert [e["customer_priority_ids"] for e in catalogue] == [
+        ["garment_utilisation"], ["garment_utilisation", "traceability"], ["water", "emissions"],
+        ["service_reliability"], ["service_reliability"], ["circularity"],
+    ]
+    defaults = signals["data"]["defaults"]
+    assert (defaults["period"], defaults["minimum_peers"]) == ("2025", 3)
+    assert defaults["signals"][SIGNAL_IDS[3]] == {
+        "threshold": 0.5, "minimum_wearer_months": 1000, "minimum_service_requests": 20,
+    }
+    assert defaults["signals"][SIGNAL_IDS[5]] == {
+        "threshold": 0.15, "minimum_packed_pieces": 1000, "minimum_repairs": 20,
+    }
+    for entry in catalogue:
+        assert entry["id"] == pipeline.catalogue.catalogue_id(entry["name"])
+        assert entry["thresholds"] == defaults["signals"][entry["id"]]
+
+
+def test_signal_inputs_hold_month_components(signals):
+    inputs = signals["data"]["inputs"]
+    assert len(inputs["site_month"]) == 34 * 12
+    assert len(inputs["site_product_month"]) == 1248
+    # The 23 cycles delivered in January 2026 fall outside every 2025 period.
+    assert sum(r["sampled_cycles"] for r in inputs["site_month"]) == 16415 - 23
+
+
+def test_signals_hold_no_euro_amounts_and_avoid_glossary_terms_in_keys(signals):
+    text = json.dumps(signals, ensure_ascii=False).lower()
+    assert "—" not in text
+    assert not re.search(r"\beur\b|euro", text)
+    keys = set()
+
+    def walk(value):
+        if isinstance(value, dict):
+            for k, v in value.items():
+                keys.add(k)
+                walk(v)
+        elif isinstance(value, list):
+            for v in value:
+                walk(v)
+
+    walk(signals)
+    for term in ("insight", "alert", "recommendation", "idle", "unused", "complaint", "baseline", "compare_to"):
+        assert not any(term in k for k in keys), term
+    for entry in signals["catalogue"]:
+        labels = " ".join([entry["name"], entry["lever"], entry["definition"], entry["size"] or "", *entry["caveats"]])
+        for term in ("insight", "alert", "recommendation", "idle", "unused", "complaint", "fix"):
+            assert not re.search(rf"\b{term}\b", labels, re.IGNORECASE), (entry["id"], term)
+
+
+def test_signal_catalogue_names_what_each_guard_counts(signals):
+    washes = next(e for e in signals["catalogue"] if e["id"] == SIGNAL_IDS[2])
+    assert washes["minimum_volume"] == [
+        {"parameter": "minimum_allocated_pieces", "value": 100,
+         "counts": "allocated pieces on the product row, monthly average"},
+    ]
+    requests = next(e for e in signals["catalogue"] if e["id"] == SIGNAL_IDS[3])
+    assert [m["parameter"] for m in requests["minimum_volume"]] == ["minimum_wearer_months", "minimum_service_requests"]

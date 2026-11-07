@@ -25,6 +25,7 @@ from pipeline.customer_priorities import build_customer_priorities
 from pipeline.footprint_handprint_kpis import build_footprint_handprint_kpis
 from pipeline.period_comparisons import build_period_comparisons
 from pipeline.master_data import build_master_data
+from pipeline.opportunity_signals import build_opportunity_signals
 from pipeline.operational_circularity_kpis import build_operational_circularity_kpis
 from pipeline.public_reference import build_public_reference
 from pipeline.service_kpis import build_service_kpis
@@ -56,6 +57,7 @@ BUILDERS: dict[str, Callable[[Workbook], Record]] = {
     "footprint-handprint-kpis": build_footprint_handprint_kpis,
     "period-comparisons": build_period_comparisons,
     "customer-priorities": build_customer_priorities,
+    "opportunity-signals": build_opportunity_signals,
 }
 
 

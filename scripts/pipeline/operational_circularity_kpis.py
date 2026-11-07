@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .catalogue import SUSTAINABILITY_VALUE, kpi
+from .catalogue import OPERATIONAL_VALUE, SUSTAINABILITY_VALUE, kpi
 from .facts import FLOAT_DIGITS, month_facts
 from .workbook import Record, Workbook, month_key
 
@@ -63,7 +63,6 @@ def laundry_waste_factors(waste_circularity: list[Record]) -> list[Record]:
     return rows
 
 
-OPERATIONAL_VALUE = ("Operational Value", "Is the service making operations better?")
 REPAIR_GRAIN = "Customer, Site, product, month, repair type"
 WASTE_GRAIN = "Customer, Site, product, month"
 ALLOCATED_WASTE_CAVEAT = "The Customer's share of laundry waste by washed kg, not waste measured at the Site."

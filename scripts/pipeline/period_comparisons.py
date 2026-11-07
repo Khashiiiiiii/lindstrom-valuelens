@@ -5,7 +5,14 @@ from __future__ import annotations
 import math
 
 from .catalogue import CYCLE_FIELDS, IMPROVEMENT, SAMPLE_CAVEAT, catalogue_id
-from .facts import FLOAT_DIGITS, cycle_rows, cycles_outside_data_months_notes, ratio_of_totals, site_month_facts
+from .facts import (
+    FLOAT_DIGITS,
+    cycle_rows,
+    cycles_outside_data_months_notes,
+    ratio_of_totals,
+    round_or_none,
+    site_month_facts,
+)
 from .workbook import Record, Workbook, data_months, data_year
 
 
@@ -264,22 +271,19 @@ def compare_entity(
     change = None if now is None or before is None else now - before
     relative = None if change is None or not before else change / before
 
-    def rounded(value):
-        return None if value is None else round(value, FLOAT_DIGITS)
-
     return {
         "comparison_id": spec["id"],
         "scope": scope,
         "scope_id": scope_id,
         "customer_id": customer_id,
         "view": "KAM" if scope == "site" else "Both",
-        "period": {"name": period[0], **sides["period"], "value": rounded(now)},
-        "comparison_period": {"name": comparison_period[0], **sides["comparison_period"], "value": rounded(before)},
-        "change": rounded(change),
-        "relative_change": rounded(relative),
+        "period": {"name": period[0], **sides["period"], "value": round_or_none(now)},
+        "comparison_period": {"name": comparison_period[0], **sides["comparison_period"], "value": round_or_none(before)},
+        "change": round_or_none(change),
+        "relative_change": round_or_none(relative),
         "label": label,
         "not_evaluated_reason": reason,
-        "p_value": rounded(p_value),
+        "p_value": round_or_none(p_value),
         "caveats": [c for c in spec["caveats"] if scope == "site" or c != SITE_CHANCE_CAVEAT],
     }
 

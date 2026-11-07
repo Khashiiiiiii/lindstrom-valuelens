@@ -113,3 +113,20 @@ export type {
   PriorityTermSource,
 } from "./data/customer-priorities.ts";
 export { getCustomerPriorities } from "./data/customer-priorities.ts";
+
+export type {
+  CustomerSignalRanking,
+  LeverOwner,
+  OpportunitySignals,
+  RankedSignal,
+  SignalCatalogueEntry,
+  SignalEvaluation,
+  SignalId,
+  SignalResult,
+  SignalSize,
+  SignalThresholds,
+  SiteMonthInput,
+  SiteProductMonthInput,
+  TurnaroundByStage,
+} from "./data/opportunity-signals.ts";
+export { getOpportunitySignals } from "./data/opportunity-signals.ts";

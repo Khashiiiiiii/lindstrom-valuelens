@@ -8,6 +8,7 @@ import {
   getPeriodComparisons,
   getMasterData,
   getOperationalCircularityKpis,
+  getOpportunitySignals,
   getPublicReference,
   getServiceKpis,
 } from "./data.ts";
@@ -145,4 +146,19 @@ test("getCustomerPriorities reads the Customer priorities and each Customer's de
   assert.equal(safety?.priority_id, "unmapped");
   assert.equal(file.data.dashboard_emphasis[0].view, "KAM");
   assert.equal(file.data.cost_note.priority_id, "garment_utilisation");
+});
+
+test("getOpportunitySignals reads the 6 signals, their 2025 evaluation and the ranking", () => {
+  const file = getOpportunitySignals();
+  assert.equal(file.meta.name, "opportunity-signals");
+  assert.equal(file.catalogue.length, 6);
+  assert.equal(file.catalogue[4].lever_owner, "Lindström");
+  assert.equal(file.data.defaults.minimum_peers, 3);
+  const fired = file.data.evaluations.flatMap((e) => e.results).filter((r) => r.fired);
+  assert.equal(fired.length, 29);
+  const northstar = file.data.ranking.find((r) => r.customer_id === "CUST001");
+  assert.equal(northstar?.results[0].signal_id, "washes_per_garment_above_peers");
+  const pori = file.data.evaluations[4].results.find((r) => r.fired);
+  assert.ok(pori?.turnaround_by_stage?.median_in_laundry_to_out_laundry_hours);
+  assert.equal(file.data.inputs.site_month.length, 408);
 });

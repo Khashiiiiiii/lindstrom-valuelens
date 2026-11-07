@@ -5,6 +5,7 @@ from __future__ import annotations
 from .catalogue import ADOPTION, CYCLE_FIELDS, PERFORMANCE, SAMPLE_CAVEAT, catalogue_id
 from .facts import (
     ACTIVITY_FIELDS,
+    turnaround_stats,
     cycle_rows,
     cycles_outside_data_months_notes,
     month_facts,
@@ -12,39 +13,6 @@ from .facts import (
     site_month_facts,
 )
 from .workbook import Record, Workbook, data_months, data_year
-
-
-TURNAROUND_DIGITS = 1
-CYCLE_STAGES = (
-    ("median_pickup_to_in_laundry_hours", "pickup_timestamp", "in_laundry_timestamp"),
-    ("median_in_laundry_to_out_laundry_hours", "in_laundry_timestamp", "out_laundry_timestamp"),
-    ("median_out_laundry_to_delivered_hours", "out_laundry_timestamp", "delivered_timestamp"),
-)
-
-
-def percentile(values: list[float], q: float) -> float:
-    """The q-th quantile (0 to 1) by linear interpolation between closest ranks; q=0.5 is the median."""
-    if not values:
-        raise ValueError("a percentile needs at least one value")
-    ordered = sorted(values)
-    pos = (len(ordered) - 1) * q
-    low = int(pos)
-    high = min(low + 1, len(ordered) - 1)
-    return ordered[low] + (ordered[high] - ordered[low]) * (pos - low)
-
-
-def turnaround_stats(cycles: list[Record]) -> Record:
-    """Median and 90th percentile of cycle_hours, and the median hours of each stage, over some cycles."""
-    hours = [c["cycle_hours"] for c in cycles]
-    stats: Record = {
-        "cycles": len(cycles),
-        "median_cycle_hours": round(percentile(hours, 0.5), TURNAROUND_DIGITS),
-        "p90_cycle_hours": round(percentile(hours, 0.9), TURNAROUND_DIGITS),
-    }
-    for key, start, end in CYCLE_STAGES:
-        stage = [(c[end] - c[start]).total_seconds() / 3600 for c in cycles]
-        stats[key] = round(percentile(stage, 0.5), TURNAROUND_DIGITS)
-    return stats
 
 
 def turnaround_rows(cycles: list[Record], months: list[str], presets: list[Record]) -> list[Record]:
