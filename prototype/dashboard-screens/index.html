@@ -1,0 +1,402 @@
+<!doctype html>
+<!--
+  PROTOTYPE, throw me away. "Dashboard screens" (issue 16).
+  Three layouts of the same dashboard, switchable with ?variant=A|B|C and the bar at the bottom (or the arrow keys).
+  ?page=review opens the print review page. Values are real 2025 runKpi results; the assistant is a stub.
+  A: Top bar, tile grid, chat panel on the right, Site drill-down in a modal.
+  B: Sidebar with selectors, priorities and Sites; the page is ordered by the 5 review parts; chat is a bottom bar.
+  C: Assistant column on the left; the right side is a Sites matrix for the priority KPIs.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ValueLens prototype</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.4 system-ui, sans-serif; color: #1d2733; background: #f3f5f7; }
+  button, select, input, textarea { font: inherit; }
+  button { cursor: pointer; border: 1px solid #c4ccd6; background: #fff; border-radius: 6px; padding: 4px 10px; }
+  button.primary { background: #0b5cad; color: #fff; border-color: #0b5cad; }
+  button:disabled { opacity: .5; cursor: default; }
+  .muted { color: #66717d; font-size: 12px; }
+  .badge { display: inline-block; font-size: 10px; padding: 1px 5px; border-radius: 4px; background: #e6ebf0; color: #445; letter-spacing: .02em; }
+  .badge.est { background: #fff1d6; color: #7a5100; }
+  .badge.kam { background: #efe3ff; color: #5a2b91; }
+  .health { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+  .green { background: #2e9b4f; } .amber { background: #e3a21a; } .red { background: #c9372c; } .not_rated { background: #aaa; }
+  .card { background: #fff; border: 1px solid #dde3ea; border-radius: 8px; padding: 12px; }
+  .value { font-size: 22px; font-weight: 600; }
+  .caveat { font-size: 11px; color: #7a5100; }
+  .warn { background: #fff1d6; border: 1px solid #e3a21a; padding: 6px 8px; border-radius: 6px; font-size: 12px; }
+  .banner { background: #e4f0ff; border: 1px solid #8bb6e8; padding: 6px 10px; border-radius: 6px; }
+  .seg button { border-radius: 0; margin-left: -1px; } .seg button.on { background: #1d2733; color: #fff; }
+  .seg button:first-child { border-radius: 6px 0 0 6px; } .seg button:last-child { border-radius: 0 6px 6px 0; }
+  table { border-collapse: collapse; width: 100%; } th, td { text-align: left; padding: 4px 6px; border-bottom: 1px solid #e6ebf0; font-size: 12px; }
+  tr.click:hover { background: #f0f6ff; cursor: pointer; }
+  .fired { background: #fde8e6; }
+  .modal-bg { position: fixed; inset: 0; background: #0006; display: flex; align-items: center; justify-content: center; z-index: 50; }
+  .modal { background: #fff; border-radius: 10px; padding: 16px; width: min(900px, 94vw); max-height: 86vh; overflow: auto; }
+  .chip { display: inline-block; border: 1px solid #c4ccd6; border-radius: 14px; padding: 2px 10px; margin: 2px; font-size: 12px; background: #fff; cursor: pointer; }
+  .chip.on { background: #1d2733; color: #fff; border-color: #1d2733; }
+  details summary { cursor: pointer; font-size: 12px; color: #0b5cad; }
+  #switcher { position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); background: #111; color: #fff; border-radius: 22px; padding: 6px 10px; display: flex; gap: 10px; align-items: center; box-shadow: 0 4px 16px #0005; z-index: 100; font-size: 13px; }
+  #switcher button { background: #333; color: #fff; border: none; border-radius: 50%; width: 28px; height: 28px; padding: 0; }
+  #switcher a { color: #9cf; }
+
+  /* A */
+  .A-top { position: sticky; top: 0; z-index: 10; background: #1d2733; color: #fff; padding: 8px 16px; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+  .A-top .seg button { background: #2c3a48; color: #fff; border-color: #44546a; } .A-top .seg button.on { background: #fff; color: #1d2733; }
+  .A-body { display: grid; grid-template-columns: 1fr 380px; gap: 16px; padding: 16px; }
+  .A-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .A-blocks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 16px; }
+  .A-chat { position: sticky; top: 64px; height: calc(100vh - 84px); overflow: auto; display: flex; flex-direction: column; gap: 10px; }
+
+  /* B */
+  .B-wrap { display: grid; grid-template-columns: 270px 1fr; min-height: 100vh; }
+  .B-side { background: #fff; border-right: 1px solid #dde3ea; padding: 14px; position: sticky; top: 0; height: 100vh; overflow: auto; }
+  .B-side h4 { margin: 14px 0 4px; font-size: 11px; text-transform: uppercase; color: #66717d; letter-spacing: .05em; }
+  .B-main { padding: 16px 24px 160px; }
+  .B-part { margin-bottom: 26px; } .B-part h2 { font-size: 16px; border-bottom: 2px solid #1d2733; padding-bottom: 4px; }
+  .B-strip { display: flex; gap: 8px; flex-wrap: wrap; } .B-strip .card { flex: 1 1 150px; }
+  .B-bar { position: fixed; left: 270px; right: 0; bottom: 0; background: #fff; border-top: 1px solid #c4ccd6; padding: 10px 24px 60px; z-index: 20; box-shadow: 0 -4px 12px #0001; }
+  .B-sheet { max-height: 40vh; overflow: auto; margin-bottom: 8px; }
+
+  /* C */
+  .C-wrap { display: grid; grid-template-columns: 420px 1fr; height: 100vh; }
+  .C-left { background: #1d2733; color: #e8edf2; padding: 16px; overflow: auto; display: flex; flex-direction: column; gap: 10px; }
+  .C-left .card { color: #1d2733; }
+  .C-left textarea { width: 100%; min-height: 70px; border-radius: 8px; padding: 8px; }
+  .C-right { overflow: auto; padding: 14px 18px 80px; }
+  .C-strip { display: flex; gap: 0; background: #fff; border: 1px solid #dde3ea; border-radius: 8px; overflow: hidden; }
+  .C-strip > div { flex: 1; padding: 8px; border-right: 1px solid #e6ebf0; } .C-strip .value { font-size: 16px; }
+  .C-matrix th { position: sticky; top: 0; background: #f3f5f7; }
+  .C-matrix td.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* Review page */
+  .R { max-width: 860px; margin: 0 auto; background: #fff; padding: 30px 40px; }
+  .R h1 { margin: 0 0 4px; } .R h2 { border-bottom: 2px solid #1d2733; padding-bottom: 4px; margin-top: 30px; }
+  .R .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .R .grp { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: #66717d; }
+  @media print {
+    body { background: #fff; } #switcher, .noprint { display: none !important; }
+    .R { padding: 0; } .R section { break-before: page; } .R section:first-of-type { break-before: auto; }
+    .card { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div id="app">Loading...</div>
+<div id="modal"></div>
+<div id="switcher"></div>
+<script>
+const VARIANTS = { A: "Top bar and tile grid", B: "Review-part sidebar", C: "Assistant and Sites matrix" };
+const url = new URL(location.href);
+const S = {
+  variant: url.searchParams.get("variant") || "A",
+  page: url.searchParams.get("page") || "dashboard",
+  customer_id: "CUST001", site_id: null, period: "2025", view: "KAM",
+  priorities: null, prevPriorities: null, changedByAssistant: false,
+  screen: null, meta: null,
+  busy: null, startedAt: 0, answer: null, error: null, observations: null, requestToken: 0, lastPrompt: "",
+};
+
+const post = (path, body) => fetch(path, { method: "POST", body: JSON.stringify(body) }).then(async (r) => ({ ok: r.ok, json: await r.json() }));
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const prName = (id) => S.meta.priorities.find((p) => p.id === id)?.name ?? id;
+const siteName = (id) => S.meta.sites.find((s) => s.site_id === id)?.site_name ?? id;
+const custSites = () => S.meta.sites.filter((s) => s.customer_id === S.customer_id);
+
+function fmtValue(r) {
+  if (!r) return "";
+  if (r.withheld) return `<span class="badge kam">KAM view only</span>`;
+  if (r.kpi_id === "account_health") { const g = r.detail.rating; return `<span class="health ${g.rating}"></span>${g.rating}`; }
+  if (r.value === null) return `<span class="muted" title="${esc(r.not_evaluated_reason)}">Not evaluated</span>`;
+  const v = r.value;
+  if (r.unit === "share") return `${(v * 100).toFixed(1)}%`;
+  const digits = Math.abs(v) >= 100 ? 0 : 2;
+  return `${v.toLocaleString("en", { maximumFractionDigits: digits })} <span class="muted">${esc(r.unit)}</span>`;
+}
+function status(r) {
+  if (!r || r.withheld) return "";
+  return `<span class="badge ${/ESTIMATE/.test(r.data_status) ? "est" : ""}">${esc(r.data_status)}</span>`;
+}
+function caveats(r, open = false) {
+  if (!r || r.withheld || (!r.caveats.length && !r.assumptions.length)) return "";
+  const base = r.detail?.kind === "handprint" ? `<div class="caveat">${esc(r.detail.baseline_label)}</div>` : "";
+  return base + `<details ${open ? "open" : ""}><summary>${r.caveats.length} caveat(s)${r.assumptions.length ? ", " + r.assumptions.join(", ") : ""}</summary>${r.caveats.map((c) => `<div class="caveat">${esc(c)}</div>`).join("")}</details>`;
+}
+function kpiCard(r, extra = "") {
+  return `<div class="card"><div class="muted">${esc(r.name ?? r.kpi_id)} ${status(r)}</div><div class="value">${fmtValue(r)}</div>${caveats(r)}${extra}</div>`;
+}
+function tileCard(t, onclick = true) {
+  if (t.results) {
+    const click = onclick ? `onclick="drill('${t.results[0].kpi_id}')" style="cursor:pointer"` : "";
+    return `<div class="card" ${click}><div class="muted">${esc(t.name)}</div>${t.results.map((r) => `<div><span class="value">${fmtValue(r)}</span> ${t.results.length > 1 ? `<span class="muted">${esc(r.name)}</span>` : ""} ${status(r)}</div>${caveats(r)}`).join("")}</div>`;
+  }
+  if (t.id === "optimisation_potential") {
+    return `<div class="card" ${onclick ? `onclick="drill('washes_per_garment')" style="cursor:pointer"` : ""}><div class="muted">${esc(t.name)}</div><div class="value">${t.value} <span class="muted">fired results, ${t.signal_count} signals</span></div>${t.top_group ? `<div class="muted">Top: ${esc(t.top_group.name)}</div>` : ""}</div>`;
+  }
+  return `<div class="card"><div class="muted">${esc(t.name)}</div><div class="value">${t.value} <span class="muted">${esc(t.unit)}</span></div></div>`;
+}
+function groupCard(g) {
+  if (!g) return "";
+  return `<div class="card" style="border-left:4px solid #c9372c"><b>${esc(g.name)}</b> <span class="muted">rank ${g.rank}, ${g.fired_count} result(s), matches ${g.matched_priority_id ? esc(prName(g.matched_priority_id)) : "no priority"}</span>
+    <div>Lever: ${esc(g.lever)} <span class="badge">${esc(g.lever_owner)}</span></div>
+    <div class="muted">${g.results.map((r) => `${esc(siteName(r.site_id))}${r.product_id ? " " + r.product_id : ""} +${(r.gap * 100).toFixed(0)}%`).join(", ")}</div></div>`;
+}
+function kamStrip() {
+  const k = S.screen.kam; if (!k) return "";
+  const g = k.account_health.detail.rating;
+  return `<div class="card" style="border:1px dashed #5a2b91"><span class="badge kam">KAM view only</span> <b>Account health</b> <span class="health ${g.rating}"></span>${g.rating}. <span class="muted">${esc(g.reason)} ${esc(g.based_on)}</span>
+    ${k.dashboard_emphasis ? `<div class="muted" style="margin-top:4px">Dashboard emphasis (illustrative): ${k.dashboard_emphasis.texts.map((t) => esc(t.text)).join(" ")}</div>` : ""}</div>`;
+}
+
+// Selectors, shared by every variant so the variants differ in layout, not behaviour.
+function customerSelect() {
+  return `<select onchange="setCustomer(this.value)">${S.meta.customers.map((c) => `<option value="${c.customer_id}" ${c.customer_id === S.customer_id ? "selected" : ""}>${esc(c.customer_name)}</option>`).join("")}</select>`;
+}
+function periodSelect() {
+  const p = [["2025", "2025"], ["2025-H1", "H1"], ["2025-H2", "H2"]];
+  const isMonth = !p.some(([k]) => k === S.period);
+  return `<span class="seg">${p.map(([k, l]) => `<button class="${S.period === k ? "on" : ""}" onclick="set({period:'${k}'})">${l}</button>`).join("")}</span>
+    <select onchange="set({period:this.value})"><option value="">Month</option>${S.meta.months.map((m) => `<option ${m === S.period ? "selected" : ""}>${m}</option>`).join("")}</select>`;
+}
+function viewToggle() {
+  return `<span class="seg">${["KAM", "Customer"].map((v) => `<button class="${S.view === v ? "on" : ""}" onclick="setView('${v}')">${v} view</button>`).join("")}</span>`;
+}
+function siteFilter() {
+  if (!S.site_id) return "";
+  return `<span class="chip on" onclick="set({site_id:null})">Site: ${esc(siteName(S.site_id))} &times;</span>`;
+}
+function priorityBanner() {
+  if (!S.changedByAssistant) return "";
+  return `<div class="banner">Priorities changed by the assistant. <button onclick="undoPriorities()">Undo</button></div>`;
+}
+function priorityEditor(compact = false) {
+  const on = S.priorities;
+  const off = S.meta.priorities.map((p) => p.id).filter((id) => !on.includes(id));
+  return `<div>${on.map((id, i) => `<div style="display:flex;gap:4px;align-items:center;margin:2px 0"><b style="width:16px">${i + 1}</b><span style="flex:1">${esc(prName(id))}</span>
+      <button onclick="movePriority(${i},-1)" ${i === 0 ? "disabled" : ""}>&uarr;</button><button onclick="movePriority(${i},1)" ${i === on.length - 1 ? "disabled" : ""}>&darr;</button><button onclick="removePriority('${id}')">&times;</button></div>`).join("")}
+    <div class="muted" style="margin-top:4px">${compact ? "" : "Add:"} ${off.map((id) => `<span class="chip" onclick="addPriority('${id}')">+ ${esc(prName(id))}</span>`).join("")}</div>
+    <div class="muted">The first 3 make the priority blocks. <a href="#" onclick="resetPriorities();return false">Reset to default</a></div></div>`;
+}
+
+// Assistant pieces, shared.
+function promptBox(id = "prompt", rows = 2) {
+  const busy = !!S.busy;
+  return `<div><textarea id="${id}" rows="${rows}" style="width:100%" placeholder="Ask about this Customer..." ${busy ? "disabled" : ""}>${esc(S.lastPrompt)}</textarea>
+    <div style="display:flex;gap:6px;align-items:center"><button class="primary" onclick="ask(document.getElementById('${id}').value)" ${busy ? "disabled" : ""}>Ask</button>
+    ${busy ? `<span id="working">Working... ${Math.round((Date.now() - S.startedAt) / 1000)} s</span>` : ""}</div>
+    <div>${S.meta.prompts.map((p) => `<span class="chip" onclick="${busy ? "" : `ask(${esc(JSON.stringify(p))})`}">${esc(p)}</span>`).join("")}</div></div>`;
+}
+function observeButton() {
+  return `<button class="primary" onclick="observe()" ${S.busy ? "disabled" : ""}>Generate observations</button>`;
+}
+function sourcesList(sources) {
+  return `<details><summary>${sources.length} source(s)</summary><table>${sources.map((r) => `<tr><td>${esc(r.name ?? r.kpi_id)}</td><td>${fmtValue(r)}</td><td>${status(r)}</td></tr>`).join("")}</table></details>`;
+}
+function answerView() {
+  let h = "";
+  if (S.error) h += `<div class="warn"><b>${esc(S.error.code)}</b>: ${esc(S.error.message)} <button onclick="ask(S.lastPrompt)">Try again</button></div>`;
+  if (S.answer) {
+    const a = S.answer;
+    h += `<div class="card"><div class="muted">Assistant answer to: ${esc(S.lastPrompt)}</div><p>${esc(a.answer)}</p>
+      ${a.unmatched_numbers.length ? `<div class="warn">Numbers not found in the sources: ${a.unmatched_numbers.map(esc).join(", ")}</div>` : ""}
+      ${sourcesList(a.sources)}${a.signal_groups.map(groupCard).join("")}</div>`;
+  }
+  return h;
+}
+function observationsView() {
+  if (!S.observations) return `<div class="muted">No AI observations yet. They appear only when you click "Generate observations".</div>`;
+  return S.observations.map((o, i) => `<div class="card"><div class="muted">AI observation ${i + 1}</div><p>${esc(o.text)}</p>${sourcesList(o.sources)}</div>`).join("");
+}
+
+// ---------------- Variant A ----------------
+function VariantA() {
+  const s = S.screen;
+  return `<div class="A-top"><b>ValueLens</b> ${customerSelect()} ${periodSelect()} ${viewToggle()} ${siteFilter()}
+      <span style="flex:1"></span><button onclick="openPriorities()">Priorities: ${S.priorities.map(prName).join(", ")}</button>
+      <button onclick="drill('active_wearers')">Sites</button><button onclick="openReview()">Print review</button></div>
+    <div class="A-body"><div>
+      ${priorityBanner()}
+      <h3 style="margin:4px 0 8px">${esc(s.customer.customer_name)}${S.site_id ? " / " + esc(siteName(S.site_id)) : ""} <span class="muted">${S.period}, ${S.view} view</span></h3>
+      ${s.kam ? kamStrip() + "<div style='height:10px'></div>" : ""}
+      <div class="A-tiles">${s.tiles.map((t) => tileCard(t)).join("")}</div>
+      <div class="A-blocks">${s.blocks.map((b) => `<div><h4 style="margin:0 0 6px">${b.position}. ${esc(b.name)}</h4>${b.results.map((r) => kpiCard(r)).join("<div style='height:6px'></div>")}<div style='height:6px'></div>${groupCard(b.signal_group)}</div>`).join("")}</div>
+    </div>
+    <div class="A-chat"><div class="card"><b>Assistant</b>${promptBox()}</div>${answerView()}
+      <div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><b>AI observations</b>${observeButton()}</div></div>${observationsView()}</div></div>`;
+}
+
+// ---------------- Variant B ----------------
+function VariantB() {
+  const s = S.screen;
+  const byPart = (part) => s.blocks.flatMap((b) => b.results).filter((r) => r.review_part === part);
+  return `<div class="B-wrap"><div class="B-side">
+      <b>ValueLens</b><h4>Customer</h4>${customerSelect()}<h4>Period</h4>${periodSelect()}<h4>View</h4>${viewToggle()}
+      <h4>Customer priorities</h4>${priorityEditor(true)}
+      <h4>Sites</h4><div style="max-height:260px;overflow:auto"><div class="${!S.site_id ? "chip on" : "chip"}" onclick="set({site_id:null})">All Sites (${custSites().length})</div>
+        ${custSites().map((x) => { const n = s.signal_groups.reduce((k, g) => k + g.results.filter((r) => r.site_id === x.site_id).length, 0);
+          return `<div class="chip ${S.site_id === x.site_id ? "on" : ""}" onclick="set({site_id:'${x.site_id}'})">${esc(x.site_name)}${n ? ` <span style="color:#c9372c">&#9679;${n}</span>` : ""}</div>`; }).join("")}</div>
+      <h4>Export</h4><button onclick="openReview()">Print review</button>
+      <h4>Jump to</h4>${["Look back", "Show value", "Build trust", "Look forward", "Agree actions"].map((p) => `<div><a href="#${p}">${p}</a></div>`).join("")}
+    </div>
+    <div class="B-main">${priorityBanner()}
+      <h2 style="margin-top:0">${esc(s.customer.customer_name)}${S.site_id ? " / " + esc(siteName(S.site_id)) : ""} <span class="muted">${S.period}, ${S.view} view</span></h2>
+      ${kamStrip()}
+      <div class="B-part" id="Look back"><h2>Look back</h2><div class="B-strip">${s.tiles.filter((t) => !["emissions_saved_and_water_saved", "optimisation_potential"].includes(t.id)).map((t) => tileCard(t, false)).join("")}</div>
+        <div class="B-strip" style="margin-top:8px">${byPart("Look back").map((r) => kpiCard(r)).join("")}</div></div>
+      <div class="B-part" id="Show value"><h2>Show value</h2><div class="B-strip">${s.tiles.filter((t) => t.id === "emissions_saved_and_water_saved").map((t) => tileCard(t, false)).join("")}${byPart("Show value").map((r) => kpiCard(r)).join("")}</div>
+        <div class="muted">Priority focus: ${s.blocks.map((b) => `${b.position}. ${esc(b.name)}`).join(", ")}</div></div>
+      <div class="B-part" id="Build trust"><h2>Build trust</h2><div class="muted">Baseline, assumptions, data status legend and data gaps (Data transparency, ${S.view} version).</div></div>
+      <div class="B-part" id="Look forward"><h2>Look forward</h2>${s.tiles.filter((t) => t.id === "optimisation_potential").map((t) => tileCard(t, false)).join("")}
+        ${byPart("Look forward").map((r) => kpiCard(r)).join("")}${s.signal_groups.map(groupCard).join("")}
+        <h3>AI observations ${observeButton()}</h3>${observationsView()}</div>
+      <div class="B-part" id="Agree actions"><h2>Agree actions</h2>${s.next_steps.map((n) => `<div class="card">${n.position}. ${esc(n.lever)} <span class="badge">${esc(n.lever_owner)}</span> <span class="muted">${esc(n.status_text)}</span></div>`).join("")}</div>
+    </div>
+    <div class="B-bar"><div class="B-sheet">${answerView()}</div>${promptBox("prompt", 1)}</div></div>`;
+}
+
+// ---------------- Variant C ----------------
+let C_sites = null;
+function VariantC() {
+  const s = S.screen;
+  const cols = s.blocks.flatMap((b) => b.results.map((r) => ({ block: b, r })));
+  if (!C_sites) loadCSites(cols.map((c) => c.r.kpi_id));
+  const firedFor = (siteRow, kpiIds) => siteRow.fired.length > 0;
+  return `<div class="C-wrap"><div class="C-left">
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><b>ValueLens</b> ${customerSelect()} ${viewToggle()}</div>
+      <div>${periodSelect()}</div>
+      <div class="card">${promptBox("prompt", 3)}</div>${answerView()}
+      <div style="display:flex;justify-content:space-between;align-items:center"><b>AI observations</b>${observeButton()}</div>${observationsView()}
+    </div>
+    <div class="C-right">${priorityBanner()}
+      <div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:4px 0">${esc(s.customer.customer_name)}${S.site_id ? " / " + esc(siteName(S.site_id)) : ""} <span class="muted">${S.period}, ${S.view} view</span> ${siteFilter()}</h3><button onclick="openReview()">Print review</button></div>
+      ${s.kam ? kamStrip() : ""}
+      <div class="C-strip" style="margin:8px 0">${s.tiles.map((t) => `<div><div class="muted">${esc(t.name)}</div><div class="value">${t.results ? t.results.map(fmtValue).join(" / ") : t.value}</div></div>`).join("")}</div>
+      <div style="margin:8px 0"><b>Priorities</b> ${S.meta.priorities.map((p) => { const i = S.priorities.indexOf(p.id); return `<span class="chip ${i >= 0 ? "on" : ""}" onclick="togglePriority('${p.id}')">${i >= 0 ? i + 1 + ". " : ""}${esc(p.name)}</span>`; }).join("")}
+        <span class="muted">Click to add or remove. Order is the click order.</span></div>
+      <table class="C-matrix card"><thead><tr><th>Site</th>${cols.map((c) => `<th>${esc(c.r.name ?? c.r.kpi_id)}<div class="muted">${esc(c.block.name)}</div></th>`).join("")}<th>Fired signals</th></tr></thead><tbody>
+        <tr style="font-weight:600;background:#f7f9fb"><td>All Sites</td>${cols.map((c) => `<td class="num">${fmtValue(c.r)}</td>`).join("")}<td>${s.tiles.find((t) => t.id === "optimisation_potential").value}</td></tr>
+        ${C_sites ? C_sites.map((row) => `<tr class="click ${S.site_id === row.site.site_id ? "fired" : ""}" onclick="set({site_id:'${row.site.site_id}'})"><td>${esc(row.site.site_name)}<div class="muted">${esc(row.site.site_type)}</div></td>
+          ${row.results.map((r) => `<td class="num">${fmtValue(r)}</td>`).join("")}<td>${row.fired.map((f) => `<span class="badge" style="background:#fde8e6" title="${esc(f.name)}">${esc(f.name.replace(" above peers", ""))} +${(f.gap * 100).toFixed(0)}%</span>`).join(" ")}</td></tr>`).join("") : `<tr><td>Loading Sites...</td></tr>`}
+      </tbody></table>
+      <h3>Signal groups</h3>${s.signal_groups.map(groupCard).join("")}
+    </div></div>`;
+}
+async function loadCSites(kpi_ids) {
+  C_sites = [];
+  const r = await post("/api/sites", { customer_id: S.customer_id, period: S.period, view: S.view, priorities: S.priorities, kpi_ids });
+  C_sites = r.json; render();
+}
+
+// ---------------- Site drill-down modal (A) ----------------
+async function drill(kpi_id) {
+  const ids = [...new Set([kpi_id, "active_wearers", "on_time_service_cycle_share", "washes_per_garment"])];
+  document.getElementById("modal").innerHTML = `<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">Loading Sites...</div></div>`;
+  const r = await post("/api/sites", { customer_id: S.customer_id, period: S.period, view: S.view, priorities: S.priorities, kpi_ids: ids });
+  document.getElementById("modal").innerHTML = `<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">
+    <div style="display:flex;justify-content:space-between"><h3 style="margin:0">Sites, ${S.period}, ${S.view} view</h3><button onclick="closeModal()">Close</button></div>
+    <p class="muted">Click a Site to filter the whole dashboard to it. Red rows have a fired opportunity signal.</p>
+    <table><tr><th>Site</th>${r.json[0].results.map((x) => `<th>${esc(x.name ?? x.kpi_id)}</th>`).join("")}<th>Signals</th></tr>
+    ${r.json.map((row) => `<tr class="click ${row.fired.length ? "fired" : ""}" onclick="closeModal();set({site_id:'${row.site.site_id}'})"><td>${esc(row.site.site_name)}</td>${row.results.map((x) => `<td>${fmtValue(x)}</td>`).join("")}<td>${row.fired.map((f) => esc(f.name)).join(", ")}</td></tr>`).join("")}</table></div></div>`;
+}
+function openPriorities() {
+  document.getElementById("modal").innerHTML = `<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal" style="width:420px"><h3 style="margin-top:0">Customer priorities</h3><div id="pe">${priorityEditor()}</div><button onclick="closeModal()">Done</button></div></div>`;
+}
+function closeModal() { document.getElementById("modal").innerHTML = ""; }
+
+// ---------------- Review page ----------------
+function openReview() { url.searchParams.set("page", "review"); location.href = url; }
+async function renderReview() {
+  const r = (await post("/api/review", { customer_id: S.customer_id, period: S.period, view: "Customer", priorities: S.priorities })).json;
+  const split = Object.fromEntries(r.split.map((x) => [x.split_group, x.page_share]));
+  document.getElementById("app").innerHTML = `<div class="R">
+    <div class="noprint" style="margin-bottom:16px"><button onclick="url.searchParams.delete('page');location.href=url">Back to dashboard</button> <button class="primary" onclick="print()">Save as PDF</button>
+      <span class="muted">Follows the Customer view rules. No account health, no KAM-only items.</span></div>
+    <h1>${esc(r.customer.customer_name)}: annual review ${S.period}</h1><div class="muted">Priorities: ${S.priorities.map(prName).join(", ")}</div>
+    ${r.parts.map((p) => `<section><div class="grp">${p.split_group === "evidence_and_value" ? "Evidence and value, " + split.evidence_and_value * 100 + "% of pages" : "Future planning, " + split.future_planning * 100 + "% of pages"}</div>
+      <h2>${esc(p.name)}</h2><p class="muted">${esc(p.text)}</p>
+      ${p.name === "Build trust" ? r.transparency.map((t) => `<div class="card"><b>${esc(t.name)}</b><div class="muted">${esc(t.text)}</div></div>`).join("") : ""}
+      <div class="grid">${p.results.map((x) => kpiCard(x)).join("")}</div>
+      ${p.name === "Look forward" ? r.signal_groups.map(groupCard).join("") : ""}
+      ${p.name === "Agree actions" ? r.next_steps.map((n) => `<div class="card">${n.position}. ${esc(n.lever)} <span class="badge">${esc(n.lever_owner)}</span> <span class="muted">${esc(n.status_text)}</span></div>`).join("") : ""}
+    </section>`).join("")}</div>`;
+}
+
+// ---------------- State changes ----------------
+const defaultOrder = (c) => S.meta.default_order.find((d) => d.customer_id === c).priority_ids;
+function clearAssistant() { S.answer = null; S.error = null; S.observations = null; S.busy = null; S.requestToken++; }
+function set(patch) { Object.assign(S, patch); C_sites = null; save(); load(); }
+function setCustomer(c) { clearAssistant(); set({ customer_id: c, site_id: null, priorities: defaultOrder(c), changedByAssistant: false }); }
+function setView(v) { clearAssistant(); set({ view: v }); }
+function userPriorities(list) { set({ priorities: list, changedByAssistant: false }); setTimeout(() => document.getElementById("pe") && openPriorities(), 300); }
+function movePriority(i, d) { const l = [...S.priorities]; [l[i], l[i + d]] = [l[i + d], l[i]]; userPriorities(l); }
+function removePriority(id) { if (S.priorities.length > 1) userPriorities(S.priorities.filter((p) => p !== id)); }
+function addPriority(id) { userPriorities([...S.priorities, id]); }
+function togglePriority(id) { S.priorities.includes(id) ? removePriority(id) : addPriority(id); }
+function resetPriorities() { userPriorities(defaultOrder(S.customer_id)); }
+function undoPriorities() { set({ priorities: S.prevPriorities, changedByAssistant: false }); }
+function save() { sessionStorage.setItem("proto", JSON.stringify({ customer_id: S.customer_id, site_id: S.site_id, period: S.period, view: S.view, priorities: S.priorities })); }
+
+let ticker = null;
+async function run(path, body, onOk) {
+  const token = ++S.requestToken;
+  S.busy = path; S.startedAt = Date.now(); S.error = null; render();
+  ticker = setInterval(() => { const w = document.getElementById("working"); if (w) w.textContent = `Working... ${Math.round((Date.now() - S.startedAt) / 1000)} s`; }, 1000);
+  const r = await post(path, body);
+  clearInterval(ticker);
+  if (token !== S.requestToken) return; // view or Customer changed meanwhile: drop the reply
+  S.busy = null;
+  if (!r.ok) S.error = r.json.error; else onOk(r.json);
+  render();
+}
+function ask(prompt) {
+  if (!prompt || S.busy) return;
+  S.lastPrompt = prompt;
+  run("/api/assistant", { prompt, customer_id: S.customer_id, site_id: S.site_id ?? undefined, period: S.period, view: S.view, priorities: S.priorities }, (a) => {
+    S.answer = a;
+    if (a.priority_change) { S.prevPriorities = S.priorities; S.priorities = a.priority_change.priorities; S.changedByAssistant = true; C_sites = null; save(); load(); }
+  });
+}
+function observe() {
+  run("/api/observations", { customer_id: S.customer_id, site_id: S.site_id ?? undefined, period: S.period, view: S.view, priorities: S.priorities }, (o) => { S.observations = o.observations; });
+}
+
+async function load() {
+  const r = await post("/api/screen", { customer_id: S.customer_id, site_id: S.site_id ?? undefined, period: S.period, view: S.view, priorities: S.priorities });
+  S.screen = r.json; render();
+}
+function render() {
+  if (S.page === "review") return;
+  const focused = document.activeElement?.id; const text = document.getElementById("prompt")?.value;
+  document.getElementById("app").innerHTML = { A: VariantA, B: VariantB, C: VariantC }[S.variant]();
+  if (text !== undefined && document.getElementById("prompt") && !S.busy) document.getElementById("prompt").value = text;
+  if (focused) document.getElementById(focused)?.focus();
+  renderSwitcher();
+}
+
+// ---------------- Prototype switcher ----------------
+function renderSwitcher() {
+  document.getElementById("switcher").innerHTML = `<button onclick="cycle(-1)">&larr;</button><span>${S.variant} (${VARIANTS[S.variant]})</span><button onclick="cycle(1)">&rarr;</button>
+    <span class="muted" style="color:#aaa">PROTOTYPE</span>`;
+}
+function cycle(d) {
+  const keys = Object.keys(VARIANTS); S.variant = keys[(keys.indexOf(S.variant) + d + keys.length) % keys.length];
+  url.searchParams.set("variant", S.variant); history.replaceState(null, "", url); C_sites = null; render();
+}
+addEventListener("keydown", (e) => {
+  if (e.target.closest("input, textarea, select, [contenteditable]")) return;
+  if (e.key === "ArrowLeft") cycle(-1); if (e.key === "ArrowRight") cycle(1);
+});
+
+(async () => {
+  S.meta = (await post("/api/meta", {})).json;
+  Object.assign(S, JSON.parse(sessionStorage.getItem("proto") || "{}"));
+  S.priorities ??= defaultOrder(S.customer_id);
+  if (S.page === "review") { renderSwitcher(); return renderReview(); }
+  load();
+})();
+</script>
+</body>
+</html>

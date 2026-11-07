@@ -5,7 +5,8 @@
   "scripts": {
     "preprocess": ".venv/bin/python scripts/preprocess.py",
     "typecheck": "tsc --noEmit",
-    "test": "node --test 'lib/**/*.test.ts'"
+    "test": "node --test 'lib/**/*.test.ts'",
+    "prototype:dashboard": "node prototype/dashboard-screens/server.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
