@@ -29,7 +29,7 @@
 .ai-body .chip:disabled { opacity: .5; cursor: default; }
 .ai-body .note { margin: 0; align-self: flex-start; }
 .ai-bubble { background: var(--hover); border-radius: 14px 14px 14px 4px; padding: 10px 12px; white-space: pre-wrap; animation: ai-pop .2s ease-out; }
-.ai-bubble.me { align-self: flex-end; max-width: 85%; background: var(--accent); color: #fff; border-radius: 14px 14px 4px 14px; }
+.ai-bubble.me { align-self: flex-end; max-width: 85%; background: var(--accent); color: var(--on-accent); border-radius: 14px 14px 4px 14px; }
 .ai-working { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
 .ai-working::before { content: ""; width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--accent-line); border-top-color: var(--accent); animation: ai-spin .8s linear infinite; }
 .ai-error { display: flex; align-items: center; gap: 10px; padding: 10px 12px; }
@@ -43,7 +43,7 @@
 .ai-row textarea { flex: 1; font: inherit; resize: none; border: 1px solid var(--line); border-radius: var(--r-sm); padding: 8px 10px; background: var(--panel); color: var(--text); }
 .ai-row textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--ring); }
 .ai-row textarea:disabled { background: var(--hover); color: var(--muted); }
-.ai-row .primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+.ai-row .primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
 .ai-row .primary:hover:not(:disabled) { background: var(--accent-h); }
 .ai-row .primary:disabled { opacity: .5; cursor: default; }
 .ai-context { font-size: 12px; }
