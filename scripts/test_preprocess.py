@@ -118,17 +118,23 @@ def test_running_twice_gives_byte_identical_output(out_dir, tmp_path):
 # Shared helpers that later builders use.
 
 sys.path.insert(0, str(SCRIPTS))
-import preprocess  # noqa: E402
+import pipeline.account_health  # noqa: E402
+import pipeline.catalogue  # noqa: E402
+import pipeline.facts  # noqa: E402
+import pipeline.footprint_handprint_kpis  # noqa: E402
+import pipeline.improvement_trends  # noqa: E402
+import pipeline.service_kpis  # noqa: E402
+import pipeline.workbook  # noqa: E402
 
 
 @pytest.fixture(scope="module")
 def workbook():
-    return preprocess.Workbook(WORKBOOK)
+    return pipeline.workbook.Workbook(WORKBOOK)
 
 
 def test_customer_active_wearers_take_the_largest_product_row_per_site(workbook):
     # ADR 0003: NorthStar in December reads 9,607, not the 28,367 that summing product rows gives.
-    by_customer = preprocess.customer_active_wearers(workbook.records("Service_Activity"))
+    by_customer = pipeline.facts.customer_active_wearers(workbook.records("Service_Activity"))
     assert by_customer[("CUST001", "2025-12")] == 9607
 
 
@@ -140,9 +146,9 @@ def test_active_wearers_over_a_period_are_the_monthly_average():
         {"customer_id": "C", "site_id": "S1", "month": "2025-02", "active_wearers": 120},
         {"customer_id": "C", "site_id": "S2", "month": "2025-02", "active_wearers": 70},
     ]
-    monthly = preprocess.customer_active_wearers(rows)
+    monthly = pipeline.facts.customer_active_wearers(rows)
     assert monthly == {("C", "2025-01"): 150, ("C", "2025-02"): 190}
-    assert preprocess.period_average(monthly, "C", ["2025-01", "2025-02"]) == 170
+    assert pipeline.facts.period_average(monthly, "C", ["2025-01", "2025-02"]) == 170
 
 
 def test_month_facts_sum_additive_fields_by_key_and_month():
@@ -151,7 +157,7 @@ def test_month_facts_sum_additive_fields_by_key_and_month():
         {"site_id": "S1", "month": "2025-01", "on_time": 1, "cycles": 10},
         {"site_id": "S1", "month": "2025-02", "on_time": 90, "cycles": 100},
     ]
-    facts = preprocess.month_facts(rows, ["site_id"], ["on_time", "cycles"])
+    facts = pipeline.facts.month_facts(rows, ["site_id"], ["on_time", "cycles"])
     assert facts == [
         {"site_id": "S1", "month": "2025-01", "on_time": 10, "cycles": 20},
         {"site_id": "S1", "month": "2025-02", "on_time": 90, "cycles": 100},
@@ -161,8 +167,8 @@ def test_month_facts_sum_additive_fields_by_key_and_month():
 def test_ratio_is_rebuilt_from_summed_totals_not_averaged():
     # Row ratios 0.5 and 0.9 average to 0.7; the totals give 100 / 120.
     facts = [{"on_time": 10, "cycles": 20}, {"on_time": 90, "cycles": 100}]
-    assert preprocess.ratio_of_totals(facts, "on_time", "cycles") == pytest.approx(100 / 120)
-    assert preprocess.ratio_of_totals([], "on_time", "cycles") is None
+    assert pipeline.facts.ratio_of_totals(facts, "on_time", "cycles") == pytest.approx(100 / 120)
+    assert pipeline.facts.ratio_of_totals([], "on_time", "cycles") is None
 
 
 # operational-circularity-kpis.json
@@ -368,7 +374,7 @@ def test_helsinki_january_garments_per_wearer(service):
 
 
 def test_turnaround_over_all_sampled_cycles(workbook):
-    stats = preprocess.turnaround_stats(preprocess.cycle_rows(workbook.records("Service_Cycles")))
+    stats = pipeline.service_kpis.turnaround_stats(pipeline.facts.cycle_rows(workbook.records("Service_Cycles")))
     assert stats == {
         "cycles": 16415,
         "median_cycle_hours": 82.0,
@@ -686,17 +692,20 @@ def test_site_months_on_scan_coverage(health):
 
 
 def test_a_rating_with_no_rated_input_reads_not_rated_never_green():
-    specs = [s for s in preprocess.ACCOUNT_HEALTH_INPUTS if "site" in s["scopes"]]
-    inputs = [preprocess.rate_input(s, 0.99, 10) for s in specs]
-    overall = preprocess.worst_of(specs, inputs)
+    specs = [s for s in pipeline.account_health.ACCOUNT_HEALTH_INPUTS if "site" in s["scopes"]]
+    inputs = [pipeline.account_health.rate_input(s, 0.99, 10) for s in specs]
+    overall = pipeline.account_health.worst_of(specs, inputs)
     assert overall["rating"] == "not_rated"
     assert overall["based_on"] == "Based on 0 of 2 inputs"
 
 
 def test_worst_of_names_every_amber_and_red_input():
-    specs = [s for s in preprocess.ACCOUNT_HEALTH_INPUTS if "site" in s["scopes"]]
-    inputs = [preprocess.rate_input(specs[0], 0.96, 200), preprocess.rate_input(specs[1], 0.65, 900)]
-    overall = preprocess.worst_of(specs, inputs)
+    specs = [s for s in pipeline.account_health.ACCOUNT_HEALTH_INPUTS if "site" in s["scopes"]]
+    inputs = [
+        pipeline.account_health.rate_input(specs[0], 0.96, 200),
+        pipeline.account_health.rate_input(specs[1], 0.65, 900),
+    ]
+    overall = pipeline.account_health.worst_of(specs, inputs)
     assert overall["rating"] == "red"
     assert overall["reason"] == "Red: scan coverage 65.0%. Amber: on-time service cycles 96.0%."
 
@@ -714,7 +723,7 @@ def test_account_health_catalogue_is_the_rule_and_its_three_kam_only_inputs(heal
         assert entry["data_status"] == "SYNTHETIC"
         assert entry["threshold_data_status"] == "TEAM_ASSUMPTION"
         assert entry["rationale"].startswith("No public benchmark exists.")
-        assert entry["id"] == preprocess.catalogue_id(entry["name"])
+        assert entry["id"] == pipeline.catalogue.catalogue_id(entry["name"])
     scan = catalogue[3]
     assert scan["thresholds"] == {"better": "higher", "green_threshold": 0.8, "amber_threshold": 0.7,
                                   "minimum_volume": 500}
@@ -808,7 +817,7 @@ def test_computed_b_local_handprint_ties_out_on_every_row(footprint_handprint):
     rows = footprint_handprint["data"]["footprint"]
     assert len(rows) == 1248
     for row in rows:
-        computed = preprocess.handprint_values(row, local)
+        computed = pipeline.footprint_handprint_kpis.handprint_values(row, local)
         assert computed["water_saved_l"] == pytest.approx(row["water_saving_vs_local_l"], abs=TIE_OUT_TOLERANCE)
         assert computed["energy_saved_kwh"] == pytest.approx(row["energy_saving_vs_local_kwh"], abs=TIE_OUT_TOLERANCE)
         assert computed["emissions_saved_kgco2e"] == pytest.approx(
@@ -983,24 +992,24 @@ def test_footprint_handprint_labels_use_glossary_terms(footprint_handprint):
 
 def test_fisher_exact_two_sided_matches_the_tea_tasting_example():
     # Fisher's lady tasting tea: 3 of 4 right in each cup group, two-sided p = 34/70.
-    assert preprocess.fisher_exact_two_sided(3, 4, 1, 4) == pytest.approx(34 / 70)
+    assert pipeline.improvement_trends.fisher_exact_two_sided(3, 4, 1, 4) == pytest.approx(34 / 70)
 
 
 def test_fisher_exact_two_sided_for_northstar_turku():
     # 0 late of 296 sampled cycles, then 4 of 126. Only the observed table is as extreme as itself.
-    assert preprocess.fisher_exact_two_sided(0, 296, 4, 126) == pytest.approx(0.0076833, rel=1e-4)
-    assert preprocess.fisher_exact_two_sided(5, 300, 5, 300) == pytest.approx(1.0)
+    assert pipeline.improvement_trends.fisher_exact_two_sided(0, 296, 4, 126) == pytest.approx(0.0076833, rel=1e-4)
+    assert pipeline.improvement_trends.fisher_exact_two_sided(5, 300, 5, 300) == pytest.approx(1.0)
 
 
 def test_conditional_binomial_two_sided_with_equal_exposure_is_a_fair_coin():
     # 3 events against 7 on equal exposure: binomial(10, 0.5), P(X <= 3 or X >= 7) = 352/1024.
-    assert preprocess.conditional_binomial_two_sided(3, 1000, 7, 1000) == pytest.approx(352 / 1024)
+    assert pipeline.improvement_trends.conditional_binomial_two_sided(3, 1000, 7, 1000) == pytest.approx(352 / 1024)
 
 
 def test_conditional_binomial_two_sided_handles_large_counts():
-    p = preprocess.conditional_binomial_two_sided(252, 57897, 263, 57871)
+    p = pipeline.improvement_trends.conditional_binomial_two_sided(252, 57897, 263, 57871)
     assert 0.6 < p < 0.65
-    assert preprocess.conditional_binomial_two_sided(0, 600, 0, 600) == 1.0
+    assert pipeline.improvement_trends.conditional_binomial_two_sided(0, 600, 0, 600) == 1.0
 
 
 @pytest.fixture(scope="module")
@@ -1059,7 +1068,7 @@ def test_northstar_turku_on_time_cycles(improvement):
     assert turku["comparison_period"]["counts"] == {"late_cycles": 0, "sampled_cycles": 296}
     assert turku["period"]["counts"] == {"late_cycles": 4, "sampled_cycles": 126}
     assert turku["p_value"] < 0.05
-    assert turku["caveats"] == [preprocess.SITE_CHANCE_CAVEAT, preprocess.SAMPLE_CAVEAT]
+    assert turku["caveats"] == [pipeline.improvement_trends.SITE_CHANCE_CAVEAT, pipeline.catalogue.SAMPLE_CAVEAT]
     assert turku["view"] == "KAM"
 
 
@@ -1095,7 +1104,7 @@ def test_improvement_catalogue_holds_the_three_comparisons(improvement):
     assert [e["better_when"] for e in catalogue] == ["higher", "lower", "higher"]
     assert [e["minimum_volume"] for e in catalogue] == [100, 600, 500]
     for entry in catalogue:
-        assert entry["id"] == preprocess.catalogue_id(entry["name"])
+        assert entry["id"] == pipeline.catalogue.catalogue_id(entry["name"])
         assert (entry["evidence_area"], entry["review_part"], entry["view"], entry["site_view"]) == (
             "Improvement", "Look forward", "Both", "KAM")
         assert entry["grain"] == "Customer, Site"

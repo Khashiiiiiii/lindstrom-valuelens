@@ -144,7 +144,7 @@ _Avoid_: Benchmark, industry average
 
 ## In this repository
 
-How the terms above appear in `data/processed/*.json`, `scripts/preprocess.py` and `lib/data.ts`.
+How the terms above appear in `data/processed/*.json`, the pipeline in `scripts/preprocess.py` and `scripts/pipeline/`, and the readers in `lib/data.ts` and `lib/data/`.
 
 - Every KPI, opportunity signal and period comparison has an `id` that is the snake_case of its catalogue name, for example `on_time_service_cycle_share`, `allocated_garments_with_no_scan_activity`, `garments_in_circulation`.
 - The _Avoid_ terms never appear in JSON keys, TS identifiers or labels. There is no `idle_garments`, `complaints` or `rag_status`.
