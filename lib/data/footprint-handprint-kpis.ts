@@ -1,8 +1,21 @@
 // Footprint and handprint KPIs (#5).
 
 import type { BaselineId } from "./master-data.ts";
-import type { Month, ProcessedFile } from "./processed.ts";
+import type { CatalogueEntry, Month, ProcessedFile } from "./processed.ts";
 import { readProcessed } from "./processed.ts";
+import type { KpiQuery, KpiResult, ResolvedScope } from "./query.ts";
+import {
+  catalogueEntry,
+  checkBreakdown,
+  inScope,
+  kpiResult,
+  notEvaluated,
+  periodMonths,
+  resolveScope,
+  round,
+  sum,
+} from "./query.ts";
+import { averageActiveWearers } from "./service-kpis.ts";
 
 /** One Customer_Impacts row: the Customer's allocated footprint at one Site, for one product and laundry, in one month. */
 export interface FootprintFact {
@@ -146,4 +159,156 @@ export interface FootprintHandprintKpis {
 
 export function getFootprintHandprintKpis(): ProcessedFile<FootprintHandprintKpis> {
   return readProcessed<FootprintHandprintKpis>("footprint-handprint-kpis");
+}
+
+// Calculations (#12). Footprint KPIs sum the Customer_Impacts facts over the period's months.
+
+function entry(id: string): CatalogueEntry {
+  return catalogueEntry(getFootprintHandprintKpis().catalogue, "footprint-handprint-kpis", id);
+}
+
+function footprintFacts(scope: ResolvedScope, months: Month[]): FootprintFact[] {
+  return getFootprintHandprintKpis().data.footprint.filter((f) => inScope(f, scope, months));
+}
+
+/**
+ * A footprint KPI: the period total of each part, or the total per active wearer. With a breakdown, each part is
+ * one breakdown row and the value is their sum.
+ */
+function footprint(
+  kpi_id: string,
+  query: KpiQuery,
+  unit: string,
+  parts: { key: string; field: (f: FootprintFact) => number }[],
+  breakdowns: string[] = [],
+): KpiResult {
+  const breakdown = checkBreakdown(kpi_id, query, breakdowns);
+  const perWearer = query.unit === "per_active_wearer";
+  if (query.unit !== undefined && query.unit !== "total" && !perWearer) {
+    throw new Error(`Unknown unit "${query.unit}". Use total or per_active_wearer.`);
+  }
+  const scope = resolveScope(query.scope);
+  const months = periodMonths(query.period);
+  const facts = footprintFacts(scope, months);
+  const totals = parts.map((p) => ({ key: p.key, value: sum(facts, p.field) }));
+  const total = sum(totals, (t) => t.value);
+  if (!perWearer) {
+    return kpiResult(entry(kpi_id), query, { value: total, unit, breakdown: breakdown ? totals : null });
+  }
+  const wearers = averageActiveWearers(scope, months);
+  const perWearerUnit = `${unit} per active wearer`;
+  if (wearers === 0) return notEvaluated(entry(kpi_id), query, perWearerUnit, "No active wearers in the period.");
+  return kpiResult(entry(kpi_id), query, {
+    value: total / wearers,
+    unit: perWearerUnit,
+    volume: wearers,
+    breakdown: breakdown ? totals.map((t) => ({ key: t.key, value: t.value / wearers })) : null,
+    caveats: ["Per active wearer uses the wearer counting rule: per Site and month, the largest product row."],
+  });
+}
+
+/** Sum of customer_washed_kg over the period, in total or per active wearer. */
+export function washedKg(query: KpiQuery): KpiResult {
+  return footprint("washed_kg", query, "kg", [{ key: "washed", field: (f) => f.customer_washed_kg }]);
+}
+
+/** Sum of allocated_water_l over the period, in total or per active wearer. */
+export function waterUseAllocated(query: KpiQuery): KpiResult {
+  return footprint("water_use_allocated", query, "l", [{ key: "water", field: (f) => f.allocated_water_l }]);
+}
+
+/** Sum of allocated_energy_kwh over the period, in total or per active wearer. */
+export function energyUseAllocated(query: KpiQuery): KpiResult {
+  return footprint("energy_use_allocated", query, "kWh", [{ key: "energy", field: (f) => f.allocated_energy_kwh }]);
+}
+
+/** Sum of process and delivery kg CO2e over the period. Emission source is a breakdown. */
+export function emissionsAllocated(query: KpiQuery): KpiResult {
+  return footprint(
+    "emissions_allocated",
+    query,
+    "kg CO2e",
+    [
+      { key: "process", field: (f) => f.allocated_process_kgco2e },
+      { key: "delivery", field: (f) => f.allocated_delivery_kgco2e },
+    ],
+    ["emission_source"],
+  );
+}
+
+/**
+ * A handprint KPI: the baseline factor times washed kg, minus the allocated footprint, from the period's summed
+ * facts. It matches the precomputed handprint rows and works for any period and product.
+ */
+function handprint(
+  kpi_id: string,
+  query: KpiQuery,
+  unit: string,
+  factor: (f: BaselineFactors) => number,
+  actual: (f: FootprintFact) => number,
+): KpiResult {
+  checkBreakdown(kpi_id, query, []);
+  const scope = resolveScope(query.scope);
+  const months = periodMonths(query.period);
+  const { baselines } = getFootprintHandprintKpis().data;
+  const baseline_id = query.baseline_id ?? baselines.default_baseline_id;
+  const factors = baselines.factors.find((b) => b.baseline_id === baseline_id);
+  if (!factors) throw new Error(`Unknown baseline_id "${baseline_id}".`);
+  const factor_case = query.factor_case ?? "default";
+  if (factor_case !== "default" && factor_case !== "low_case") throw new Error(`Unknown factor_case "${factor_case}".`);
+  let used = factors;
+  const caveats: string[] = [];
+  if (factor_case === "low_case") {
+    const low = baselines.low_cases.find((l) => l.baseline_id === baseline_id);
+    if (!low) {
+      return kpiResult(entry(kpi_id), query, {
+        value: null,
+        unit,
+        baseline_id,
+        not_evaluated_reason: `No low case exists for ${baseline_id}. Only ${baselines.low_cases.map((l) => l.baseline_id).join(", ")} has one.`,
+      });
+    }
+    used = { ...factors, [low.factor]: low.value };
+    caveats.push(`Uses the TEAM_ASSUMPTION low case of ${low.value} for ${low.factor}: ${low.rationale}`);
+  }
+  const facts = footprintFacts(scope, months);
+  const customer_washed_kg = sum(facts, (f) => f.customer_washed_kg);
+  const baseline_amount = factor(used) * customer_washed_kg;
+  const saved = baseline_amount - sum(facts, actual);
+  return kpiResult(entry(kpi_id), query, {
+    value: saved,
+    unit,
+    volume: baseline_amount,
+    baseline_id,
+    caveats,
+    detail: {
+      kind: "handprint",
+      baseline_label: factors.label,
+      factor_case,
+      customer_washed_kg: round(customer_washed_kg),
+      baseline_amount: round(baseline_amount),
+      share_of_baseline: baseline_amount ? round(saved / baseline_amount) : null,
+    },
+  });
+}
+
+/** Water saved against a baseline, in litres. */
+export function waterSaved(query: KpiQuery): KpiResult {
+  return handprint("water_saved", query, "l", (b) => b.water_l_per_kg, (f) => f.allocated_water_l);
+}
+
+/** Energy saved against a baseline, in kWh. */
+export function energySaved(query: KpiQuery): KpiResult {
+  return handprint("energy_saved", query, "kWh", (b) => b.energy_kwh_per_kg, (f) => f.allocated_energy_kwh);
+}
+
+/** Emissions saved against a baseline, process plus delivery, in kg CO2e. Never added to avoided product CO2e (ADR 0007). */
+export function emissionsSaved(query: KpiQuery): KpiResult {
+  return handprint(
+    "emissions_saved",
+    query,
+    "kg CO2e",
+    (b) => b.process_kgco2e_per_kg + b.delivery_kgco2e_per_kg,
+    (f) => f.allocated_process_kgco2e + f.allocated_delivery_kgco2e,
+  );
 }

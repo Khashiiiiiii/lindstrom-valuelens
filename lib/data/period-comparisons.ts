@@ -2,6 +2,8 @@
 
 import type { CatalogueEntry, DataTransparencyNote, Month, ProcessedFile, View } from "./processed.ts";
 import { readProcessed } from "./processed.ts";
+import type { KpiQuery, KpiResult } from "./query.ts";
+import { catalogueEntry, checkBreakdown, checkPeriod, kpiResult, notEvaluated, resolveScope } from "./query.ts";
 
 export type ComparisonId =
   | "improvement_on_time_service_cycles"
@@ -109,4 +111,60 @@ export interface PeriodComparisons {
 
 export function getPeriodComparisons(): ProcessedFile<PeriodComparisons, ImprovementCatalogueEntry> {
   return readProcessed<PeriodComparisons, ImprovementCatalogueEntry>("period-comparisons");
+}
+
+// Calculations (#12). Period comparisons return the precomputed results: all of 2025, H2 against H1.
+
+function entry(id: ComparisonId): ImprovementCatalogueEntry {
+  return catalogueEntry(getPeriodComparisons().catalogue, "period-comparisons", id);
+}
+
+/**
+ * A period comparison of the query's Customer or Site. The value is the change (period value minus comparison
+ * period value) in the KPI's unit, and the full result with its label is in `detail`. Site results are KAM view
+ * only, and runKpi withholds them in the Customer view.
+ */
+function comparison(comparison_id: ComparisonId, query: KpiQuery, unit: string): KpiResult {
+  checkBreakdown(comparison_id, query, []);
+  const scope = resolveScope(query.scope);
+  const { results } = getPeriodComparisons().data;
+  checkPeriod(query.period);
+  if (query.period !== results.selected_period) {
+    return notEvaluated(
+      entry(comparison_id),
+      query,
+      unit,
+      `Only all of ${results.selected_period} has a period comparison: ${results.period.name} against ${results.comparison_period.name}.`,
+    );
+  }
+  if (scope.product_ids !== null) {
+    return notEvaluated(entry(comparison_id), query, unit, "Period comparisons exist for a Customer or Site, not a product.");
+  }
+  const customer = results.comparisons.find((c) => c.comparison_id === comparison_id && c.customer_id === scope.customer_id);
+  const result =
+    scope.site_id === null ? customer?.customer_result : customer?.site_results.find((r) => r.scope_id === scope.site_id);
+  if (!result) return notEvaluated(entry(comparison_id), query, unit, "No period comparison exists for this scope.");
+  return kpiResult(entry(comparison_id), query, {
+    value: result.change,
+    unit,
+    volume: result.period.volume,
+    not_evaluated_reason: result.change === null ? (result.not_evaluated_reason ?? "No data in one of the periods.") : null,
+    caveats: result.caveats,
+    detail: { kind: "period_comparison", comparison: result },
+  });
+}
+
+/** On-time service cycle share, H2 against H1. */
+export function improvementOnTimeServiceCycles(query: KpiQuery): KpiResult {
+  return comparison("improvement_on_time_service_cycles", query, "share");
+}
+
+/** Service requests per 100 wearers per month, H2 against H1. */
+export function improvementServiceRequests(query: KpiQuery): KpiResult {
+  return comparison("improvement_service_requests", query, "per 100 wearers per month");
+}
+
+/** Scan coverage, H2 against H1. */
+export function improvementScanCoverage(query: KpiQuery): KpiResult {
+  return comparison("improvement_scan_coverage", query, "share");
 }

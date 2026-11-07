@@ -1,5 +1,7 @@
-// Typed readers for the JSON files in data/processed/, written by scripts/preprocess.py.
-// Readers only load and type the data. Calculations live elsewhere.
+// The data layer over the JSON files in data/processed/, written by scripts/preprocess.py. Each module in
+// lib/data/ loads its file once, types it and calculates its KPIs. runKpi and listKpis in calculations.ts are the
+// one entry point for the dashboard and the LLM tools, and no figure the app shows is computed anywhere else
+// (ADR 0001).
 
 export type {
   CatalogueEntry,
@@ -152,3 +154,18 @@ export type {
   ViewsConfig,
 } from "./data/views-and-review.ts";
 export { getViewsAndReview } from "./data/views-and-review.ts";
+
+export type {
+  KpiAnswer,
+  KpiDetail,
+  KpiParameter,
+  KpiQuery,
+  KpiResult,
+  Period,
+  Scope,
+  Withheld,
+} from "./data/query.ts";
+export { applyView, periodMonths } from "./data/query.ts";
+
+export type { KpiListing } from "./data/calculations.ts";
+export { listKpis, runKpi } from "./data/calculations.ts";
