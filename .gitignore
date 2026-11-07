@@ -1,0 +1,11 @@
+# KPI decision notes (source for the GitHub tickets, kept out of git)
+/[0-9][0-9]-*.md
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Node / Next.js
+node_modules/
+.next/
