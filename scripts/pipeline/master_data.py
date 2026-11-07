@@ -3,14 +3,7 @@
 from __future__ import annotations
 
 from .facts import default_baseline_id, product_presets
-from .workbook import Record, Workbook, data_months
-
-
-def split_topics(value: str | None) -> list[str]:
-    """Split a "|"-separated topic cell into its topics, in sheet order."""
-    if not value:
-        return []
-    return [t.strip() for t in str(value).split("|") if t.strip()]
+from .workbook import Record, Workbook, data_months, split_topics
 
 
 def site_type_groups(sites: list[Record]) -> list[Record]:

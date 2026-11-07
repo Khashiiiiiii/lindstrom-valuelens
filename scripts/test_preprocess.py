@@ -120,6 +120,7 @@ def test_running_twice_gives_byte_identical_output(out_dir, tmp_path):
 sys.path.insert(0, str(SCRIPTS))
 import pipeline.account_health  # noqa: E402
 import pipeline.catalogue  # noqa: E402
+import pipeline.customer_priorities  # noqa: E402
 import pipeline.facts  # noqa: E402
 import pipeline.footprint_handprint_kpis  # noqa: E402
 import pipeline.period_comparisons  # noqa: E402
@@ -1151,3 +1152,133 @@ def test_improvement_avoids_glossary_terms_and_em_dashes(improvement):
     for term in ("baseline", "trend", "delta", "prior period", "reference period", "complaint", "confidence",
                  "recommendation", "alert"):
         assert term not in text, term
+
+
+# customer-priorities.json
+
+
+def test_kpi_references_pass_when_every_id_is_in_some_catalogue():
+    outputs = {
+        "a": {"catalogue": [{"id": "water_saved"}], "data": {}},
+        "b": {"catalogue": [{"id": "water", "kpi_ids": ["water_saved"]}], "data": {}},
+    }
+    pipeline.catalogue.check_kpi_references(outputs)
+
+
+def test_kpi_references_fail_on_an_id_no_catalogue_holds():
+    outputs = {"b": {"catalogue": [{"id": "water", "kpi_ids": ["water_saved", "water_wasted"]}], "data": {}}}
+    with pytest.raises(ValueError, match="water_wasted"):
+        pipeline.catalogue.check_kpi_references(outputs)
+
+
+def test_default_order_follows_the_stated_topics_deduplicated_and_skipping_unmapped():
+    order = pipeline.customer_priorities.default_order(
+        ["Cost optimization", "Garment utilization", "Repair", "Safety"],
+        ["Cost and allocation efficiency", "Repair and lifetime", "Safety and availability"],
+    )
+    assert order == {
+        "source": "priority_topics",
+        "priority_ids": ["garment_utilisation", "circularity"],
+        "skipped_terms": ["Safety"],
+    }
+
+
+def test_default_order_falls_back_to_the_industry_ranking_only_without_stated_topics():
+    order = pipeline.customer_priorities.default_order(
+        [], ["Hygiene and traceability", "Service continuity", "Compliance-ready evidence"],
+    )
+    assert order == {
+        "source": "Industry_Priorities",
+        "priority_ids": ["traceability", "service_reliability"],
+        "skipped_terms": ["Compliance-ready evidence"],
+    }
+
+
+def test_a_source_term_missing_from_the_term_map_stops_the_build():
+    with pytest.raises(ValueError, match="Hygiene first"):
+        pipeline.customer_priorities.default_order(["Hygiene first"], [])
+
+
+@pytest.fixture(scope="module")
+def priorities(out_dir) -> dict:
+    return json.loads((out_dir / "customer-priorities.json").read_text(encoding="utf-8"))
+
+
+def test_default_priority_order_per_customer(priorities):
+    orders = {o["customer_id"]: o for o in priorities["data"]["default_order"]}
+    assert orders["CUST001"]["priority_ids"] == ["water", "service_reliability", "emissions"]
+    assert orders["CUST002"]["priority_ids"] == ["garment_utilisation", "circularity"]
+    assert orders["CUST003"]["priority_ids"] == ["traceability", "service_reliability"]
+    assert {o["source"] for o in orders.values()} == {"priority_topics"}
+    assert orders["CUST001"]["skipped_terms"] == ["Hygiene"]
+    assert orders["CUST003"]["skipped_terms"] == ["Hygiene", "Compliance"]
+
+
+def test_the_seven_customer_priorities(priorities):
+    catalogue = priorities["catalogue"]
+    assert [e["name"] for e in catalogue] == [
+        "Water", "Emissions", "Circularity", "Service reliability", "Garment utilisation", "Traceability", "Improvement",
+    ]
+    for entry in catalogue:
+        assert entry["id"] == pipeline.catalogue.catalogue_id(entry["name"])
+        assert entry["core_or_industry"] == "Core KPI"
+        assert "never hides a KPI" in " ".join(entry["caveats"])
+    improvement = catalogue[-1]
+    assert improvement["kpi_ids"] == [
+        "improvement_on_time_service_cycles", "improvement_service_requests", "improvement_scan_coverage",
+    ]
+    traceability = catalogue[5]
+    assert traceability["kpi_ids"] == ["scan_coverage", "turnaround_by_stage", "on_time_service_cycle_share"]
+
+
+def test_every_kpi_id_in_a_kpi_set_is_in_a_catalogue_file(out_dir, priorities):
+    known = {e["id"] for f in out_dir.glob("*.json") for e in json.loads(f.read_text(encoding="utf-8"))["catalogue"]}
+    used = {kpi_id for e in priorities["catalogue"] for kpi_id in e["kpi_ids"]}
+    assert len(used) == 30
+    assert used <= known
+
+
+def test_term_map_covers_every_workbook_term_and_leaves_the_data_gaps_unmapped(priorities, master):
+    terms = {t["term"]: t for t in priorities["data"]["term_map"]}
+    workbook_terms = {p["priority_theme"] for p in master["data"]["industry_priorities"]}
+    workbook_terms |= {t for c in master["data"]["customers"] for t in c["priority_topics"]}
+    assert workbook_terms <= set(terms)
+    unmapped = sorted(t for t, row in terms.items() if row["priority_id"] == "unmapped")
+    assert unmapped == ["Compliance", "Compliance-ready evidence", "Hygiene", "Hygiene and compliance", "Safety",
+                        "Safety and availability"]
+    assert terms["Cost optimization"]["priority_id"] == "garment_utilisation"
+    assert terms["Hygiene and traceability"]["priority_id"] == "traceability"
+    assert terms["Service continuity"]["sources"] == ["Industry_Priorities", "priority_topics"]
+    assert terms["cost"]["sources"] == ["brief"]
+
+
+def test_dashboard_emphasis_is_kam_only_and_illustrative(priorities):
+    emphasis = priorities["data"]["dashboard_emphasis"]
+    assert [e["industry"] for e in emphasis] == ["Food & Beverage", "Healthcare", "Manufacturing"]
+    assert {(e["view"], e["illustrative"]) for e in emphasis} == {("KAM", True)}
+    assert [t["priority_rank"] for t in emphasis[0]["texts"]] == [1, 2, 3]
+    assert emphasis[0]["texts"][1]["text"] == "Prioritize water use/savings and washed-kg efficiency."
+
+
+def test_cost_note_defers_financial_value(priorities):
+    note = priorities["data"]["cost_note"]
+    assert note["priority_id"] == "garment_utilisation"
+    assert "Financial Value is deferred" in note["text"] and "no euro figure" in note["text"]
+
+
+def test_customer_priorities_avoid_glossary_terms_and_em_dashes(priorities):
+    # The dashboard_emphasis texts are copied from the workbook as they are, so only they are left out.
+    data = json.loads(json.dumps(priorities["data"]))
+    for emphasis in data["dashboard_emphasis"]:
+        for row in emphasis["texts"]:
+            row.pop("text")
+    text = json.dumps({"catalogue": priorities["catalogue"], "data": data}, ensure_ascii=False).lower()
+    assert "—" not in text
+    for term in ("focus area", "preference", "theme", "industry kpi", "baseline"):
+        assert not re.search(rf"{term}", text), term
+
+
+def test_kpi_references_do_not_count_ids_from_the_referencing_file_itself():
+    outputs = {"b": {"catalogue": [{"id": "water"}, {"id": "emissions", "kpi_ids": ["water"]}], "data": {}}}
+    with pytest.raises(ValueError, match="'water'"):
+        pipeline.catalogue.check_kpi_references(outputs)

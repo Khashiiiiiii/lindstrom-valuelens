@@ -102,3 +102,14 @@ export type {
   PeriodComparisons,
 } from "./data/period-comparisons.ts";
 export { getPeriodComparisons } from "./data/period-comparisons.ts";
+
+export type {
+  CustomerPriorities,
+  CustomerPriorityCatalogueEntry,
+  CustomerPriorityId,
+  DashboardEmphasis,
+  DefaultPriorityOrder,
+  PriorityTerm,
+  PriorityTermSource,
+} from "./data/customer-priorities.ts";
+export { getCustomerPriorities } from "./data/customer-priorities.ts";

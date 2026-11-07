@@ -6,6 +6,10 @@ Each output file has the shape {"meta": {...}, "catalogue": [...], "data": {...}
 and is written by one build_<name>() function listed in BUILDERS. The same
 workbook always gives byte-identical files: keys are sorted and no timestamp is
 written. meta.source_sha256 names the workbook.
+
+Every builder runs before any file is written. Then check_kpi_references() checks
+each catalogue entry's kpi_ids against the other files' catalogues, and stops the
+run on an unknown id. It is the only cross-file step; build code stays in pipeline/.
 """
 
 from __future__ import annotations
@@ -16,6 +20,8 @@ from pathlib import Path
 from typing import Any, Callable
 
 from pipeline.account_health import build_account_health
+from pipeline.catalogue import check_kpi_references
+from pipeline.customer_priorities import build_customer_priorities
 from pipeline.footprint_handprint_kpis import build_footprint_handprint_kpis
 from pipeline.period_comparisons import build_period_comparisons
 from pipeline.master_data import build_master_data
@@ -49,6 +55,7 @@ BUILDERS: dict[str, Callable[[Workbook], Record]] = {
     "account-health": build_account_health,
     "footprint-handprint-kpis": build_footprint_handprint_kpis,
     "period-comparisons": build_period_comparisons,
+    "customer-priorities": build_customer_priorities,
 }
 
 
@@ -58,9 +65,10 @@ BUILDERS: dict[str, Callable[[Workbook], Record]] = {
 def run(xlsx: Path, out: Path) -> list[Path]:
     wb = Workbook(xlsx)
     out.mkdir(parents=True, exist_ok=True)
+    outputs = {name: build(wb) for name, build in BUILDERS.items()}
+    check_kpi_references(outputs)
     written = []
-    for name, build in BUILDERS.items():
-        built = build(wb)
+    for name, built in outputs.items():
         payload = {
             "meta": {
                 "name": name,

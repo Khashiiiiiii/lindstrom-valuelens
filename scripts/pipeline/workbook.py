@@ -70,3 +70,13 @@ def data_year(months: list[str]) -> str:
     if len(years) != 1:
         raise ValueError(f"data months must fall in one year: {months}")
     return years.pop()
+
+
+# Cells
+
+
+def split_topics(value: str | None) -> list[str]:
+    """Split a "|"-separated topic cell into its topics, in sheet order."""
+    if not value:
+        return []
+    return [t.strip() for t in str(value).split("|") if t.strip()]

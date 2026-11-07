@@ -3,6 +3,7 @@ import { test } from "node:test";
 
 import {
   getAccountHealth,
+  getCustomerPriorities,
   getFootprintHandprintKpis,
   getPeriodComparisons,
   getMasterData,
@@ -127,4 +128,21 @@ test("getPeriodComparisons reads the period comparisons and the H2 against H1 re
     .find((r) => r.comparison_id === "improvement_on_time_service_cycles" && r.scope_id === "S002");
   assert.equal(turku?.label, "worse");
   assert.equal(turku?.period.counts.late_cycles, 4);
+});
+
+test("getCustomerPriorities reads the Customer priorities and each Customer's default order", () => {
+  const file = getCustomerPriorities();
+  assert.equal(file.meta.name, "customer-priorities");
+  assert.equal(file.catalogue.length, 7);
+  assert.deepEqual(file.catalogue[6].kpi_ids, [
+    "improvement_on_time_service_cycles",
+    "improvement_service_requests",
+    "improvement_scan_coverage",
+  ]);
+  const apex = file.data.default_order.find((o) => o.customer_id === "CUST002");
+  assert.deepEqual(apex?.priority_ids, ["garment_utilisation", "circularity"]);
+  const safety = file.data.term_map.find((t) => t.term === "Safety");
+  assert.equal(safety?.priority_id, "unmapped");
+  assert.equal(file.data.dashboard_emphasis[0].view, "KAM");
+  assert.equal(file.data.cost_note.priority_id, "garment_utilisation");
 });

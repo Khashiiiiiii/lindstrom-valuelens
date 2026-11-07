@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 
-from .catalogue import CYCLE_FIELDS, SAMPLE_CAVEAT, catalogue_id
+from .catalogue import CYCLE_FIELDS, IMPROVEMENT, SAMPLE_CAVEAT, catalogue_id
 from .facts import FLOAT_DIGITS, cycle_rows, cycles_outside_data_months_notes, ratio_of_totals, site_month_facts
 from .workbook import Record, Workbook, data_months, data_year
 
@@ -43,7 +43,6 @@ def conditional_binomial_two_sided(events_1: int, exposure_1: int, events_2: int
     return _two_sided_p(weights, events_1)
 
 
-IMPROVEMENT = ("Improvement", "Are the issues we raise being solved?")
 COMPARISON_LABELS = ("worse", "better", "no_clear_change", "not_evaluated")
 SITE_CHANCE_CAVEAT = "About 1 in 20 Sites shows a clear change by chance alone."
 COMPARISON_RATIONALE = (

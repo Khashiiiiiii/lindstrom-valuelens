@@ -1,0 +1,538 @@
+{
+  "catalogue": [
+    {
+      "assumptions": [],
+      "caveats": [
+        "Every KPI is a Core KPI. Industry sets the default priorities and never hides a KPI."
+      ],
+      "core_or_industry": "Core KPI",
+      "customer_question": "What environmental value are we creating together?",
+      "data_status": "SYNTHETIC",
+      "definition": "The Customer priority Water. Source terms: Water efficiency, water. Its KPI set is listed in kpi_ids.",
+      "evidence_area": "Sustainability Value",
+      "grain": "Customer",
+      "id": "water",
+      "kpi_ids": [
+        "water_use_allocated",
+        "water_saved",
+        "washed_kg",
+        "washes_per_garment"
+      ],
+      "name": "Water",
+      "review_part": "Look back",
+      "source_fields": [
+        "Customers.priority_topics",
+        "Industry_Priorities.priority_theme"
+      ],
+      "source_terms": [
+        "Water efficiency",
+        "water"
+      ],
+      "view": "Both"
+    },
+    {
+      "assumptions": [],
+      "caveats": [
+        "Every KPI is a Core KPI. Industry sets the default priorities and never hides a KPI."
+      ],
+      "core_or_industry": "Core KPI",
+      "customer_question": "What environmental value are we creating together?",
+      "data_status": "SYNTHETIC",
+      "definition": "The Customer priority Emissions. Source terms: Scope 3 evidence, emissions. Its KPI set is listed in kpi_ids.",
+      "evidence_area": "Sustainability Value",
+      "grain": "Customer",
+      "id": "emissions",
+      "kpi_ids": [
+        "emissions_allocated",
+        "emissions_saved",
+        "energy_use_allocated",
+        "energy_saved",
+        "avoided_product_co2e_estimated"
+      ],
+      "name": "Emissions",
+      "review_part": "Look back",
+      "source_fields": [
+        "Customers.priority_topics",
+        "Industry_Priorities.priority_theme"
+      ],
+      "source_terms": [
+        "Scope 3 evidence",
+        "emissions"
+      ],
+      "view": "Both"
+    },
+    {
+      "assumptions": [],
+      "caveats": [
+        "Every KPI is a Core KPI. Industry sets the default priorities and never hides a KPI."
+      ],
+      "core_or_industry": "Core KPI",
+      "customer_question": "What environmental value are we creating together?",
+      "data_status": "SYNTHETIC",
+      "definition": "The Customer priority Circularity. Source terms: Repair, Repair and lifetime, circularity. Its KPI set is listed in kpi_ids.",
+      "evidence_area": "Sustainability Value",
+      "grain": "Customer",
+      "id": "circularity",
+      "kpi_ids": [
+        "repairs",
+        "repair_rate",
+        "replacements_postponed_estimated",
+        "avoided_product_co2e_estimated",
+        "textile_waste_allocated",
+        "textile_waste_by_treatment_route",
+        "recycled_or_reused_share",
+        "textile_waste_diverted_from_mixed_waste_estimated"
+      ],
+      "name": "Circularity",
+      "review_part": "Look back",
+      "source_fields": [
+        "Customers.priority_topics",
+        "Industry_Priorities.priority_theme"
+      ],
+      "source_terms": [
+        "Repair",
+        "Repair and lifetime",
+        "circularity"
+      ],
+      "view": "Both"
+    },
+    {
+      "assumptions": [],
+      "caveats": [
+        "Every KPI is a Core KPI. Industry sets the default priorities and never hides a KPI."
+      ],
+      "core_or_industry": "Core KPI",
+      "customer_question": "Is the service reliable?",
+      "data_status": "SYNTHETIC",
+      "definition": "The Customer priority Service reliability. Source terms: Service continuity, Service reliability, service performance. Its KPI set is listed in kpi_ids.",
+      "evidence_area": "Service Performance",
+      "grain": "Customer",
+      "id": "service_reliability",
+      "kpi_ids": [
+        "on_time_service_cycle_share",
+        "late_service_cycles",
+        "turnaround_hours_median",
+        "turnaround_hours_90th_percentile",
+        "turnaround_by_stage",
+        "service_requests",
+        "service_requests_per_100_wearers",
+        "service_request_free_site_months"
+      ],
+      "name": "Service reliability",
+      "review_part": "Look back",
+      "source_fields": [
+        "Customers.priority_topics",
+        "Industry_Priorities.priority_theme"
+      ],
+      "source_terms": [
+        "Service continuity",
+        "Service reliability",
+        "service performance"
+      ],
+      "view": "Both"
+    },
+    {
+      "assumptions": [],
+      "caveats": [
+        "Cost maps to Garment utilisation. Financial Value is deferred, so no euro figure is shown.",
+        "Every KPI is a Core KPI. Industry sets the default priorities and never hides a KPI."
+      ],
+      "core_or_industry": "Core KPI",
+      "customer_question": "Are we using the service effectively?",
+      "data_status": "SYNTHETIC",
+      "definition": "The Customer priority Garment utilisation. Source terms: Cost optimization, Cost and allocation efficiency, Garment utilization, cost. Its KPI set is listed in kpi_ids.",
+      "evidence_area": "Service Adoption",
+      "grain": "Customer",
+      "id": "garment_utilisation",
+      "kpi_ids": [
+        "garments_per_wearer",
+        "scan_coverage",
+        "allocated_garments_with_no_scan_activity",
+        "washes_per_garment"
+      ],
+      "name": "Garment utilisation",
+      "review_part": "Look back",
+      "source_fields": [
+        "Customers.priority_topics",
+        "Industry_Priorities.priority_theme"
+      ],
+      "source_terms": [
+        "Cost optimization",
+        "Cost and allocation efficiency",
+        "Garment utilization",
+        "cost"
+      ],
+      "view": "Both"
+    },
+    {
+      "assumptions": [],
+      "caveats": [
+        "Every KPI is a Core KPI. Industry sets the default priorities and never hides a KPI."
+      ],
+      "core_or_industry": "Core KPI",
+      "customer_question": "Is the service reliable?",
+      "data_status": "SYNTHETIC",
+      "definition": "The Customer priority Traceability. Source terms: Traceability, Hygiene and traceability. Its KPI set is listed in kpi_ids.",
+      "evidence_area": "Service Performance",
+      "grain": "Customer",
+      "id": "traceability",
+      "kpi_ids": [
+        "scan_coverage",
+        "turnaround_by_stage",
+        "on_time_service_cycle_share"
+      ],
+      "name": "Traceability",
+      "review_part": "Look back",
+      "source_fields": [
+        "Customers.priority_topics",
+        "Industry_Priorities.priority_theme"
+      ],
+      "source_terms": [
+        "Traceability",
+        "Hygiene and traceability"
+      ],
+      "view": "Both"
+    },
+    {
+      "assumptions": [],
+      "caveats": [
+        "The KPI set is the 3 Improvement period comparisons.",
+        "Every KPI is a Core KPI. Industry sets the default priorities and never hides a KPI."
+      ],
+      "core_or_industry": "Core KPI",
+      "customer_question": "Are the issues we raise being solved?",
+      "data_status": "SYNTHETIC",
+      "definition": "The Customer priority Improvement. Source terms: improvement. Its KPI set is listed in kpi_ids.",
+      "evidence_area": "Improvement",
+      "grain": "Customer",
+      "id": "improvement",
+      "kpi_ids": [
+        "improvement_on_time_service_cycles",
+        "improvement_service_requests",
+        "improvement_scan_coverage"
+      ],
+      "name": "Improvement",
+      "review_part": "Look back",
+      "source_fields": [
+        "Customers.priority_topics",
+        "Industry_Priorities.priority_theme"
+      ],
+      "source_terms": [
+        "improvement"
+      ],
+      "view": "Both"
+    }
+  ],
+  "data": {
+    "cost_note": {
+      "priority_id": "garment_utilisation",
+      "term": "cost",
+      "text": "Cost maps to Garment utilisation. Financial Value is deferred, so no euro figure is shown."
+    },
+    "dashboard_emphasis": [
+      {
+        "data_status": "SYNTHETIC",
+        "illustrative": true,
+        "industry": "Food & Beverage",
+        "texts": [
+          {
+            "priority_rank": 1,
+            "term": "Hygiene and compliance",
+            "text": "Show service continuity, food-industry garment control and hygiene-related performance."
+          },
+          {
+            "priority_rank": 2,
+            "term": "Water efficiency",
+            "text": "Prioritize water use/savings and washed-kg efficiency."
+          },
+          {
+            "priority_rank": 3,
+            "term": "Service reliability",
+            "text": "Highlight turnaround, service-request-free days and delivery performance."
+          }
+        ],
+        "view": "KAM"
+      },
+      {
+        "data_status": "SYNTHETIC",
+        "illustrative": true,
+        "industry": "Healthcare",
+        "texts": [
+          {
+            "priority_rank": 1,
+            "term": "Hygiene and traceability",
+            "text": "Prioritize garment flow, service-cycle completion and traceability."
+          },
+          {
+            "priority_rank": 2,
+            "term": "Service continuity",
+            "text": "Highlight turnaround and reliable availability."
+          },
+          {
+            "priority_rank": 3,
+            "term": "Compliance-ready evidence",
+            "text": "Highlight transparent sources, data quality and reporting boundaries."
+          }
+        ],
+        "view": "KAM"
+      },
+      {
+        "data_status": "SYNTHETIC",
+        "illustrative": true,
+        "industry": "Manufacturing",
+        "texts": [
+          {
+            "priority_rank": 1,
+            "term": "Cost and allocation efficiency",
+            "text": "Highlight unused allocation, garments per wearer and optimization potential."
+          },
+          {
+            "priority_rank": 2,
+            "term": "Repair and lifetime",
+            "text": "Highlight repairs, postponed replacements and circularity value."
+          },
+          {
+            "priority_rank": 3,
+            "term": "Safety and availability",
+            "text": "Highlight product/service reliability and exception signals."
+          }
+        ],
+        "view": "KAM"
+      }
+    ],
+    "default_order": [
+      {
+        "customer_id": "CUST001",
+        "industry": "Food & Beverage",
+        "priority_ids": [
+          "water",
+          "service_reliability",
+          "emissions"
+        ],
+        "skipped_terms": [
+          "Hygiene"
+        ],
+        "source": "priority_topics"
+      },
+      {
+        "customer_id": "CUST002",
+        "industry": "Manufacturing",
+        "priority_ids": [
+          "garment_utilisation",
+          "circularity"
+        ],
+        "skipped_terms": [
+          "Safety"
+        ],
+        "source": "priority_topics"
+      },
+      {
+        "customer_id": "CUST003",
+        "industry": "Healthcare",
+        "priority_ids": [
+          "traceability",
+          "service_reliability"
+        ],
+        "skipped_terms": [
+          "Hygiene",
+          "Compliance"
+        ],
+        "source": "priority_topics"
+      }
+    ],
+    "term_map": [
+      {
+        "note": null,
+        "priority_id": "circularity",
+        "sources": [
+          "brief"
+        ],
+        "term": "circularity"
+      },
+      {
+        "note": "The workbook holds no hygiene, safety or compliance data, so the term maps to no Customer priority.",
+        "priority_id": "unmapped",
+        "sources": [
+          "priority_topics"
+        ],
+        "term": "Compliance"
+      },
+      {
+        "note": "The workbook holds no hygiene, safety or compliance data, so the term maps to no Customer priority.",
+        "priority_id": "unmapped",
+        "sources": [
+          "Industry_Priorities"
+        ],
+        "term": "Compliance-ready evidence"
+      },
+      {
+        "note": null,
+        "priority_id": "garment_utilisation",
+        "sources": [
+          "brief"
+        ],
+        "term": "cost"
+      },
+      {
+        "note": null,
+        "priority_id": "garment_utilisation",
+        "sources": [
+          "Industry_Priorities"
+        ],
+        "term": "Cost and allocation efficiency"
+      },
+      {
+        "note": null,
+        "priority_id": "garment_utilisation",
+        "sources": [
+          "priority_topics"
+        ],
+        "term": "Cost optimization"
+      },
+      {
+        "note": null,
+        "priority_id": "emissions",
+        "sources": [
+          "brief"
+        ],
+        "term": "emissions"
+      },
+      {
+        "note": null,
+        "priority_id": "garment_utilisation",
+        "sources": [
+          "priority_topics"
+        ],
+        "term": "Garment utilization"
+      },
+      {
+        "note": "The workbook holds no hygiene, safety or compliance data, so the term maps to no Customer priority.",
+        "priority_id": "unmapped",
+        "sources": [
+          "priority_topics"
+        ],
+        "term": "Hygiene"
+      },
+      {
+        "note": "The workbook holds no hygiene, safety or compliance data, so the term maps to no Customer priority.",
+        "priority_id": "unmapped",
+        "sources": [
+          "Industry_Priorities"
+        ],
+        "term": "Hygiene and compliance"
+      },
+      {
+        "note": null,
+        "priority_id": "traceability",
+        "sources": [
+          "Industry_Priorities"
+        ],
+        "term": "Hygiene and traceability"
+      },
+      {
+        "note": null,
+        "priority_id": "improvement",
+        "sources": [
+          "brief"
+        ],
+        "term": "improvement"
+      },
+      {
+        "note": null,
+        "priority_id": "circularity",
+        "sources": [
+          "priority_topics"
+        ],
+        "term": "Repair"
+      },
+      {
+        "note": null,
+        "priority_id": "circularity",
+        "sources": [
+          "Industry_Priorities"
+        ],
+        "term": "Repair and lifetime"
+      },
+      {
+        "note": "The workbook holds no hygiene, safety or compliance data, so the term maps to no Customer priority.",
+        "priority_id": "unmapped",
+        "sources": [
+          "priority_topics"
+        ],
+        "term": "Safety"
+      },
+      {
+        "note": "The workbook holds no hygiene, safety or compliance data, so the term maps to no Customer priority.",
+        "priority_id": "unmapped",
+        "sources": [
+          "Industry_Priorities"
+        ],
+        "term": "Safety and availability"
+      },
+      {
+        "note": null,
+        "priority_id": "emissions",
+        "sources": [
+          "priority_topics"
+        ],
+        "term": "Scope 3 evidence"
+      },
+      {
+        "note": null,
+        "priority_id": "service_reliability",
+        "sources": [
+          "Industry_Priorities",
+          "priority_topics"
+        ],
+        "term": "Service continuity"
+      },
+      {
+        "note": null,
+        "priority_id": "service_reliability",
+        "sources": [
+          "brief"
+        ],
+        "term": "service performance"
+      },
+      {
+        "note": null,
+        "priority_id": "service_reliability",
+        "sources": [
+          "Industry_Priorities",
+          "priority_topics"
+        ],
+        "term": "Service reliability"
+      },
+      {
+        "note": null,
+        "priority_id": "traceability",
+        "sources": [
+          "priority_topics"
+        ],
+        "term": "Traceability"
+      },
+      {
+        "note": null,
+        "priority_id": "water",
+        "sources": [
+          "brief"
+        ],
+        "term": "water"
+      },
+      {
+        "note": null,
+        "priority_id": "water",
+        "sources": [
+          "Industry_Priorities",
+          "priority_topics"
+        ],
+        "term": "Water efficiency"
+      }
+    ]
+  },
+  "meta": {
+    "name": "customer-priorities",
+    "source_file": "Lindstrom_SinceAI_Customer_Value_Synthetic_Data_Pack.xlsx",
+    "source_sha256": "b50603f7112956bbd49d81f6e83d1e3879be8329e2076c1b7aee9d861e08e217"
+  }
+}
