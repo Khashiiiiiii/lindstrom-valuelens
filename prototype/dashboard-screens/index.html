@@ -76,7 +76,10 @@
 
   /* Review page */
   .R { max-width: 860px; margin: 0 auto; background: #fff; padding: 30px 40px; }
-  .R h1 { margin: 0 0 4px; } .R h2 { border-bottom: 2px solid #1d2733; padding-bottom: 4px; margin-top: 30px; }
+  .R h1 { margin: 0 0 4px; }
+  .R-brand { display: flex; align-items: center; justify-content: space-between; padding-bottom: 14px; margin-bottom: 18px; border-bottom: 1px solid #dde3ea; }
+  .R-brand img { height: 34px; } .R-brand span { font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #003f72; }
+  @media print { .R-brand img { -webkit-print-color-adjust: exact; print-color-adjust: exact; } } .R h2 { border-bottom: 2px solid #1d2733; padding-bottom: 4px; margin-top: 30px; }
   .R .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
   .R .grp { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: #66717d; }
   @media print {
@@ -92,6 +95,7 @@
 <div id="modal"></div>
 <div id="ai"></div>
 <div id="switcher"></div>
+<script src="/variant-d-dict.js"></script>
 <script src="/variant-d-i18n.js"></script>
 <script src="/variant-d.js"></script>
 <script>
@@ -128,7 +132,7 @@ function status(r) {
 }
 function caveats(r, open = false) {
   if (!r || r.withheld || (!r.caveats.length && !r.assumptions.length)) return "";
-  const base = r.detail?.kind === "handprint" ? `<div class="caveat">${esc(r.detail.baseline_label)}</div>` : "";
+  const base = r.detail?.kind === "handprint" ? `<div class="caveat">${esc(tr(r.detail.baseline_label))}</div>` : "";
   return base + `<details ${open ? "open" : ""}><summary>${tr("{n} caveat(s)", { n: r.caveats.length })}${r.assumptions.length ? ", " + r.assumptions.join(", ") : ""}</summary>${r.caveats.map((c) => `<div class="caveat">${esc(c)}</div>`).join("")}</details>`;
 }
 function kpiCard(r, extra = "") {
@@ -146,8 +150,8 @@ function tileCard(t, onclick = true) {
 }
 function groupCard(g) {
   if (!g) return "";
-  return `<div class="card" style="border-left:4px solid #c9372c"><b>${esc(g.name)}</b> <span class="muted">${tr("rank {r}, {n} result(s), matches {p}", { r: g.rank, n: g.fired_count, p: g.matched_priority_id ? esc(prName(g.matched_priority_id)) : tr("no priority") })}</span>
-    <div>${tr("Lever")}: ${esc(g.lever)} <span class="badge">${esc(g.lever_owner)}</span></div>
+  return `<div class="card" style="border-left:4px solid #c9372c"><b>${esc(tr(g.name))}</b> <span class="muted">${tr("rank {r}, {n} result(s), matches {p}", { r: g.rank, n: g.fired_count, p: g.matched_priority_id ? esc(prName(g.matched_priority_id)) : tr("no priority") })}</span>
+    <div>${tr("Lever")}: ${esc(tr(g.lever))} <span class="badge">${esc(tr(g.lever_owner))}</span></div>
     <div class="muted">${g.results.map((r) => `${esc(siteName(r.site_id))}${r.product_id ? " " + r.product_id : ""} +${(r.gap * 100).toFixed(0)}%`).join(", ")}</div></div>`;
 }
 function kamStrip() {
@@ -318,15 +322,16 @@ async function renderReview() {
   const r = (await post("/api/review", { customer_id: S.customer_id, period: S.period, view: "Customer", priorities: S.priorities })).json;
   const split = Object.fromEntries(r.split.map((x) => [x.split_group, x.page_share]));
   document.getElementById("app").innerHTML = `<div class="R">
-    <div class="noprint" style="margin-bottom:16px"><button onclick="url.searchParams.delete('page');location.href=url">Back to dashboard</button> <button class="primary" onclick="print()">Save as PDF</button>
-      <span class="muted">Follows the Customer view rules. No account health, no KAM-only items.</span></div>
-    <h1>${esc(r.customer.customer_name)}: annual review ${S.period}</h1><div class="muted">Priorities: ${S.priorities.map(prName).join(", ")}</div>
-    ${r.parts.map((p) => `<section><div class="grp">${p.split_group === "evidence_and_value" ? "Evidence and value, " + split.evidence_and_value * 100 + "% of pages" : "Future planning, " + split.future_planning * 100 + "% of pages"}</div>
-      <h2>${esc(p.name)}</h2><p class="muted">${esc(p.text)}</p>
+    <div class="noprint" style="margin-bottom:16px"><button onclick="url.searchParams.delete('page');location.href=url">${tr("Back to dashboard")}</button> <button class="primary" onclick="print()">${tr("Save as PDF")}</button> <button onclick="dExportDeck()">${tr("PowerPoint deck")} (${UI.lang.toUpperCase()})</button>
+      <span class="muted">${tr("Follows the Customer view rules. No account health, no KAM-only items.")}</span></div>
+    <div class="R-brand"><img src="/assets/lindstrom-logo.png" alt="Lindström"><span>ValueLens</span></div>
+    <h1>${esc(tr("{c}: annual review {p}", { c: r.customer.customer_name, p: S.period }))}</h1><div class="muted">${tr("Priorities")}: ${S.priorities.map(prName).join(", ")}</div>
+    ${r.parts.map((p) => `<section><div class="grp">${p.split_group === "evidence_and_value" ? tr("Evidence and value, {n}% of pages", { n: split.evidence_and_value * 100 }) : tr("Future planning, {n}% of pages", { n: split.future_planning * 100 })}</div>
+      <h2>${esc(tr(p.name))}</h2>${UI.lang === "en" ? `<p class="muted">${esc(p.text)}</p>` : ""}
       ${p.name === "Build trust" ? r.transparency.map((t) => `<div class="card"><b>${esc(t.name)}</b><div class="muted">${esc(t.text)}</div></div>`).join("") : ""}
       <div class="grid">${p.results.map((x) => kpiCard(x)).join("")}</div>
       ${p.name === "Look forward" ? r.signal_groups.map(groupCard).join("") : ""}
-      ${p.name === "Agree actions" ? r.next_steps.map((n) => `<div class="card">${n.position}. ${esc(n.lever)} <span class="badge">${esc(n.lever_owner)}</span> <span class="muted">${esc(n.status_text)}</span></div>`).join("") : ""}
+      ${p.name === "Agree actions" ? r.next_steps.map((n) => `<div class="card">${n.position}. ${esc(tr(n.lever))} <span class="badge">${esc(tr(n.lever_owner))}</span> <span class="muted">${esc(tr(n.status_text))}</span></div>`).join("") : ""}
     </section>`).join("")}</div>`;
 }
 

@@ -149,6 +149,25 @@ function charts(body: any) {
   };
 }
 
+// PowerPoint export, Customer view only. The deck builder is loaded on first use, so the rest of the
+// prototype still runs before `npm install`.
+async function exportDeck(body: any) {
+  const { buildDeck } = await import("./deck.ts");
+  const { customer_id, period } = body;
+  const lang = ["en", "sv", "fi"].includes(body.lang) ? body.lang : "en";
+  const s = screen({ customer_id, period, view: "Customer", priorities: body.priorities });
+  const c = charts({ customer_id, period, view: "Customer" });
+  return buildDeck({
+    lang, period, months: master.months, customer: s.customer as any,
+    user: { name: "Aino Virtanen", email: "aino.virtanen@example.com" },
+    priorities: s.blocks.map((b) => ({ id: b.priority_id, name: b.name, results: b.results })),
+    kpi: (id) => runKpi(id, { scope: { customer_id }, period, view: "Customer" }),
+    site_count: master.sites.filter((x) => x.customer_id === customer_id).length,
+    series: c.series, waste: c.waste, signal_groups: s.signal_groups, next_steps: s.next_steps,
+    siteName: (id) => master.sites.find((x) => x.site_id === id)?.site_name ?? id,
+  });
+}
+
 // Stubs of POST /api/assistant and POST /api/observations, in the contract's response shape.
 const PRIORITY_WORDS: [RegExp, string][] = [
   [/water/i, "water"], [/emission|co2|carbon/i, "emissions"], [/circular|repair|waste/i, "circularity"],
@@ -217,6 +236,10 @@ createServer(async (req, res) => {
     res.end(JSON.stringify(json));
   };
   try {
+    if (req.method === "GET" && /^\/assets\/[\w-]+\.png$/.test(req.url!)) {
+      res.writeHead(200, { "content-type": "image/png" });
+      return res.end(readFileSync(new URL("." + req.url, import.meta.url)));
+    }
     if (req.method === "GET" && /^\/variant-d[\w-]*\.(js|css)$/.test(req.url!)) {
       res.writeHead(200, { "content-type": req.url!.endsWith(".js") ? "text/javascript" : "text/css" });
       return res.end(readFileSync(new URL("." + req.url, import.meta.url)));
@@ -231,6 +254,11 @@ createServer(async (req, res) => {
     if (req.url === "/api/meta") return send(200, meta);
     if (req.url === "/api/screen") return send(200, screen(body));
     if (req.url === "/api/sites") return send(200, siteTable(body));
+    if (req.url === "/api/export.pptx") {
+      const buf = await exportDeck(body);
+      res.writeHead(200, { "content-type": "application/vnd.openxmlformats-officedocument.presentationml.presentation" });
+      return res.end(buf);
+    }
     if (req.url === "/api/charts") return send(200, charts(body));
     if (req.url === "/api/review") return send(200, review(body));
     if (req.url === "/api/assistant") { await delay(4000); const r = assistant(body); return send(r.status, r.json); }

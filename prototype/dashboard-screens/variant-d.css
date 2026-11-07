@@ -1,6 +1,6 @@
 /* PROTOTYPE, throw me away. Variant D: left menu, AI button bottom right that opens a modal. Scoped to body.D.
-   Themes: light (default) and body.D-dark. Palettes: indigo (default) and body.D-lind, a Lindström-style blue
-   picked by eye, not taken from Lindström's brand guide. */
+   Themes: light (default) and body.D-dark. Palettes: body.D-lind (default), Lindström navy #003f72 and red
+   #e00034 read from the logo file, and indigo. */
 body.D {
   --bg: #f5f6fa; --panel: #fff; --panel2: #fafbfd; --hover: #f3f4f8; --seg: #eceef4; --line: #e7e9f0; --line2: #c9ccd8;
   --text: #161b26; --text2: #3a4150; --muted: #6b7280;
@@ -15,8 +15,8 @@ body.D {
   transition: background-color .25s, color .25s;
 }
 body.D.D-lind {
-  --accent: #00539b; --accent-h: #003f78; --accent-soft: #e6f0f9; --accent-line: #a9c8e6; --ring: rgba(0, 83, 155, .18);
-  --c1: #00539b; --c2: #41b6e6; --c3: #78be20; --c4: #f2a900;
+  --accent: #003f72; --accent-h: #002c52; --accent-soft: #e6eef6; --accent-line: #a9c2dc; --ring: rgba(0, 63, 114, .18);
+  --c1: #003f72; --c2: #4f8fcb; --c3: #a9c8e6; --c4: #e00034;
 }
 body.D.D-dark {
   --bg: #0c111d; --panel: #161d2c; --panel2: #1b2334; --hover: #1f2839; --seg: #0f1522; --line: #263045; --line2: #36425c;
@@ -71,8 +71,15 @@ body.D.D-dark.D-lind { --accent: #4fa3e0; --accent-h: #7cbcea; --accent-soft: rg
 .D-wrap { display: grid; grid-template-columns: var(--nav) 1fr; min-height: 100vh; transition: grid-template-columns .25s ease; }
 .D-collapsed .D-wrap { grid-template-columns: 76px 1fr; }
 .D-nav { position: sticky; top: 0; height: 100vh; background: var(--panel); border-right: 1px solid var(--line); padding: 18px 14px; display: flex; flex-direction: column; gap: 4px; overflow: hidden; transition: background-color .25s; }
-.D-logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; padding: 4px 8px 14px; white-space: nowrap; }
-.D-logo i { width: 28px; height: 28px; border-radius: 9px; background: linear-gradient(135deg, var(--c1), var(--c2)); display: inline-block; flex: none; }
+/* Lindström logo. Collapsed, the clip shows only the round symbol (the left 18% of the file). */
+.D-brand { display: flex; flex-direction: column; gap: 4px; padding: 4px 8px 16px; white-space: nowrap; }
+.D-logoclip { display: block; width: 150px; overflow: hidden; transition: width .25s ease; }
+.D-logoclip img { height: 30px; display: block; }
+.D-product { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding-left: 2px; }
+.D-collapsed .D-logoclip { width: 27px; }
+.D-collapsed .D-product { height: 0; }
+.D-ext { margin-left: auto; font-size: 10px; font-weight: 600; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 0 6px; }
+.D-item.busy { opacity: .7; cursor: progress; }
 .D-cust select { width: 100%; margin-bottom: 14px; border-radius: var(--r-sm); }
 .D-navlabel { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; padding: 12px 10px 4px; white-space: nowrap; min-height: 31px; }
 .D-item { position: relative; display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--r-sm); color: var(--text2); cursor: pointer; transition: background .12s, color .12s; text-decoration: none; white-space: nowrap; }

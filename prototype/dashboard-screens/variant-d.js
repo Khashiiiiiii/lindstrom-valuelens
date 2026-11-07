@@ -14,6 +14,7 @@ const D_ICON = {
   moon: '<path d="M20 15.3A8.5 8.5 0 0 1 8.7 4 8.5 8.5 0 1 0 20 15.3z"/>',
   sun: '<path d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zM11 1h2v3h-2zm0 19h2v3h-2zM1 11h3v2H1zm19 0h3v2h-3zM4.2 5.6l1.4-1.4 2.1 2.1-1.4 1.4zm12.1 12.1 1.4-1.4 2.1 2.1-1.4 1.4zM4.2 18.4l2.1-2.1 1.4 1.4-2.1 2.1zM16.3 6.3l2.1-2.1 1.4 1.4-2.1 2.1z"/>',
   chevron: '<path d="M7 10l5 5 5-5z"/>',
+  deck: '<path d="M3 4h18v12H3zm2 2v8h14V6zm2 6h2v1H7zm3-2h2v3h-2zm3-2h2v5h-2zM11 17h2v2h3v2H8v-2h3z"/>',
   up: '<path d="M12 5l6 7h-4v7h-4v-7H6z"/>',
   down: '<path d="M12 19l-6-7h4V5h4v7h4z"/>',
 };
@@ -30,7 +31,7 @@ const D = {
   section: D_URL.searchParams.get("section") || "overview", lastSection: null, sites: null, sitesKey: "",
   transparency: [], transparencyFor: null, open: D_URL.searchParams.get("ai") === "open", tab: "ask",
   unread: false, wasBusy: false, refocus: false,
-  charts: null, chartsKey: "", anim: false, trendKpi: "washed_kg", siteKpi: null, menu: false,
+  charts: null, chartsKey: "", anim: false, trendKpi: "washed_kg", siteKpi: null, menu: false, exporting: false,
 };
 // Which way is better, for the colour of the change badge. 0 is neutral.
 const D_GOOD = { on_time_service_cycle_share: 1, service_requests_per_100_wearers: -1, water_saved: 1, emissions_saved: 1, energy_saved: 1, scan_coverage: 1, late_service_cycles: -1, turnaround_hours_median: -1, repair_rate: 1, recycled_or_reused_share: 1, allocated_garments_with_no_scan_activity: -1 };
@@ -172,7 +173,7 @@ function dProfile() {
       <div class="D-menuhead">${portrait(44)}<div><b>${D_USER.name}</b><div class="muted">${tr("Key Account Manager")}</div><div class="muted">${D_USER.email}</div></div></div>
       <div class="D-menurow"><span>${tr("Language")}</span>${dSeg([["en", "English"], ["sv", "Svenska"], ["fi", "Suomi"]], UI.lang, (k) => `saveUI({lang:'${k}'})`)}</div>
       <div class="D-menurow"><span>${tr("Theme")}</span>${dSeg([["light", tr("Light")], ["dark", tr("Dark")]], UI.theme, (k) => `saveUI({theme:'${k}'})`)}</div>
-      <div class="D-menurow"><span>${tr("Colours")}</span>${dSeg([["indigo", tr("Indigo")], ["lindstrom", tr("Lindström-style")]], UI.palette, (k) => `saveUI({palette:'${k}'})`)}</div>
+      <div class="D-menurow"><span>${tr("Colours")}</span>${dSeg([["lindstrom", "Lindström"], ["indigo", tr("Indigo")]], UI.palette, (k) => `saveUI({palette:'${k}'})`)}</div>
       <button class="D-signout" disabled>${tr("Sign out")}</button></div>` : ""}</div>`;
 }
 
@@ -186,12 +187,13 @@ function VariantD() {
   const titles = { overview: "Overview", sites: "Sites", opportunities: "Opportunities", priorities: "Customer priorities", data: "Data and assumptions" };
   const c = dCharts();
   return `<div class="D-wrap"><nav class="D-nav">
-      <div class="D-logo"><i></i><span class="lbl">ValueLens</span></div>
+      <div class="D-brand" title="ValueLens by Lindström"><span class="D-logoclip"><img src="/assets/${UI.theme === "dark" ? "lindstrom-logo-white" : "lindstrom-logo"}.png" alt="Lindström"></span><span class="lbl D-product">ValueLens</span></div>
       <div class="D-cust">${customerSelect()}</div>
       <div class="D-navlabel"><span class="lbl">${tr("Dashboard")}</span></div>
       ${items.map(([k, l, n]) => `<a class="D-item ${D.section === k ? "on" : ""}" title="${esc(tr(l))}" onclick="dNav('${k}')">${icon(k)}<span class="lbl">${tr(l)}</span>${n ? `<span class="count">${n}</span>` : ""}</a>`).join("")}
       <div class="D-navlabel"><span class="lbl">${tr("Export")}</span></div>
-      <a class="D-item" title="${esc(tr("Print review"))}" onclick="openReview()">${icon("review")}<span class="lbl">${tr("Print review")}</span></a>
+      <a class="D-item" title="${esc(tr("Print review"))}" onclick="openReview()">${icon("review")}<span class="lbl">${tr("Print review")}</span><span class="lbl D-ext">PDF</span></a>
+      <a class="D-item ${D.exporting ? "busy" : ""}" title="${esc(tr("PowerPoint deck"))}" onclick="dExportDeck()">${icon("deck")}<span class="lbl">${tr(D.exporting ? "Building PowerPoint..." : "PowerPoint deck")}</span><span class="lbl D-ext">${UI.lang.toUpperCase()}</span></a>
       <div class="D-navfoot lbl">${esc(s.customer.industry)}, ${esc(s.customer.segment)}<br>${tr("Synthetic data, 2025")}</div>
     </nav>
     <div class="D-right">
@@ -207,7 +209,7 @@ function VariantD() {
           <div><h1>${tr(titles[D.section])}</h1><div class="sub">${S.period}, ${tr(S.view + " view")}</div></div>
           ${siteFilter()}<span class="D-grow"></span>${periodSelect()}${viewToggle()}
         </div>
-        ${UI.lang !== "en" ? `<div class="D-note">${tr("Draft translation. Caveats, signal texts and assistant answers are still in English.")}</div>` : ""}
+        ${UI.lang !== "en" ? `<div class="D-note">${tr("Draft translation. Caveats and assistant answers are still in English.")}</div>` : ""}
         <div class="${sectionChanged ? "D-section" : ""} ${anim ? "D-anim" : ""}">${priorityBanner()}${{ overview: dOverview, sites: dSites, opportunities: dOpportunities, priorities: dPriorities, data: dData }[D.section](c)}</div>
       </main>
     </div></div>`;
@@ -219,10 +221,10 @@ function dTile(t) {
     const first = t.results[0], ser = D.charts?.series[first.kpi_id];
     return `<div class="card D-tile" onclick="${go}"><div class="muted">${esc(tr(t.name))}</div>${t.results.map((r) => `<div class="value">${fmtValue(r)}</div>${t.results.length > 1 ? `<div class="muted">${esc(tr(r.name))}</div>` : ""}<div class="D-tilemeta">${dDelta(r.kpi_id)}</div>`).join("")}
       ${ser && !ser.withheld ? chSpark(ser.values) : ""}
-      <div>${status(first)}</div>${first.detail?.kind === "handprint" ? `<div class="caveat">${esc(first.detail.baseline_label)}, ${tr("may be overstated")}</div>` : ""}</div>`;
+      <div>${status(first)}</div>${first.detail?.kind === "handprint" ? `<div class="caveat">${esc(tr(first.detail.baseline_label))}, ${tr("may be overstated")}</div>` : ""}</div>`;
   }
   if (t.id === "optimisation_potential") {
-    return `<div class="card D-tile" onclick="${go}"><div class="muted">${esc(tr(t.name))}</div><div class="value">${t.value}</div><div class="muted">${tr("fired results across {n} signals", { n: t.signal_count })}</div>${t.top_group ? `<div class="muted">${tr("Top: {x}", { x: esc(t.top_group.name) })}</div>` : ""}</div>`;
+    return `<div class="card D-tile" onclick="${go}"><div class="muted">${esc(tr(t.name))}</div><div class="value">${t.value}</div><div class="muted">${tr("fired results across {n} signals", { n: t.signal_count })}</div>${t.top_group ? `<div class="muted">${tr("Top: {x}", { x: esc(tr(t.top_group.name)) })}</div>` : ""}</div>`;
   }
   return `<div class="card D-tile" onclick="${go}"><div class="muted">${esc(tr(t.name))}</div><div class="value">${t.value}</div><div class="muted">${esc(tr(t.unit === "Sites" ? "Sites_unit" : t.unit))}</div></div>`;
 }
@@ -280,7 +282,7 @@ function dSites() {
     <div class="D-sites"><table><thead><tr><th>${tr("Site")}</th>${D.sites[0].results.map((r) => `<th>${esc(tr(r.name ?? r.kpi_id))}<div style="font-weight:400">${r.unit && r.unit !== "share" ? esc(tr(r.unit)) : ""}</div></th>`).join("")}<th>${tr("Fired signals")}</th></tr></thead><tbody>
     ${D.sites.map((row) => `<tr class="click" style="${S.site_id === row.site.site_id ? "background:var(--accent-soft)" : ""}" onclick="set({site_id:'${row.site.site_id}'});dNav('overview')">
       <td><b>${esc(row.site.site_name)}</b><div class="muted">${esc(row.site.site_type)}</div></td>${row.results.map((r) => `<td class="num">${fmtValue(r)}</td>`).join("")}
-      <td>${row.fired.map((f) => `<span class="badge D-firedbadge">${esc(f.name.replace(" above peers", ""))} +${(f.gap * 100).toFixed(0)}%</span>`).join(" ")}</td></tr>`).join("")}
+      <td>${row.fired.map((f) => `<span class="badge D-firedbadge">${esc(UI.lang === "en" ? f.name.replace(" above peers", "") : tr(f.name))} +${(f.gap * 100).toFixed(0)}%</span>`).join(" ")}</td></tr>`).join("")}
     </tbody></table></div>`;
 }
 
@@ -289,7 +291,7 @@ function dOpportunities() {
   return `<div class="D-h2">${tr("Signal groups")} <span class="muted">${tr("ranked by your priorities, then by gap")}</span></div>
     <div style="display:grid;gap:10px">${s.signal_groups.map(groupCard).join("") || `<div class="muted">${tr("No fired signals.")}</div>`}</div>
     <div class="D-h2">${tr("Proposed next steps")}</div>
-    <div style="display:grid;gap:10px">${s.next_steps.map((n) => `<div class="card"><span class="D-num">${n.position}</span> ${esc(n.lever)} <span class="badge">${esc(n.lever_owner)}</span> <div class="muted">${esc(tr(n.status_text))}</div></div>`).join("")}</div>`;
+    <div style="display:grid;gap:10px">${s.next_steps.map((n) => `<div class="card"><span class="D-num">${n.position}</span> ${esc(tr(n.lever))} <span class="badge">${esc(tr(n.lever_owner))}</span> <div class="muted">${esc(tr(n.status_text))}</div></div>`).join("")}</div>`;
 }
 
 function dPriorities() {
@@ -304,6 +306,21 @@ function dData() {
   }
   return `<div style="display:grid;gap:10px;max-width:760px">${D.transparency.map((t) => `<div class="card"><b>${esc(t.name)}</b><div class="muted">${esc(t.text)}</div></div>`).join("")}</div>
     <p class="muted">${tr("Customer version shown. The KAM version adds factors, thresholds and guards.")}</p>`;
+}
+
+// ---- PowerPoint export. Customer view, in the app language. ----
+async function dExportDeck() {
+  if (D.exporting) return;
+  D.exporting = true; if (S.page !== "review") render();
+  try {
+    const r = await fetch("/api/export.pptx", { method: "POST", body: JSON.stringify({ customer_id: S.customer_id, period: S.period, priorities: S.priorities, lang: UI.lang }) });
+    const blob = await r.blob();
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    const name = S.meta.customers.find((c) => c.customer_id === S.customer_id)?.customer_name ?? S.customer_id;
+    a.download = `Lindström ValueLens, ${name}, ${S.period} (${UI.lang.toUpperCase()}).pptx`;
+    a.click(); URL.revokeObjectURL(a.href);
+  } finally { D.exporting = false; if (S.page !== "review") render(); }
 }
 
 // ---- Tooltip for chart parts with data-tip ----
