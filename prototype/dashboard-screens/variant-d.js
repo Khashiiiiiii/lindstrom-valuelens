@@ -192,7 +192,6 @@ function VariantD() {
       <div class="D-navlabel"><span class="lbl">${tr("Dashboard")}</span></div>
       ${items.map(([k, l, n]) => `<a class="D-item ${D.section === k ? "on" : ""}" title="${esc(tr(l))}" onclick="dNav('${k}')">${icon(k)}<span class="lbl">${tr(l)}</span>${n ? `<span class="count">${n}</span>` : ""}</a>`).join("")}
       <div class="D-navlabel"><span class="lbl">${tr("Export")}</span></div>
-      <a class="D-item" title="${esc(tr("Print review"))}" onclick="openReview()">${icon("review")}<span class="lbl">${tr("Print review")}</span><span class="lbl D-ext">PDF</span></a>
       <a class="D-item ${D.exporting ? "busy" : ""}" title="${esc(tr("PowerPoint deck"))}" onclick="dExportDeck()">${icon("deck")}<span class="lbl">${tr(D.exporting ? "Building PowerPoint..." : "PowerPoint deck")}</span><span class="lbl D-ext">${UI.lang.toUpperCase()}</span></a>
       <div class="D-navfoot lbl">${esc(s.customer.industry)}, ${esc(s.customer.segment)}<br>${tr("Synthetic data, 2025")}</div>
     </nav>
