@@ -3,6 +3,7 @@ import { test } from "node:test";
 
 import {
   getAccountHealth,
+  getFootprintHandprintKpis,
   getMasterData,
   getOperationalCircularityKpis,
   getPublicReference,
@@ -74,4 +75,37 @@ test("getAccountHealth reads the account health rules and ratings", () => {
   assert.equal(apex?.rating, "amber");
   assert.equal(apex?.inputs.length, 3);
   assert.match(health.data.customer_experience_gap.text, /CSAT/);
+});
+
+test("getFootprintHandprintKpis reads the footprint and handprint KPIs", () => {
+  const file = getFootprintHandprintKpis();
+  assert.equal(file.meta.name, "footprint-handprint-kpis");
+  assert.equal(file.catalogue.length, 7);
+  assert.equal(file.data.impacts.length, 1248);
+  assert.equal(file.data.baselines.default_baseline_id, "B_LOCAL");
+  assert.equal(file.data.baselines.low_cases[0].value, 0.3);
+  const local = file.data.handprint.find(
+    (r) =>
+      r.scope === "customer" &&
+      r.scope_id === "CUST001" &&
+      r.period === "2025" &&
+      r.baseline_id === "B_LOCAL" &&
+      r.factor_case === "default",
+  );
+  assert.equal(Math.round(local?.water_saved_l ?? 0), 1406483);
+  assert.equal(Math.round((local?.emissions_saved_share ?? 0) * 100), 78);
+  const wearers = file.data.per_wearer_denominators.find(
+    (r) => r.scope === "customer" && r.scope_id === "CUST001" && r.period === "2025-12",
+  );
+  assert.equal(wearers?.active_wearers, 9607);
+  assert.equal(file.data.transparency.view, "KAM");
+  assert.equal(file.data.transparency.laundry_month_factors.length, 48);
+  assert.deepEqual(
+    file.data.transparency.laundry_process_co2e_per_kwh.map((r) => r.process_kgco2e_per_kwh),
+    [0.09, 0.09, 0.05, 0.42],
+  );
+  assert.deepEqual(
+    file.data.parameters.map((p) => p.id),
+    ["unit", "emission_source", "baseline"],
+  );
 });
