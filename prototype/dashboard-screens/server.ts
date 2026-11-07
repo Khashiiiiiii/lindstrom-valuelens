@@ -114,6 +114,41 @@ function review(body: any) {
   return { customer: s.customer, parts, split: vr.review.split, signal_groups: s.signal_groups, next_steps: s.next_steps, transparency: vr.views.data_transparency.customer.items };
 }
 
+// Chart data for variant D. Monthly series come from runKpi per month, so every point is a real result.
+const TREND_KPIS = ["washed_kg", "active_wearers", "on_time_service_cycle_share", "service_requests_per_100_wearers", "water_saved", "emissions_saved", "repairs", "garments_in_circulation"];
+function previousPeriod(period: string) {
+  if (period === "2025") return { cur: "2025-H2", prev: "2025-H1", label: "H2 vs H1" };
+  if (period === "2025-H2") return { cur: "2025-H2", prev: "2025-H1", label: "vs H1" };
+  const i = master.months.indexOf(period);
+  if (i > 0) return { cur: period, prev: master.months[i - 1], label: "vs " + master.months[i - 1] };
+  return null;
+}
+function charts(body: any) {
+  const { customer_id, site_id, period, view } = body;
+  const scope = site_id ? { customer_id, site_id } : { customer_id };
+  const kpi_ids: string[] = [...new Set([...TREND_KPIS, ...(body.kpi_ids ?? [])])];
+  const pp = previousPeriod(period);
+  const series: Record<string, any> = {};
+  for (const id of kpi_ids) {
+    const points = master.months.map((m) => runKpi(id, { scope, period: m, view }) as any);
+    if (points[0].withheld) { series[id] = { withheld: true }; continue; }
+    let delta = null;
+    if (pp) {
+      const a = runKpi(id, { scope, period: pp.prev, view }) as any, b = runKpi(id, { scope, period: pp.cur, view }) as any;
+      if (a.value && b.value !== null) delta = { change: (b.value - a.value) / Math.abs(a.value), label: pp.label };
+    }
+    series[id] = { name: points[0].name, unit: points[0].unit, values: points.map((r) => r.value), delta };
+  }
+  const waste = runKpi("textile_waste_by_treatment_route", { scope, period, view }) as any;
+  const stages = master.months.map((m) => runKpi("turnaround_by_stage", { scope, period: m, view }) as any);
+  const health = view === "KAM" ? (runKpi("account_health", { scope: { customer_id }, period, view }) as any).detail?.rating : null;
+  return {
+    months: master.months, series, waste,
+    stages: stages[0].withheld ? { withheld: true } : stages.map((r) => r.breakdown),
+    on_time_thresholds: health?.inputs?.find((i: any) => i.input_id === "account_health_on_time_service_cycle_share")?.thresholds_used ?? null,
+  };
+}
+
 // Stubs of POST /api/assistant and POST /api/observations, in the contract's response shape.
 const PRIORITY_WORDS: [RegExp, string][] = [
   [/water/i, "water"], [/emission|co2|carbon/i, "emissions"], [/circular|repair|waste/i, "circularity"],
@@ -182,7 +217,7 @@ createServer(async (req, res) => {
     res.end(JSON.stringify(json));
   };
   try {
-    if (req.method === "GET" && /^\/variant-d\.(js|css)$/.test(req.url!)) {
+    if (req.method === "GET" && /^\/variant-d[\w-]*\.(js|css)$/.test(req.url!)) {
       res.writeHead(200, { "content-type": req.url!.endsWith(".js") ? "text/javascript" : "text/css" });
       return res.end(readFileSync(new URL("." + req.url, import.meta.url)));
     }
@@ -196,6 +231,7 @@ createServer(async (req, res) => {
     if (req.url === "/api/meta") return send(200, meta);
     if (req.url === "/api/screen") return send(200, screen(body));
     if (req.url === "/api/sites") return send(200, siteTable(body));
+    if (req.url === "/api/charts") return send(200, charts(body));
     if (req.url === "/api/review") return send(200, review(body));
     if (req.url === "/api/assistant") { await delay(4000); const r = assistant(body); return send(r.status, r.json); }
     if (req.url === "/api/observations") { await delay(5000); const r = observations(body); return send(r.status, r.json); }
@@ -203,4 +239,4 @@ createServer(async (req, res) => {
   } catch (e) {
     send(400, { error: { code: "bad_request", message: String(e) } });
   }
-}).listen(PORT, () => console.log(`Dashboard screens prototype: http://localhost:${PORT}  (?variant=A, B or C; ?page=review)`));
+}).listen(PORT, () => console.log(`Dashboard screens prototype: http://localhost:${PORT}  (?variant=A, B, C or D; ?page=review)`));

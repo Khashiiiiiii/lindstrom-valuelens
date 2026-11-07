@@ -6,6 +6,8 @@
   A: Top bar, tile grid, chat panel on the right, Site drill-down in a modal.
   B: Sidebar with selectors, priorities and Sites; the page is ordered by the 5 review parts; chat is a bottom bar.
   C: Assistant column on the left; the right side is a Sites matrix for the priority KPIs.
+  D (default): left menu that collapses, AI button bottom right with a modal, dark mode, SVG charts, profile menu,
+     EN, SV and FI labels. Code in variant-d.js, variant-d.css and variant-d-i18n.js.
 -->
 <html lang="en">
 <head>
@@ -90,6 +92,7 @@
 <div id="modal"></div>
 <div id="ai"></div>
 <div id="switcher"></div>
+<script src="/variant-d-i18n.js"></script>
 <script src="/variant-d.js"></script>
 <script>
 const VARIANTS = { A: "Top bar and tile grid", B: "Review-part sidebar", C: "Assistant and Sites matrix", D: "Modern: sidebar menu, AI button" };
@@ -105,31 +108,31 @@ const S = {
 
 const post = (path, body) => fetch(path, { method: "POST", body: JSON.stringify(body) }).then(async (r) => ({ ok: r.ok, json: await r.json() }));
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
-const prName = (id) => S.meta.priorities.find((p) => p.id === id)?.name ?? id;
+const prName = (id) => tr(S.meta.priorities.find((p) => p.id === id)?.name ?? id);
 const siteName = (id) => S.meta.sites.find((s) => s.site_id === id)?.site_name ?? id;
 const custSites = () => S.meta.sites.filter((s) => s.customer_id === S.customer_id);
 
 function fmtValue(r) {
   if (!r) return "";
-  if (r.withheld) return `<span class="badge kam">KAM view only</span>`;
-  if (r.kpi_id === "account_health") { const g = r.detail.rating; return `<span class="health ${g.rating}"></span>${g.rating}`; }
-  if (r.value === null) return `<span class="muted" title="${esc(r.not_evaluated_reason)}">Not evaluated</span>`;
-  const v = r.value;
-  if (r.unit === "share") return `${(v * 100).toFixed(1)}%`;
+  if (r.withheld) return `<span class="badge kam">${tr("KAM view only")}</span>`;
+  if (r.kpi_id === "account_health") { const g = r.detail.rating; return `<span class="health ${g.rating}"></span>${tr(g.rating)}`; }
+  if (r.value === null) return `<span class="muted" title="${esc(r.not_evaluated_reason)}">${tr("Not evaluated")}</span>`;
+  const v = r.value, loc = isD() ? D_LOCALE() : "en";
+  if (r.unit === "share") return `${(v * 100).toLocaleString(loc, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}${loc === "en" || UI.lang === "en" ? "%" : "\u00a0%"}`;
   const digits = Math.abs(v) >= 100 ? 0 : 2;
-  return `${v.toLocaleString("en", { maximumFractionDigits: digits })} <span class="muted">${esc(r.unit)}</span>`;
+  return `${v.toLocaleString(loc, { maximumFractionDigits: digits })} <span class="muted">${esc(tr(r.unit))}</span>`;
 }
 function status(r) {
   if (!r || r.withheld) return "";
-  return `<span class="badge ${/ESTIMATE/.test(r.data_status) ? "est" : ""}">${esc(r.data_status)}</span>`;
+  return `<span class="badge ${/ESTIMATE/.test(r.data_status) ? "est" : ""}">${esc(tr(r.data_status))}</span>`;
 }
 function caveats(r, open = false) {
   if (!r || r.withheld || (!r.caveats.length && !r.assumptions.length)) return "";
   const base = r.detail?.kind === "handprint" ? `<div class="caveat">${esc(r.detail.baseline_label)}</div>` : "";
-  return base + `<details ${open ? "open" : ""}><summary>${r.caveats.length} caveat(s)${r.assumptions.length ? ", " + r.assumptions.join(", ") : ""}</summary>${r.caveats.map((c) => `<div class="caveat">${esc(c)}</div>`).join("")}</details>`;
+  return base + `<details ${open ? "open" : ""}><summary>${tr("{n} caveat(s)", { n: r.caveats.length })}${r.assumptions.length ? ", " + r.assumptions.join(", ") : ""}</summary>${r.caveats.map((c) => `<div class="caveat">${esc(c)}</div>`).join("")}</details>`;
 }
 function kpiCard(r, extra = "") {
-  return `<div class="card"><div class="muted">${esc(r.name ?? r.kpi_id)} ${status(r)}</div><div class="value">${fmtValue(r)}</div>${caveats(r)}${extra}</div>`;
+  return `<div class="card"><div class="muted">${esc(tr(r.name ?? r.kpi_id))} ${status(r)}</div><div class="value">${fmtValue(r)}</div>${caveats(r)}${extra}</div>`;
 }
 function tileCard(t, onclick = true) {
   if (t.results) {
@@ -143,15 +146,15 @@ function tileCard(t, onclick = true) {
 }
 function groupCard(g) {
   if (!g) return "";
-  return `<div class="card" style="border-left:4px solid #c9372c"><b>${esc(g.name)}</b> <span class="muted">rank ${g.rank}, ${g.fired_count} result(s), matches ${g.matched_priority_id ? esc(prName(g.matched_priority_id)) : "no priority"}</span>
-    <div>Lever: ${esc(g.lever)} <span class="badge">${esc(g.lever_owner)}</span></div>
+  return `<div class="card" style="border-left:4px solid #c9372c"><b>${esc(g.name)}</b> <span class="muted">${tr("rank {r}, {n} result(s), matches {p}", { r: g.rank, n: g.fired_count, p: g.matched_priority_id ? esc(prName(g.matched_priority_id)) : tr("no priority") })}</span>
+    <div>${tr("Lever")}: ${esc(g.lever)} <span class="badge">${esc(g.lever_owner)}</span></div>
     <div class="muted">${g.results.map((r) => `${esc(siteName(r.site_id))}${r.product_id ? " " + r.product_id : ""} +${(r.gap * 100).toFixed(0)}%`).join(", ")}</div></div>`;
 }
 function kamStrip() {
   const k = S.screen.kam; if (!k) return "";
   const g = k.account_health.detail.rating;
-  return `<div class="card" style="border:1px dashed #5a2b91"><span class="badge kam">KAM view only</span> <b>Account health</b> <span class="health ${g.rating}"></span>${g.rating}. <span class="muted">${esc(g.reason)} ${esc(g.based_on)}</span>
-    ${k.dashboard_emphasis ? `<div class="muted" style="margin-top:4px">Dashboard emphasis (illustrative): ${k.dashboard_emphasis.texts.map((t) => esc(t.text)).join(" ")}</div>` : ""}</div>`;
+  return `<div class="card" style="border:1px dashed #5a2b91"><span class="badge kam">${tr("KAM view only")}</span> <b>${tr("Account health")}</b> <span class="health ${g.rating}"></span>${tr(g.rating)}. <span class="muted">${esc(g.reason)} ${esc(g.based_on)}</span>
+    ${k.dashboard_emphasis ? `<div class="muted" style="margin-top:4px">${tr("Dashboard emphasis (illustrative)")}: ${k.dashboard_emphasis.texts.map((t) => esc(t.text)).join(" ")}</div>` : ""}</div>`;
 }
 
 // Selectors, shared by every variant so the variants differ in layout, not behaviour.
@@ -162,26 +165,26 @@ function periodSelect() {
   const p = [["2025", "2025"], ["2025-H1", "H1"], ["2025-H2", "H2"]];
   const isMonth = !p.some(([k]) => k === S.period);
   return `<span class="seg">${p.map(([k, l]) => `<button class="${S.period === k ? "on" : ""}" onclick="set({period:'${k}'})">${l}</button>`).join("")}</span>
-    <select onchange="set({period:this.value})"><option value="">Month</option>${S.meta.months.map((m) => `<option ${m === S.period ? "selected" : ""}>${m}</option>`).join("")}</select>`;
+    <select onchange="set({period:this.value})"><option value="">${tr("Month")}</option>${S.meta.months.map((m) => `<option ${m === S.period ? "selected" : ""}>${m}</option>`).join("")}</select>`;
 }
 function viewToggle() {
-  return `<span class="seg">${["KAM", "Customer"].map((v) => `<button class="${S.view === v ? "on" : ""}" onclick="setView('${v}')">${v} view</button>`).join("")}</span>`;
+  return `<span class="seg">${["KAM", "Customer"].map((v) => `<button class="${S.view === v ? "on" : ""}" onclick="setView('${v}')">${tr(v + " view")}</button>`).join("")}</span>`;
 }
 function siteFilter() {
   if (!S.site_id) return "";
-  return `<span class="chip on" onclick="set({site_id:null})">Site: ${esc(siteName(S.site_id))} &times;</span>`;
+  return `<span class="chip on" onclick="set({site_id:null})">${tr("Site")}: ${esc(siteName(S.site_id))} &times;</span>`;
 }
 function priorityBanner() {
   if (!S.changedByAssistant) return "";
-  return `<div class="banner">Priorities changed by the assistant. <button onclick="undoPriorities()">Undo</button></div>`;
+  return `<div class="banner">${tr("Priorities changed by the assistant.")} <button onclick="undoPriorities()">${tr("Undo")}</button></div>`;
 }
 function priorityEditor(compact = false) {
   const on = S.priorities;
   const off = S.meta.priorities.map((p) => p.id).filter((id) => !on.includes(id));
   return `<div>${on.map((id, i) => `<div style="display:flex;gap:4px;align-items:center;margin:2px 0"><b style="width:16px">${i + 1}</b><span style="flex:1">${esc(prName(id))}</span>
       <button onclick="movePriority(${i},-1)" ${i === 0 ? "disabled" : ""}>&uarr;</button><button onclick="movePriority(${i},1)" ${i === on.length - 1 ? "disabled" : ""}>&darr;</button><button onclick="removePriority('${id}')">&times;</button></div>`).join("")}
-    <div class="muted" style="margin-top:4px">${compact ? "" : "Add:"} ${off.map((id) => `<span class="chip" onclick="addPriority('${id}')">+ ${esc(prName(id))}</span>`).join("")}</div>
-    <div class="muted">The first 3 make the priority blocks. <a href="#" onclick="resetPriorities();return false">Reset to default</a></div></div>`;
+    <div class="muted" style="margin-top:4px">${compact ? "" : tr("Add:")} ${off.map((id) => `<span class="chip" onclick="addPriority('${id}')">+ ${esc(prName(id))}</span>`).join("")}</div>
+    <div class="muted">${tr("The first 3 make the priority blocks.")} <a href="#" onclick="resetPriorities();return false">${tr("Reset to default")}</a></div></div>`;
 }
 
 // Assistant pieces, shared.
@@ -196,7 +199,7 @@ function observeButton() {
   return `<button class="primary" onclick="observe()" ${S.busy ? "disabled" : ""}>Generate observations</button>`;
 }
 function sourcesList(sources) {
-  return `<details><summary>${sources.length} source(s)</summary><table>${sources.map((r) => `<tr><td>${esc(r.name ?? r.kpi_id)}</td><td>${fmtValue(r)}</td><td>${status(r)}</td></tr>`).join("")}</table></details>`;
+  return `<details><summary>${tr("{n} source(s)", { n: sources.length })}</summary><table>${sources.map((r) => `<tr><td>${esc(tr(r.name ?? r.kpi_id))}</td><td>${fmtValue(r)}</td><td>${status(r)}</td></tr>`).join("")}</table></details>`;
 }
 function answerView() {
   let h = "";
@@ -210,8 +213,8 @@ function answerView() {
   return h;
 }
 function observationsView() {
-  if (!S.observations) return `<div class="muted">No AI observations yet. They appear only when you click "Generate observations".</div>`;
-  return S.observations.map((o, i) => `<div class="card"><div class="muted">AI observation ${i + 1}</div><p>${esc(o.text)}</p>${sourcesList(o.sources)}</div>`).join("");
+  if (!S.observations) return `<div class="muted">${esc(tr('No AI observations yet. They appear only when you click "Generate observations".'))}</div>`;
+  return S.observations.map((o, i) => `<div class="card"><div class="muted">${tr("AI observation {n}", { n: i + 1 })}</div><p>${esc(o.text)}</p>${sourcesList(o.sources)}</div>`).join("");
 }
 
 // ---------------- Variant A ----------------
@@ -346,7 +349,7 @@ let ticker = null;
 async function run(path, body, onOk) {
   const token = ++S.requestToken;
   S.busy = path; S.startedAt = Date.now(); S.error = null; render();
-  ticker = setInterval(() => { const w = document.getElementById("working"); if (w) w.textContent = `Working... ${Math.round((Date.now() - S.startedAt) / 1000)} s`; }, 1000);
+  ticker = setInterval(() => { const w = document.getElementById("working"); if (w) w.textContent = tr("Working... {n} s", { n: Math.round((Date.now() - S.startedAt) / 1000) }); }, 1000);
   const r = await post(path, body);
   clearInterval(ticker);
   if (token !== S.requestToken) return; // view or Customer changed meanwhile: drop the reply
