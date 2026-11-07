@@ -151,3 +151,19 @@ a.pill:hover { border-color: var(--line2); background: var(--hover); }
 .stacked text.hi { fill: var(--accent); font-weight: 600; }
 .stacked .grid { stroke: var(--line); }
 .stacked .dim rect { opacity: .35; }
+
+/* Priorities page (#29) */
+.priorities { max-width: 560px; display: grid; gap: 12px; }
+.plist { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.plist li { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: var(--r-sm); }
+.plist li.in-blocks { background: var(--accent-soft); }
+.plist .num { width: 22px; height: 22px; border-radius: 999px; background: var(--seg); color: var(--text2); font-size: 12px; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.plist li.in-blocks .num { background: var(--accent); color: #fff; }
+.plist .pname { flex: 1; font-weight: 500; }
+.plist button { width: 30px; height: 30px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+.plist button:disabled { opacity: .35; cursor: default; }
+.chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.chip { padding: 4px 12px; font-size: 13px; }
+.chip:hover:not(:disabled) { background: var(--accent-soft); }
+.linkbtn { border: none; background: none; padding: 0; color: var(--accent); text-decoration: underline; }
+.linkbtn:hover:not(:disabled) { background: none; }

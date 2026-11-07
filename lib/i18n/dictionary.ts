@@ -182,6 +182,14 @@ export const DICTIONARY = {
     fi: "Kolme ensimmäistä muodostavat painopistelohkot.",
   },
   "Reset to default": { sv: "Återställ standard", fi: "Palauta oletus" },
+  "Move {x} up": { sv: "Flytta upp {x}", fi: "Siirrä {x} ylöspäin" },
+  "Move {x} down": { sv: "Flytta ned {x}", fi: "Siirrä {x} alaspäin" },
+  "Remove {x}": { sv: "Ta bort {x}", fi: "Poista {x}" },
+  "Add {x}": { sv: "Lägg till {x}", fi: "Lisää {x}" },
+  "No priorities chosen. The Overview shows no priority blocks.": {
+    sv: "Inga prioriteringar valda. Översikten visar inga prioriteringsblock.",
+    fi: "Painopisteitä ei ole valittu. Yleiskatsaus ei näytä painopistelohkoja.",
+  },
   "Changes apply at once to Overview, Sites and Opportunities. The AI assistant can also change them, and you can undo that.": {
     sv: "Ändringarna gäller direkt i Översikt, Anläggningar och Möjligheter. AI-assistenten kan också ändra dem, och du kan ångra det.",
     fi: "Muutokset näkyvät heti Yleiskatsauksessa, Toimipaikoissa ja Mahdollisuuksissa. Tekoälyavustaja voi myös muuttaa niitä, ja voit perua muutoksen.",

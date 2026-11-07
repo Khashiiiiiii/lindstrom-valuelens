@@ -93,23 +93,24 @@ export default function Overview() {
           </div>
         )}
       </section>
-      {blocks.length > 0 && (
-        <section className="section">
-          <div className="h2 rowhead">
-            <span>{t(lang, "Your priorities")}</span>
-            <span className="muted">{data.priority_ids.map((id) => dataLabel(lang, meta.priorities.find((p) => p.id === id)?.name ?? id)).join(", ")}</span>
-            <span className="grow" />
-            <Link href="/priorities" className="pill">
-              {t(lang, "Edit priorities")}
-            </Link>
-          </div>
+      {/* The row and "Edit priorities" stay with no priority chosen, so the KAM can add one back. */}
+      <section className="section">
+        <div className="h2 rowhead">
+          <span>{t(lang, "Your priorities")}</span>
+          <span className="muted">{data.priority_ids.map((id) => dataLabel(lang, meta.priorities.find((p) => p.id === id)?.name ?? id)).join(", ")}</span>
+          <span className="grow" />
+          <Link href="/priorities" className="pill">
+            {t(lang, "Edit priorities")}
+          </Link>
+        </div>
+        {blocks.length > 0 && (
           <div className="blocks">
             {blocks.map((block) => (
               <Block key={block.position} lang={lang} block={block} />
             ))}
           </div>
-        </section>
-      )}
+        )}
+      </section>
       {kamAdditions && (kamAdditions.waste || kamAdditions.stages) && <KamCharts lang={lang} kam={kamAdditions} />}
     </>
   );
