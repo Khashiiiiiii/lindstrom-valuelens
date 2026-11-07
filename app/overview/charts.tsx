@@ -1,5 +1,6 @@
-// The Overview's SVG charts (#27): the tile sparkline, the monthly trend chart and the on-time gauge. They draw
-// runKpi values the page data holds and compute no figure (ADR 0001). They are plain SVG, with no chart library.
+// The Overview's SVG charts (#27, #28): the tile sparkline, the monthly trend chart, the on-time gauge, the waste
+// route donut and turnaround by stage as stacked bars. They draw runKpi values the page data holds and compute no
+// figure (ADR 0001). They are plain SVG, with no chart library.
 
 import type { HealthThresholds, Month } from "../../lib/data.ts";
 import type { Lang } from "../../lib/i18n.ts";
@@ -136,5 +137,110 @@ export function Gauge({ lang, value, thresholds }: { lang: Lang; value: number; 
         </div>
       )}
     </div>
+  );
+}
+
+const SERIES_COLOURS = ["var(--c1)", "var(--c2)", "var(--c3)", "var(--c4)"];
+
+/** The waste routes as a ring. Each arc's length is the route's part of the total. The centre shows the total. */
+export function Donut({ segments, total, unit }: { segments: { key: string; label: string; kg: string; fraction: number }[]; total: string; unit: string }) {
+  let offset = 0;
+  return (
+    <div className="donutwrap">
+      <svg className="donut" viewBox="0 0 160 160" role="img">
+        <g transform="rotate(-90 80 80)">
+          {segments.map((s, i) => {
+            const length = s.fraction * 100;
+            const arc = (
+              <circle
+                key={s.key}
+                cx={80}
+                cy={80}
+                r={58}
+                pathLength={100}
+                stroke={SERIES_COLOURS[i % SERIES_COLOURS.length]}
+                strokeDasharray={`${Math.max(length - 0.6, 0.1).toFixed(2)} 100`}
+                strokeDashoffset={-offset}
+                className="seg"
+              >
+                <title>{`${s.label}: ${s.kg} ${unit}`}</title>
+              </circle>
+            );
+            offset += length;
+            return arc;
+          })}
+        </g>
+        <text x={80} y={80} textAnchor="middle" className="big">
+          {total}
+        </text>
+        <text x={80} y={98} textAnchor="middle">
+          {unit}
+        </text>
+      </svg>
+      <div className="legend">
+        {segments.map((s, i) => (
+          <div key={s.key}>
+            <i style={{ background: SERIES_COLOURS[i % SERIES_COLOURS.length] }} />
+            <span>{s.label}</span>
+            <b>
+              {s.kg} {unit}
+            </b>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** One bar per month, stacked by stage. Months outside the selected period are dimmed. */
+export function StackedBars({ lang, legend, bars }: { lang: Lang; legend: string[]; bars: { month: string; in_period: boolean; hours: number[] }[] }) {
+  const W = 640, H = 220, L = 34, R = 6, T = 10, B = 26;
+  const totals = bars.map((b) => b.hours.reduce((n, h) => n + h, 0));
+  const max = Math.ceil(Math.max(...totals, 1) / 20) * 20;
+  const step = (W - L - R) / bars.length;
+  const width = step * 0.56;
+  const y = (v: number) => T + (1 - v / max) * (H - T - B);
+  return (
+    <>
+      <svg className="stacked" viewBox={`0 0 ${W} ${H}`} role="img">
+        {[0, 0.5, 1].map((k) => (
+          <g key={k}>
+            <line x1={L} x2={W - R} y1={y(max * k)} y2={y(max * k)} className="grid" />
+            <text x={L - 6} y={y(max * k) + 4} textAnchor="end">
+              {formatNumber(lang, max * k)}
+            </text>
+          </g>
+        ))}
+        {bars.map((bar, i) => {
+          const x = L + i * step + (step - width) / 2;
+          let stacked = 0;
+          return (
+            <g key={i} className={bar.in_period ? undefined : "dim"}>
+              {bar.hours.map((h, k) => {
+                const top = y(stacked + h);
+                const height = y(stacked) - top;
+                stacked += h;
+                return (
+                  <rect key={k} x={x} y={top} width={width} height={Math.max(height - 1, 0)} rx={k === bar.hours.length - 1 ? 4 : 0} fill={SERIES_COLOURS[k]}>
+                    <title>{`${bar.month}: ${legend[k]} ${formatNumber(lang, h)} ${dataLabel(lang, "hours", h)}`}</title>
+                  </rect>
+                );
+              })}
+              <text x={L + i * step + step / 2} y={H - 6} textAnchor="middle" className={bar.in_period ? "hi" : undefined}>
+                {bar.month}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+      <div className="legend row">
+        {legend.map((name, i) => (
+          <div key={name}>
+            <i style={{ background: SERIES_COLOURS[i] }} />
+            <span>{name}</span>
+          </div>
+        ))}
+      </div>
+    </>
   );
 }

@@ -125,7 +125,7 @@ function sparkline(series: SeriesPage | null, kpi_id: string): (number | null)[]
 }
 
 /** The value and unit as display text. A share shows as a percentage. A value not evaluated says so. */
-function formatValue(lang: Lang, result: KpiResult): { value: string; unit: string } {
+export function formatValue(lang: Lang, result: KpiResult): { value: string; unit: string } {
   if (result.value === null) return { value: dataLabel(lang, "not_evaluated"), unit: "" };
   if (result.unit === "share") {
     return { value: formatNumber(lang, result.value, { style: "percent", maximumFractionDigits: 1 }), unit: "" };
