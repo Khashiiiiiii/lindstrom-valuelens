@@ -408,7 +408,7 @@ export const DICTIONARY = {
   },
 
   // Period comparison labels (period-comparisons.json)
-  "better": { en: "Better", sv: "Bättre", fi: "Parantunut" },
+  "better": { en: "Improved", sv: "Förbättrad", fi: "Parantunut" },
   "worse": { en: "Worse", sv: "Sämre", fi: "Heikentynyt" },
   "no_clear_change": { en: "No clear change", sv: "Ingen tydlig förändring", fi: "Ei selvää muutosta" },
   "not_evaluated": { en: "Not evaluated", sv: "Ej bedömd", fi: "Ei arvioitu" },

@@ -20,8 +20,8 @@ const labelKey = (
 ): DictionaryKey => label;
 
 test("every period comparison label, data status, rating, review part and lever owner is a dictionary key", () => {
-  assert.equal(t("en", labelKey("better")), "Better");
-  assert.equal(t("sv", labelKey("better")), "Bättre");
+  assert.equal(t("en", labelKey("better")), "Improved");
+  assert.equal(t("sv", labelKey("better")), "Förbättrad");
   assert.equal(t("fi", labelKey("better")), "Parantunut");
   assert.equal(t("sv", labelKey("Joint_owner")), "gemensamt");
 });

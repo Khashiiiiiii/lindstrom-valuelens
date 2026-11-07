@@ -3,15 +3,17 @@ import { test } from "node:test";
 
 import { metadataPage } from "../../lib/pages/metadata.ts";
 import { overviewPage } from "../../lib/pages/overview.ts";
+import { seriesPage } from "../../lib/pages/series.ts";
 import { tileCards } from "./tile-cards.ts";
 
 const request = { customer_id: "CUST001", period: "2025", view: "KAM" } as const;
 const page = overviewPage(request);
 const meta = metadataPage(request);
-const card = (lang: "en" | "sv" | "fi", id: string) => tileCards(lang, page, meta, null).find((c) => c.id === id)!;
+const series = seriesPage(request);
+const card = (lang: "en" | "sv" | "fi", id: string) => tileCards(lang, page, meta, null, series).find((c) => c.id === id)!;
 
 test("the 9 tiles keep the fixed order, each with value, unit and data status", () => {
-  const cards = tileCards("en", page, meta, null);
+  const cards = tileCards("en", page, meta, null, series);
   assert.deepEqual(
     cards.map((c) => c.name),
     [
@@ -27,9 +29,11 @@ test("the 9 tiles keep the fixed order, each with value, unit and data status", 
     ],
   );
   assert.deepEqual(card("en", "site_count").figures, [
-    { label: null, value: "24", unit: "Sites", data_status: "SYNTHETIC", baseline: null, caveats: [] },
+    { label: null, value: "24", unit: "Sites", data_status: "SYNTHETIC", baseline: null, caveats: [], sparkline: null },
   ]);
-  assert.deepEqual(card("en", "active_wearers").figures[0], {
+  const { sparkline, ...wearers } = card("en", "active_wearers").figures[0];
+  assert.deepEqual(sparkline?.slice(0, 3), [9596, 9686, 9636]);
+  assert.deepEqual(wearers, {
     label: null,
     value: "9,647",
     unit: "wearers",
@@ -85,15 +89,83 @@ test("caveats stay English in every language", () => {
 test("a Site filter counts 1 Site, in the singular", () => {
   const site = overviewPage({ ...request, site_id: "S008" });
   assert.deepEqual(
-    tileCards("fi", site, meta, "S008").find((c) => c.id === "site_count")!.figures[0].unit,
+    tileCards("fi", site, meta, "S008", null).find((c) => c.id === "site_count")!.figures[0].unit,
     "toimipaikka",
   );
 });
 
 test("a tile whose answers are all Withheld does not show", () => {
   const withheld = { ...page, tiles: page.tiles.map((t) => (t.id === "repairs" ? { ...t, answers: [{ kpi_id: "repairs", withheld: true as const, reason: "KAM view only" as const }] } : t)) };
-  const ids = tileCards("en", withheld, meta, null).map((c) => c.id);
+  const ids = tileCards("en", withheld, meta, null, series).map((c) => c.id);
   assert.equal(ids.length, 8);
   assert.ok(!ids.includes("repairs"));
   assert.ok(ids.includes("site_count") && ids.includes("optimisation_potential"), "tiles with no KPI still show");
+});
+
+test("only On-time service cycle share and Service requests per 100 wearers carry a badge, with the comparison label", () => {
+  const cards = tileCards("en", page, meta, null, series);
+  assert.deepEqual(
+    cards.filter((c) => c.badge !== null).map((c) => [c.id, c.badge!.label, c.badge!.tone]),
+    [
+      ["on_time_service_cycle_share", "No clear change", "neutral"],
+      ["service_requests_per_100_wearers", "No clear change", "neutral"],
+    ],
+  );
+});
+
+test("Improved shows green and Worse shows red", () => {
+  const badge = (customer_id: string, period: string, lang: "en" | "sv" | "fi" = "en") => {
+    const r = { customer_id, period, view: "Customer" } as const;
+    return tileCards(lang, overviewPage(r), metadataPage(r), null, null).find((c) => c.id === "service_requests_per_100_wearers")!.badge;
+  };
+  // NorthStar's service requests per 100 wearers went up from February to March, a clear change.
+  assert.deepEqual(badge("CUST001", "2025-03"), { label: "Worse", tone: "bad", caveats: [] });
+  assert.deepEqual(badge("CUST003", "2025-04"), { label: "Improved", tone: "good", caveats: [] });
+  assert.deepEqual(badge("CUST003", "2025-04", "fi"), { label: "Parantunut", tone: "good", caveats: [] });
+  assert.deepEqual(badge("CUST001", "2025-01"), { label: "Not evaluated", tone: "neutral", caveats: [] });
+});
+
+test("a Site badge in the KAM view carries the chance caveat, in English", () => {
+  const r = { customer_id: "CUST001", site_id: "S008", period: "2025", view: "KAM" } as const;
+  const cards = tileCards("fi", overviewPage(r), metadataPage(r), "S008", null);
+  assert.deepEqual(cards.find((c) => c.id === "service_requests_per_100_wearers")!.badge!.caveats, [
+    "About 1 in 20 Sites shows a clear change by chance alone.",
+  ]);
+  assert.deepEqual(cards.find((c) => c.id === "on_time_service_cycle_share")!.badge!.caveats, [
+    "About 1 in 20 Sites shows a clear change by chance alone.",
+    "Based on a sample of tracked garments.",
+  ]);
+});
+
+test("a Withheld badge does not show", () => {
+  const r = { customer_id: "CUST001", site_id: "S008", period: "2025", view: "Customer" } as const;
+  assert.ok(tileCards("en", overviewPage(r), metadataPage(r), "S008", null).every((c) => c.badge === null));
+});
+
+test("each KPI figure has a sparkline of its 12 months, and the tiles with no KPI have none", () => {
+  const cards = tileCards("en", page, meta, null, series);
+  const washed = card("en", "washed_kg").figures[0].sparkline!;
+  assert.equal(washed.length, 12);
+  // NorthStar's January values, the sums of its January month facts.
+  assert.equal(washed[0], 42880.8);
+  const saved = card("en", "emissions_saved_and_water_saved").figures.map((f) => [f.sparkline!.length, f.sparkline![0]]);
+  assert.deepEqual(saved, [
+    [12, 21105.024],
+    [12, 172105.1],
+  ]);
+  assert.deepEqual(
+    cards.filter((c) => c.figures.some((f) => f.sparkline === null)).map((c) => c.id),
+    ["site_count", "optimisation_potential"],
+  );
+  assert.ok(tileCards("en", page, meta, null, null).every((c) => c.figures.every((f) => f.sparkline === null)), "no series loaded yet");
+});
+
+test("a series whose first point is Withheld has no sparkline", () => {
+  const withheld = {
+    ...series,
+    series: series.series.map((s) =>
+      s.kpi_id === "repairs" ? { ...s, points: s.points.map(() => ({ kpi_id: "repairs", withheld: true as const, reason: "KAM view only" as const })) } : s,
+    ),
+  };
+  assert.equal(tileCards("en", page, meta, null, withheld).find((c) => c.id === "repairs")!.figures[0].sparkline, null);
 });

@@ -1,16 +1,16 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { firstScreen } from "../../../lib/data.ts";
+import { overviewPage } from "../../../lib/pages/overview.ts";
 import { POST } from "./route.ts";
 
 const post = (body: unknown) =>
   POST(new Request("http://localhost/api/overview", { method: "POST", body: JSON.stringify(body) }));
 
-test("POST /api/overview returns the first screen as JSON", async () => {
+test("POST /api/overview returns the Overview page data as JSON", async () => {
   const response = await post({ customer_id: "CUST001", period: "2025", view: "Customer", priorities: ["water"] });
   assert.equal(response.status, 200);
-  const expected = firstScreen({ customer_id: "CUST001", period: "2025", view: "Customer", priorities: ["water"] });
+  const expected = overviewPage({ customer_id: "CUST001", period: "2025", view: "Customer", priorities: ["water"] });
   assert.deepEqual(await response.json(), JSON.parse(JSON.stringify(expected)));
 });
 

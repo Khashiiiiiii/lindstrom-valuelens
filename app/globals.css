@@ -74,3 +74,34 @@ select.on { border-color: var(--accent); color: var(--accent); font-weight: 600;
 .unit { color: var(--muted); }
 .tilemeta { font-size: 12px; margin-top: 2px; }
 .tilenote { font-size: 12px; }
+.tilehead { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+
+/* Change badges (#27): green means Improved and red means Worse */
+:root { --good: #13795b; --good-bg: #e3f4ec; --bad: #b42318; --bad-bg: #fde8e7; --amber: #b7791f; }
+.badge.change { white-space: nowrap; font-weight: 600; }
+.badge.change.good { background: var(--good-bg); color: var(--good); }
+.badge.change.bad { background: var(--bad-bg); color: var(--bad); }
+
+/* Overview charts (#27) */
+.spark { display: block; width: 100%; height: 30px; }
+.spark path { fill: none; stroke: var(--accent); stroke-width: 1.6; vector-effect: non-scaling-stroke; }
+.row2 { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; margin-top: 16px; align-items: start; }
+@media (max-width: 900px) { .row2 { grid-template-columns: 1fr; } }
+.cardhead { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.trend { display: block; width: 100%; height: auto; }
+.trend text { font-size: 11px; fill: var(--muted); }
+.trend text.hi { fill: var(--accent); font-weight: 600; }
+.trend .grid { stroke: var(--line); }
+.trend .band { fill: var(--accent-soft); }
+.trend .line { fill: none; stroke: var(--accent); stroke-width: 2.4; }
+.trend .pt { fill: var(--panel); stroke: var(--accent); stroke-width: 2; }
+.trend .pt.on { fill: var(--accent); }
+.gauge { text-align: center; }
+.gauge svg { display: block; width: 100%; max-width: 280px; margin: 0 auto; }
+.gauge .track, .gauge .val { fill: none; stroke-width: 16; stroke-linecap: round; }
+.gauge .track { stroke: var(--seg); }
+.gauge .val { stroke: var(--accent); }
+.gauge .tick { stroke-width: 3; }
+.gauge .tick.amber { stroke: var(--amber); }
+.gauge .tick.green { stroke: var(--good); }
+.gauge .big { font-size: 28px; font-weight: 650; fill: var(--text); }

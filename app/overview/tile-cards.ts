@@ -1,11 +1,13 @@
-// The Overview's 9 common tiles as display text in the app language (#26). The figures are the page data's runKpi
-// answers. This module only formats and translates them. Caveats stay English, as the spec sets.
+// The Overview's 9 common tiles as display text in the app language (#26, #27). The figures, badges and sparkline
+// points are the page data's runKpi answers. This module only formats and translates them. Caveats stay English, as
+// the spec sets.
 
-import type { KpiResult } from "../../lib/data.ts";
+import type { KpiAnswer, KpiResult } from "../../lib/data.ts";
 import type { Lang } from "../../lib/i18n.ts";
 import { dataLabel, formatNumber, t } from "../../lib/i18n.ts";
 import type { Metadata } from "../../lib/pages/metadata.ts";
 import type { OverviewPage } from "../../lib/pages/overview.ts";
+import type { SeriesPage } from "../../lib/pages/series.ts";
 
 export interface TileFigure {
   /** The KPI name, on a tile with more than one KPI. */
@@ -17,6 +19,19 @@ export interface TileFigure {
   /** The baseline a saving is compared with, for the handprint KPIs. */
   baseline: string | null;
   caveats: string[];
+  /**
+   * The KPI's value in each data month, with null for a month not evaluated. The sparkline is null until the series
+   * loads, and also when the series is Withheld.
+   */
+  sparkline: (number | null)[] | null;
+}
+
+/** A period comparison label. Green means Improved and red means Worse. */
+export interface TileBadge {
+  label: string;
+  tone: "good" | "bad" | "neutral";
+  /** The comparison result's caveats, in English. A Site result carries the chance caveat (ADR 0010). */
+  caveats: string[];
 }
 
 export interface TileCard {
@@ -24,16 +39,31 @@ export interface TileCard {
   name: string;
   figures: TileFigure[];
   notes: string[];
+  /** Only the tiles with a period comparison have a badge. It is null when the comparison is Withheld. */
+  badge: TileBadge | null;
 }
 
 /**
  * The common tiles in their fixed order, for the Site filter or null. A Withheld answer has no figure, and a tile
- * whose answers are all Withheld does not show.
+ * whose answers are all Withheld does not show. series is null until the monthly series loads.
  */
-export function tileCards(lang: Lang, page: OverviewPage, meta: Metadata, site_id: string | null): TileCard[] {
+export function tileCards(
+  lang: Lang,
+  page: OverviewPage,
+  meta: Metadata,
+  site_id: string | null,
+  series: SeriesPage | null,
+): TileCard[] {
   const shown = page.tiles.filter((tile) => tile.answers.length === 0 || tile.answers.some((a) => !("withheld" in a)));
   return shown.map((tile) => {
-    const card: TileCard = { id: tile.id, name: dataLabel(lang, tile.name), figures: [], notes: [] };
+    const comparison = page.change_badges.find((b) => b.tile_id === tile.id)?.comparison;
+    const card: TileCard = {
+      id: tile.id,
+      name: dataLabel(lang, tile.name),
+      figures: [],
+      notes: [],
+      badge: comparison === undefined ? null : badge(lang, comparison),
+    };
     if (tile.id === "site_count") {
       const counted = meta.sites.filter((s) => site_id === null || s.site_id === site_id);
       card.figures.push({
@@ -43,6 +73,7 @@ export function tileCards(lang: Lang, page: OverviewPage, meta: Metadata, site_i
         data_status: statusLabel(lang, counted.map((s) => s.data_status)),
         baseline: null,
         caveats: [],
+        sparkline: null,
       });
     } else if (tile.id === "optimisation_potential") {
       const { fired_count, signal_count, top_signal_group_signal_id } = page.optimisation_potential;
@@ -54,6 +85,7 @@ export function tileCards(lang: Lang, page: OverviewPage, meta: Metadata, site_i
         data_status: statusLabel(lang, meta.signals.map((s) => s.data_status)),
         baseline: null,
         caveats: [],
+        sparkline: null,
       });
       if (top) card.notes.push(t(lang, "Top: {x}", { x: dataLabel(lang, top.name) }));
       card.notes.push(t(lang, "Signals judge all of 2025."));
@@ -66,10 +98,30 @@ export function tileCards(lang: Lang, page: OverviewPage, meta: Metadata, site_i
         data_status: dataLabel(lang, result.data_status),
         baseline: result.detail?.kind === "handprint" ? dataLabel(lang, result.detail.baseline_label) : null,
         caveats: (tile.caveats ?? []).filter((c) => c.kpi_id === result.kpi_id).map((c) => c.caveat),
+        sparkline: sparkline(series, result.kpi_id),
       });
     }
     return card;
   });
+}
+
+/** The comparison label of a badge answer, or null when it is Withheld. A result with no comparison is not evaluated. */
+function badge(lang: Lang, answer: KpiAnswer): TileBadge | null {
+  if ("withheld" in answer) return null;
+  const comparison = answer.detail?.kind === "period_comparison" ? answer.detail.comparison : null;
+  const label = comparison?.label ?? "not_evaluated";
+  return {
+    label: dataLabel(lang, label),
+    tone: label === "better" ? "good" : label === "worse" ? "bad" : "neutral",
+    caveats: comparison ? [...comparison.caveats] : [],
+  };
+}
+
+/** The KPI's monthly values, or null when the series is not loaded, missing or Withheld from its first point. */
+function sparkline(series: SeriesPage | null, kpi_id: string): (number | null)[] | null {
+  const points = series?.series.find((s) => s.kpi_id === kpi_id)?.points;
+  if (!points || points.length === 0 || "withheld" in points[0]) return null;
+  return points.map((p) => ("withheld" in p ? null : p.value));
 }
 
 /** The value and unit as display text. A share shows as a percentage. A value not evaluated says so. */
