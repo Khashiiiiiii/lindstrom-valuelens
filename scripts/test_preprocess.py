@@ -747,18 +747,18 @@ def test_small_sites_are_not_rated_on_scan_coverage_even_for_the_year(health):
 
 
 @pytest.fixture(scope="module")
-def footprint(out_dir) -> dict:
+def footprint_handprint(out_dir) -> dict:
     return json.loads((out_dir / "footprint-handprint-kpis.json").read_text(encoding="utf-8"))
 
 
-def test_impacts_hold_one_row_per_month_site_product_and_laundry(footprint):
-    impacts = footprint["data"]["impacts"]
-    assert len(impacts) == 1248
-    assert len({(r["month"], r["site_id"], r["product_id"], r["laundry_id"]) for r in impacts}) == 1248
+def test_footprint_holds_one_row_per_month_site_product_and_laundry(footprint_handprint):
+    rows = footprint_handprint["data"]["footprint"]
+    assert len(rows) == 1248
+    assert len({(r["month"], r["site_id"], r["product_id"], r["laundry_id"]) for r in rows}) == 1248
 
 
-def test_northstar_footprint_totals_for_2025(footprint):
-    rows = northstar(footprint["data"]["impacts"])
+def test_northstar_footprint_totals_for_2025(footprint_handprint):
+    rows = northstar(footprint_handprint["data"]["footprint"])
     totals = {f: round(sum(r[f] for r in rows)) for f in [
         "customer_washed_kg", "allocated_water_l", "allocated_energy_kwh",
         "allocated_process_kgco2e", "allocated_delivery_kgco2e",
@@ -774,8 +774,8 @@ def test_northstar_footprint_totals_for_2025(footprint):
     assert round(emissions) == 73785
 
 
-def test_baseline_factors_are_the_workbook_defaults(footprint):
-    baselines = footprint["data"]["baselines"]
+def test_baseline_factors_are_the_workbook_defaults(footprint_handprint):
+    baselines = footprint_handprint["data"]["baselines"]
     assert baselines["default_baseline_id"] == "B_LOCAL"
     factors = {
         b["baseline_id"]: (b["water_l_per_kg"], b["energy_kwh_per_kg"], b["process_kgco2e_per_kg"], b["delivery_kgco2e_per_kg"])
@@ -790,8 +790,8 @@ def test_baseline_factors_are_the_workbook_defaults(footprint):
     assert labels["B_LOCAL"] == "vs outsourced local laundry"
 
 
-def test_b_local_process_low_case_is_a_team_assumption(footprint):
-    (low_case,) = footprint["data"]["baselines"]["low_cases"]
+def test_b_local_process_low_case_is_a_team_assumption(footprint_handprint):
+    (low_case,) = footprint_handprint["data"]["baselines"]["low_cases"]
     assert (low_case["baseline_id"], low_case["factor"], low_case["value"], low_case["data_status"]) == (
         "B_LOCAL", "process_kgco2e_per_kg", 0.30, "TEAM_ASSUMPTION",
     )
@@ -803,11 +803,11 @@ def test_b_local_process_low_case_is_a_team_assumption(footprint):
 TIE_OUT_TOLERANCE = 0.15
 
 
-def test_computed_b_local_handprint_ties_out_on_every_row(footprint):
-    local = next(b for b in footprint["data"]["baselines"]["factors"] if b["baseline_id"] == "B_LOCAL")
-    impacts = footprint["data"]["impacts"]
-    assert len(impacts) == 1248
-    for row in impacts:
+def test_computed_b_local_handprint_ties_out_on_every_row(footprint_handprint):
+    local = next(b for b in footprint_handprint["data"]["baselines"]["factors"] if b["baseline_id"] == "B_LOCAL")
+    rows = footprint_handprint["data"]["footprint"]
+    assert len(rows) == 1248
+    for row in rows:
         computed = preprocess.handprint_values(row, local)
         assert computed["water_saved_l"] == pytest.approx(row["water_saving_vs_local_l"], abs=TIE_OUT_TOLERANCE)
         assert computed["energy_saved_kwh"] == pytest.approx(row["energy_saving_vs_local_kwh"], abs=TIE_OUT_TOLERANCE)
@@ -816,15 +816,15 @@ def test_computed_b_local_handprint_ties_out_on_every_row(footprint):
         )
 
 
-def _denominator(footprint, **match):
-    rows = [r for r in footprint["data"]["per_wearer_denominators"] if all(r[k] == v for k, v in match.items())]
+def _denominator(footprint_handprint, **match):
+    rows = [r for r in footprint_handprint["data"]["per_wearer_denominators"] if all(r[k] == v for k, v in match.items())]
     assert len(rows) == 1, match
     return rows[0]["active_wearers"]
 
 
-def test_northstar_footprint_per_active_wearer(footprint):
-    wearers = _denominator(footprint, scope="customer", scope_id="CUST001", period="2025")
-    rows = northstar(footprint["data"]["impacts"])
+def test_northstar_footprint_per_active_wearer(footprint_handprint):
+    wearers = _denominator(footprint_handprint, scope="customer", scope_id="CUST001", period="2025")
+    rows = northstar(footprint_handprint["data"]["footprint"])
     per_wearer = lambda *fields: sum(r[f] for r in rows for f in fields) / wearers
     assert round(per_wearer("customer_washed_kg"), 1) == 52.0
     assert round(per_wearer("allocated_water_l")) == 349
@@ -832,23 +832,23 @@ def test_northstar_footprint_per_active_wearer(footprint):
     assert round(per_wearer("allocated_process_kgco2e", "allocated_delivery_kgco2e"), 2) == 7.65
 
 
-def test_per_wearer_denominators_follow_the_wearer_counting_rule(footprint, service):
+def test_per_wearer_denominators_follow_the_wearer_counting_rule(footprint_handprint, service):
     # Identical to service-kpis.json: a Site-month is its largest product row, a Customer sums its Sites.
-    assert _denominator(footprint, scope="customer", scope_id="CUST001", period="2025-12") == 9607
+    assert _denominator(footprint_handprint, scope="customer", scope_id="CUST001", period="2025-12") == 9607
     for row in service["data"]["site_month"]:
-        assert _denominator(footprint, scope="site", scope_id=row["site_id"], period=row["month"]) == row["active_wearers"]
-    periods = {r["period"] for r in footprint["data"]["per_wearer_denominators"]}
+        assert _denominator(footprint_handprint, scope="site", scope_id=row["site_id"], period=row["month"]) == row["active_wearers"]
+    periods = {r["period"] for r in footprint_handprint["data"]["per_wearer_denominators"]}
     assert periods == {"2025"} | {f"2025-{m:02d}" for m in range(1, 13)}
 
 
-def _handprint(footprint, factor_case="default", **match):
+def _handprint(footprint_handprint, factor_case="default", **match):
     match["factor_case"] = factor_case
-    rows = [r for r in footprint["data"]["handprint"] if all(r[k] == v for k, v in match.items())]
+    rows = [r for r in footprint_handprint["data"]["handprint"] if all(r[k] == v for k, v in match.items())]
     assert len(rows) == 1, match
     return rows[0]
 
 
-def test_northstar_handprint_for_each_baseline(footprint):
+def test_northstar_handprint_for_each_baseline(footprint_handprint):
     # Amount, then share of that baseline's footprint, from the decision notes.
     expected = {
         "B_LOCAL": ((1406483, 29), (171645, 33), (255074, 78)),
@@ -856,7 +856,7 @@ def test_northstar_handprint_for_each_baseline(footprint):
         "B_INHOUSE": ((2912707, 46), (206790, 37), (275157, 79)),
     }
     for baseline_id, values in expected.items():
-        row = _handprint(footprint, scope="customer", scope_id="CUST001", period="2025", baseline_id=baseline_id)
+        row = _handprint(footprint_handprint, scope="customer", scope_id="CUST001", period="2025", baseline_id=baseline_id)
         actual = tuple(
             (round(row[f"{name}_saved_{unit}"]), round(row[f"{name}_saved_share"] * 100))
             for name, unit in [("water", "l"), ("energy", "kwh"), ("emissions", "kgco2e")]
@@ -864,26 +864,26 @@ def test_northstar_handprint_for_each_baseline(footprint):
         assert actual == values, baseline_id
 
 
-def test_northstar_emissions_saved_at_the_b_local_low_case(footprint):
-    low = _handprint(footprint, "low_case", scope="customer", scope_id="CUST001", period="2025", baseline_id="B_LOCAL")
+def test_northstar_emissions_saved_at_the_b_local_low_case(footprint_handprint):
+    low = _handprint(footprint_handprint, "low_case", scope="customer", scope_id="CUST001", period="2025", baseline_id="B_LOCAL")
     assert round(low["emissions_saved_kgco2e"]) == 94410
     assert round(low["water_saved_l"]) == 1406483
-    cases = {(r["baseline_id"], r["factor_case"]) for r in footprint["data"]["handprint"]}
+    cases = {(r["baseline_id"], r["factor_case"]) for r in footprint_handprint["data"]["handprint"]}
     assert cases == {("B_LOCAL", "default"), ("B_HOME", "default"), ("B_INHOUSE", "default"), ("B_LOCAL", "low_case")}
 
 
-def test_handprint_site_months_add_up_to_the_customer_year(footprint):
-    rows = [r for r in footprint["data"]["handprint"] if (r["baseline_id"], r["factor_case"]) == ("B_HOME", "default")]
+def test_handprint_site_months_add_up_to_the_customer_year(footprint_handprint):
+    rows = [r for r in footprint_handprint["data"]["handprint"] if (r["baseline_id"], r["factor_case"]) == ("B_HOME", "default")]
     site_months = [r for r in rows if r["scope"] == "site" and r["customer_id"] == "CUST001" and r["period"] != "2025"]
     assert len(site_months) == 24 * 12
-    year = _handprint(footprint, scope="customer", scope_id="CUST001", period="2025", baseline_id="B_HOME")
+    year = _handprint(footprint_handprint, scope="customer", scope_id="CUST001", period="2025", baseline_id="B_HOME")
     for field in ("baseline_water_l", "water_saved_l", "baseline_emissions_kgco2e", "emissions_saved_kgco2e"):
         assert sum(r[field] for r in site_months) == pytest.approx(year[field])
     assert year["baseline_water_l"] == pytest.approx(20 * year["customer_washed_kg"])
 
 
-def test_transparency_holds_laundry_factors_by_laundry_and_month(footprint):
-    transparency = footprint["data"]["transparency"]
+def test_transparency_holds_laundry_factors_by_laundry_and_month(footprint_handprint):
+    transparency = footprint_handprint["data"]["transparency"]
     assert transparency["view"] == "KAM"
     factors = transparency["laundry_month_factors"]
     assert len(factors) == 4 * 12
@@ -894,16 +894,16 @@ def test_transparency_holds_laundry_factors_by_laundry_and_month(footprint):
     )
 
 
-def test_transparency_holds_process_co2e_per_kwh_by_laundry(footprint):
-    rows = footprint["data"]["transparency"]["laundry_process_co2e_per_kwh"]
+def test_transparency_holds_process_co2e_per_kwh_by_laundry(footprint_handprint):
+    rows = footprint_handprint["data"]["transparency"]["laundry_process_co2e_per_kwh"]
     # Helsinki, Turku, Malmö, Warsaw. The country grid sets the spread from 0.05 to 0.42.
     assert {r["laundry_id"]: r["process_kgco2e_per_kwh"] for r in rows} == {
         "L001": 0.09, "L002": 0.09, "L003": 0.05, "L004": 0.42,
     }
 
 
-def test_transparency_names_public_figures_that_exist(footprint, public_reference):
-    ids = footprint["data"]["transparency"]["public_figure_ids"]
+def test_transparency_names_public_figures_that_exist(footprint_handprint, public_reference):
+    ids = footprint_handprint["data"]["transparency"]["public_figure_ids"]
     assert "lindstrom_laundry_energy_per_washed_kg" in ids
     assert "lindstrom_emissions_per_washed_kg_scope_1_2_3" in ids
     assert set(ids) <= {f["id"] for f in public_reference["data"]["figures"]}
@@ -914,8 +914,8 @@ HANDPRINT_IDS = ["water_saved", "energy_saved", "emissions_saved"]
 ILLUSTRATIVE_CAVEAT = "Baseline factors are illustrative. Savings may be overstated."
 
 
-def test_footprint_handprint_catalogue_holds_the_seven_kpis(footprint):
-    catalogue = footprint["catalogue"]
+def test_footprint_handprint_catalogue_holds_the_seven_kpis(footprint_handprint):
+    catalogue = footprint_handprint["catalogue"]
     assert [(e["id"], e["data_status"], e["assumptions"]) for e in catalogue] == [
         ("washed_kg", "SYNTHETIC", []),
         ("water_use_allocated", "ALLOCATED_ESTIMATE_SYNTHETIC", []),
@@ -935,15 +935,15 @@ def test_footprint_handprint_catalogue_holds_the_seven_kpis(footprint):
     assert illustrative == ["energy_saved", "emissions_saved"]
 
 
-def test_footprint_handprint_source_fields_name_workbook_columns(footprint, workbook):
-    for entry in footprint["catalogue"]:
+def test_footprint_handprint_source_fields_name_workbook_columns(footprint_handprint, workbook):
+    for entry in footprint_handprint["catalogue"]:
         for field in entry["source_fields"]:
             sheet, column = field.split(".")
             assert column in workbook.records(sheet)[0], field
 
 
-def test_footprint_kpis_take_a_unit_and_handprint_kpis_take_a_baseline(footprint):
-    parameters = {p["id"]: p for p in footprint["data"]["parameters"]}
+def test_footprint_kpis_take_a_unit_and_handprint_kpis_take_a_baseline(footprint_handprint):
+    parameters = {p["id"]: p for p in footprint_handprint["data"]["parameters"]}
     assert set(parameters) == {"unit", "emission_source", "baseline"}
     unit = parameters["unit"]
     assert (unit["values"], unit["default"], unit["kpi_ids"]) == (["total", "per_active_wearer"], "total", FOOTPRINT_IDS)
@@ -963,15 +963,15 @@ def test_no_combined_co2e_handprint_exists(out_dir):
         assert not any(word in k for k in keys), word
 
 
-def test_footprint_handprint_labels_use_glossary_terms(footprint):
-    # Avoid terms of Footprint, Baseline and Handprint. The illustrative caveat is quoted as the decision wrote it.
+def test_footprint_handprint_labels_use_glossary_terms(footprint_handprint):
+    # Avoid terms of Footprint, Baseline and Handprint. GLOSSARY.md allows "Savings" in the illustrative caveat only.
     avoid = ["impact", "consumption", "benchmark", "reference scenario", "savings", "positive impact",
              "account", "client", "company", "comparison period"]
-    texts = [(e["id"], t) for e in footprint["catalogue"] for t in
+    texts = [(e["id"], t) for e in footprint_handprint["catalogue"] for t in
              [e["name"], e["definition"], e["customer_question"], e["grain"], *e["caveats"]] if t != ILLUSTRATIVE_CAVEAT]
-    texts += [(p["id"], p["note"]) for p in footprint["data"]["parameters"]]
-    texts += [(b["baseline_id"], b["label"]) for b in footprint["data"]["baselines"]["factors"]]
-    texts += [(c["id"], c["rationale"]) for c in footprint["data"]["baselines"]["low_cases"]]
+    texts += [(p["id"], p["note"]) for p in footprint_handprint["data"]["parameters"]]
+    texts += [(b["baseline_id"], b["label"]) for b in footprint_handprint["data"]["baselines"]["factors"]]
+    texts += [(c["id"], c["rationale"]) for c in footprint_handprint["data"]["baselines"]["low_cases"]]
     for where, text in texts:
         assert "—" not in text, where
         for term in avoid:

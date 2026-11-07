@@ -601,7 +601,8 @@ export interface FootprintTransparency {
 
 /** Footprint and handprint. Avoided product CO2e lives in operational-circularity-kpis.json and is never added (ADR 0007). */
 export interface FootprintHandprintKpis {
-  impacts: FootprintFact[];
+  /** The Customer_Impacts rows. */
+  footprint: FootprintFact[];
   baselines: FootprintBaselines;
   handprint: HandprintRow[];
   per_wearer_denominators: PerWearerDenominator[];

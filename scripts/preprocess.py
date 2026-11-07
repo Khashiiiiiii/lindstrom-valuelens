@@ -1685,13 +1685,13 @@ def factor_cases(baselines: Record) -> list[tuple[str, str, Record]]:
     return cases
 
 
-def handprint_rows(impacts: list[Record], baselines: Record, months: list[str]) -> list[Record]:
+def handprint_rows(footprint_rows: list[Record], baselines: Record, months: list[str]) -> list[Record]:
     """Handprint for each Customer and Site, in each data month and over the data year.
 
     Each scope and period has one row per baseline and factor case.
     """
     totals: dict[tuple[str, str, str, str], Record] = {}
-    for row in impacts:
+    for row in footprint_rows:
         for scope, scope_id in (("customer", row["customer_id"]), ("site", row["site_id"])):
             for period, period_months in scope_periods(months):
                 if row["month"] not in period_months:
@@ -1765,7 +1765,7 @@ def laundry_process_co2e_per_kwh(laundry_resources: list[Record]) -> list[Record
 
 def build_footprint_handprint_kpis(wb: Workbook) -> Record:
     months = data_months(wb)
-    impacts = month_facts(wb.records("Customer_Impacts"), FOOTPRINT_KEYS, FOOTPRINT_FIELDS + TIE_OUT_FIELDS)
+    footprint_rows = month_facts(wb.records("Customer_Impacts"), FOOTPRINT_KEYS, FOOTPRINT_FIELDS + TIE_OUT_FIELDS)
     baselines = baseline_factors(wb.records("Baselines"))
     laundry_resources = wb.records("Laundry_Resources")
     baseline_ids = [b["baseline_id"] for b in baselines["factors"]]
@@ -1773,8 +1773,8 @@ def build_footprint_handprint_kpis(wb: Workbook) -> Record:
         "catalogue": [dict(entry) for entry in FOOTPRINT_HANDPRINT_CATALOGUE],
         "data": {
             "baselines": baselines,
-            "handprint": handprint_rows(impacts, baselines, months),
-            "impacts": impacts,
+            "footprint": footprint_rows,
+            "handprint": handprint_rows(footprint_rows, baselines, months),
             "parameters": footprint_handprint_parameters(baseline_ids, baselines["default_baseline_id"]),
             "per_wearer_denominators": per_wearer_denominators(wb.records("Service_Activity"), months),
             "transparency": {

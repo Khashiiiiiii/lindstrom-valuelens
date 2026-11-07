@@ -81,7 +81,7 @@ test("getFootprintHandprintKpis reads the footprint and handprint KPIs", () => {
   const file = getFootprintHandprintKpis();
   assert.equal(file.meta.name, "footprint-handprint-kpis");
   assert.equal(file.catalogue.length, 7);
-  assert.equal(file.data.impacts.length, 1248);
+  assert.equal(file.data.footprint.length, 1248);
   assert.equal(file.data.baselines.default_baseline_id, "B_LOCAL");
   assert.equal(file.data.baselines.low_cases[0].value, 0.3);
   const local = file.data.handprint.find(
