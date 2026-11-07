@@ -9,3 +9,6 @@ __pycache__/
 # Node / Next.js
 node_modules/
 .next/
+
+# Old planning map (superseded by the GitHub map issue)
+/map.md
