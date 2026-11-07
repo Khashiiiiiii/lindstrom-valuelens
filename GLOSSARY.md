@@ -148,6 +148,7 @@ How the terms above appear in `data/processed/*.json`, `scripts/preprocess.py` a
 
 - Every KPI, opportunity signal and period comparison has an `id` that is the snake_case of its catalogue name, for example `on_time_service_cycle_share`, `allocated_garments_with_no_scan_activity`, `garments_in_circulation`.
 - The _Avoid_ terms never appear in JSON keys, TS identifiers or labels. There is no `idle_garments`, `complaints` or `rag_status`.
+- One exception: a workbook column copied as it is keeps its workbook name, so `source_fields` always matches the workbook. Examples are `priority_theme`, `confidence` and `category`. A key the pipeline creates itself follows the rule above.
 - `baseline` always means the washing alternative: `B_LOCAL` (default), `B_HOME`, `B_INHOUSE`. The period a value is compared against is `comparison_period`, and the parameter that picks it is `compare_to` (`previous_period`, `h2_vs_h1`, `none`).
 - `view` is `KAM`, `Customer` or `Both`. `review_part` is `Look back`, `Show value`, `Build trust`, `Look forward` or `Agree actions`.
 - Data status values used by the workbook and the catalogue: `SYNTHETIC`, `SYNTHETIC_ESTIMATE`, `SYNTHETIC_STRUCTURALLY_REPRESENTATIVE`, `ALLOCATED_ESTIMATE_SYNTHETIC`, `PUBLIC_REFERENCE`, `TEAM_ASSUMPTION`.
