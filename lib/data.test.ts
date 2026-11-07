@@ -4,6 +4,7 @@ import { test } from "node:test";
 import {
   getAccountHealth,
   getFootprintHandprintKpis,
+  getImprovementTrends,
   getMasterData,
   getOperationalCircularityKpis,
   getPublicReference,
@@ -108,4 +109,22 @@ test("getFootprintHandprintKpis reads the footprint and handprint KPIs", () => {
     file.data.parameters.map((p) => p.id),
     ["unit", "emission_source", "baseline"],
   );
+});
+
+test("getImprovementTrends reads the period comparisons and the H2 against H1 results", () => {
+  const improvement = getImprovementTrends();
+  assert.equal(improvement.meta.name, "improvement-trends");
+  assert.deepEqual(
+    improvement.catalogue.map((e) => e.kpi_id),
+    ["on_time_service_cycle_share", "service_requests_per_100_wearers", "scan_coverage"],
+  );
+  assert.equal(improvement.data.defaults.minimum_wearer_months, 600);
+  assert.equal(improvement.data.compare_to.default_rule[0].label, "within 2025");
+  const results = improvement.data.results;
+  assert.equal(results.compare_to, "h2_vs_h1");
+  const turku = results.comparisons
+    .flatMap((c) => c.site_results)
+    .find((r) => r.comparison_id === "improvement_on_time_service_cycles" && r.scope_id === "S002");
+  assert.equal(turku?.label, "worse");
+  assert.equal(turku?.period.counts.late_cycles, 4);
 });

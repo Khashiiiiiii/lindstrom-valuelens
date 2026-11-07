@@ -1,0 +1,3944 @@
+{
+  "catalogue": [
+    {
+      "assumptions": [],
+      "better_when": "higher",
+      "caveats": [
+        "About 1 in 20 Sites shows a clear change by chance alone.",
+        "Based on a sample of tracked garments.",
+        "Site results are shown in the KAM view only.",
+        "Not an opportunity signal: results are never ranked with signals."
+      ],
+      "core_or_industry": "Core KPI",
+      "customer_question": "Are the issues we raise being solved?",
+      "data_status": "SYNTHETIC",
+      "definition": "The KPI's value in the selected period set against its value in the comparison period. Two-sided Fisher exact test on late cycles against sampled cycles, at the test level (95%). Not evaluated under 100 sampled cycles in either period.",
+      "evidence_area": "Improvement",
+      "grain": "Customer, Site",
+      "id": "improvement_on_time_service_cycles",
+      "judged_by": "count_test",
+      "kpi_id": "on_time_service_cycle_share",
+      "minimum_volume": 100,
+      "minimum_volume_parameter": "minimum_sampled_cycles",
+      "name": "Improvement on-time service cycles",
+      "rationale": "No public benchmark exists. Set so that 2025 noise between half-years is not reported as change.",
+      "review_part": "Look forward",
+      "site_view": "KAM",
+      "source_fields": [
+        "Service_Cycles.cycle_hours",
+        "Service_Cycles.performance_flag",
+        "Service_Cycles.delivered_timestamp"
+      ],
+      "threshold_data_status": "TEAM_ASSUMPTION",
+      "view": "Both"
+    },
+    {
+      "assumptions": [],
+      "better_when": "lower",
+      "caveats": [
+        "About 1 in 20 Sites shows a clear change by chance alone.",
+        "Site results are shown in the KAM view only.",
+        "Not an opportunity signal: results are never ranked with signals."
+      ],
+      "core_or_industry": "Core KPI",
+      "customer_question": "Are the issues we raise being solved?",
+      "data_status": "SYNTHETIC",
+      "definition": "The KPI's value in the selected period set against its value in the comparison period. Two-sided exact conditional binomial test on service requests against wearer-months, at the test level (95%). Not evaluated under 600 wearer-months in either period.",
+      "evidence_area": "Improvement",
+      "grain": "Customer, Site",
+      "id": "improvement_service_requests",
+      "judged_by": "count_test",
+      "kpi_id": "service_requests_per_100_wearers",
+      "minimum_volume": 600,
+      "minimum_volume_parameter": "minimum_wearer_months",
+      "name": "Improvement service requests",
+      "rationale": "No public benchmark exists. Set so that 2025 noise between half-years is not reported as change.",
+      "review_part": "Look forward",
+      "site_view": "KAM",
+      "source_fields": [
+        "Service_Activity.service_requests",
+        "Service_Activity.active_wearers"
+      ],
+      "threshold_data_status": "TEAM_ASSUMPTION",
+      "view": "Both"
+    },
+    {
+      "assumptions": [],
+      "better_when": "higher",
+      "caveats": [
+        "About 1 in 20 Sites shows a clear change by chance alone.",
+        "Site results are shown in the KAM view only.",
+        "Not an opportunity signal: results are never ranked with signals."
+      ],
+      "core_or_industry": "Core KPI",
+      "customer_question": "Are the issues we raise being solved?",
+      "data_status": "SYNTHETIC",
+      "definition": "The KPI's value in the selected period set against its value in the comparison period. A change of 5 points or more. Scan coverage counts the same garments every month, so a count test does not fit. Not evaluated under 500 allocated pieces, monthly average in either period.",
+      "evidence_area": "Improvement",
+      "grain": "Customer, Site",
+      "id": "improvement_scan_coverage",
+      "judged_by": "points_threshold",
+      "kpi_id": "scan_coverage",
+      "minimum_volume": 500,
+      "minimum_volume_parameter": "minimum_allocated_pieces_monthly_average",
+      "name": "Improvement scan coverage",
+      "rationale": "No public benchmark exists. Set so that 2025 noise between half-years is not reported as change.",
+      "review_part": "Look forward",
+      "site_view": "KAM",
+      "source_fields": [
+        "Service_Activity.active_assets_scanned",
+        "Service_Activity.allocated_pieces"
+      ],
+      "threshold_data_status": "TEAM_ASSUMPTION",
+      "view": "Both"
+    }
+  ],
+  "data": {
+    "compare_to": {
+      "change_figures_ruled_out": [
+        "Month over month and rolling windows are not change figures. Monthly values stay available as a series at the month grain."
+      ],
+      "default_rule": [
+        {
+          "compare_to": "h2_vs_h1",
+          "label": "within 2025",
+          "selected_period": "All of 2025",
+          "text": "All of 2025 has no previous period in the data, so H2 is compared with H1."
+        },
+        {
+          "compare_to": "previous_period",
+          "label": null,
+          "selected_period": "A shorter period",
+          "text": "The previous period, when all its months are in the data. For example, Q3 is compared with Q2."
+        }
+      ],
+      "h1_months": [
+        "2025-01",
+        "2025-02",
+        "2025-03",
+        "2025-04",
+        "2025-05",
+        "2025-06"
+      ],
+      "h2_months": [
+        "2025-07",
+        "2025-08",
+        "2025-09",
+        "2025-10",
+        "2025-11",
+        "2025-12"
+      ],
+      "not_available": [
+        {
+          "answer": "not available: the data holds 2025 only",
+          "request": "Year on year"
+        },
+        {
+          "answer": "not available: the data holds 2025 only",
+          "request": "Previous period of a period that starts in January"
+        }
+      ],
+      "values": [
+        {
+          "definition": "The same number of whole months just before the selected period, only when all of those months are in the data.",
+          "value": "previous_period"
+        },
+        {
+          "definition": "H2 2025 against H1 2025.",
+          "value": "h2_vs_h1"
+        },
+        {
+          "definition": "No comparison.",
+          "value": "none"
+        }
+      ]
+    },
+    "data_transparency_notes": [
+      {
+        "id": "cycles_delivered_in_2026_01",
+        "text": "23 sampled service cycles were delivered in 2026-01. They are kept in a 2026-01 bucket and fall outside every 2025 period.",
+        "view": "KAM"
+      }
+    ],
+    "defaults": {
+      "minimum_allocated_pieces_monthly_average": 500,
+      "minimum_sampled_cycles": 100,
+      "minimum_wearer_months": 600,
+      "scan_coverage_threshold_points": 5,
+      "test_level": 0.95
+    },
+    "results": {
+      "compare_to": "h2_vs_h1",
+      "comparison_period": {
+        "months": [
+          "2025-01",
+          "2025-02",
+          "2025-03",
+          "2025-04",
+          "2025-05",
+          "2025-06"
+        ],
+        "name": "H1 2025"
+      },
+      "comparisons": [
+        {
+          "comparison_id": "improvement_on_time_service_cycles",
+          "customer_id": "CUST001",
+          "customer_result": {
+            "caveats": [
+              "Based on a sample of tracked garments."
+            ],
+            "change": -0.000447,
+            "comparison_id": "improvement_on_time_service_cycles",
+            "comparison_period": {
+              "counts": {
+                "late_cycles": 132,
+                "sampled_cycles": 7951
+              },
+              "name": "H1 2025",
+              "value": 0.983398,
+              "volume": 7951
+            },
+            "customer_id": "CUST001",
+            "label": "no_clear_change",
+            "not_evaluated_reason": null,
+            "p_value": 0.873219,
+            "period": {
+              "counts": {
+                "late_cycles": 58,
+                "sampled_cycles": 3402
+              },
+              "name": "H2 2025",
+              "value": 0.982951,
+              "volume": 3402
+            },
+            "relative_change": -0.000455,
+            "scope": "customer",
+            "scope_id": "CUST001",
+            "view": "Both"
+          },
+          "site_results": [
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone.",
+                "Based on a sample of tracked garments."
+              ],
+              "change": -0.031746,
+              "comparison_id": "improvement_on_time_service_cycles",
+              "comparison_period": {
+                "counts": {
+                  "late_cycles": 0,
+                  "sampled_cycles": 296
+                },
+                "name": "H1 2025",
+                "value": 1.0,
+                "volume": 296
+              },
+              "customer_id": "CUST001",
+              "label": "worse",
+              "not_evaluated_reason": null,
+              "p_value": 0.007683,
+              "period": {
+                "counts": {
+                  "late_cycles": 4,
+                  "sampled_cycles": 126
+                },
+                "name": "H2 2025",
+                "value": 0.968254,
+                "volume": 126
+              },
+              "relative_change": -0.031746,
+              "scope": "site",
+              "scope_id": "S002",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone.",
+                "Based on a sample of tracked garments."
+              ],
+              "change": -0.026647,
+              "comparison_id": "improvement_on_time_service_cycles",
+              "comparison_period": {
+                "counts": {
+                  "late_cycles": 3,
+                  "sampled_cycles": 313
+                },
+                "name": "H1 2025",
+                "value": 0.990415,
+                "volume": 313
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.061053,
+              "period": {
+                "counts": {
+                  "late_cycles": 5,
+                  "sampled_cycles": 138
+                },
+                "name": "H2 2025",
+                "value": 0.963768,
+                "volume": 138
+              },
+              "relative_change": -0.026905,
+              "scope": "site",
+              "scope_id": "S023",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone.",
+                "Based on a sample of tracked garments."
+              ],
+              "change": 0.01897,
+              "comparison_id": "improvement_on_time_service_cycles",
+              "comparison_period": {
+                "counts": {
+                  "late_cycles": 7,
+                  "sampled_cycles": 369
+                },
+                "name": "H1 2025",
+                "value": 0.98103,
+                "volume": 369
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.104308,
+              "period": {
+                "counts": {
+                  "late_cycles": 0,
+                  "sampled_cycles": 169
+                },
+                "name": "H2 2025",
+                "value": 1.0,
+                "volume": 169
+              },
+              "relative_change": 0.019337,
+              "scope": "site",
+              "scope_id": "S016",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone.",
+                "Based on a sample of tracked garments."
+              ],
+              "change": -0.013354,
+              "comparison_id": "improvement_on_time_service_cycles",
+              "comparison_period": {
+                "counts": {
+                  "late_cycles": 5,
+                  "sampled_cycles": 295
+                },
+                "name": "H1 2025",
+                "value": 0.983051,
+                "volume": 295
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.467359,
+              "period": {
+                "counts": {
+                  "late_cycles": 4,
+                  "sampled_cycles": 132
+                },
+                "name": "H2 2025",
+                "value": 0.969697,
+                "volume": 132
+              },
+              "relative_change": -0.013584,
+              "scope": "site",
+              "scope_id": "S004",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone.",
+                "Based on a sample of tracked garments."
+              ],
+              "change": 0.011608,
+              "comparison_id": "improvement_on_time_service_cycles",
+              "comparison_period": {
+                "counts": {
+                  "late_cycles": 7,
+                  "sampled_cycles": 357
+                },
+                "name": "H1 2025",
+                "value": 0.980392,
+                "volume": 357
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.68657,
+              "period": {
+                "counts": {
+                  "late_cycles": 1,
+                  "sampled_cycles": 125
+                },
+                "name": "H2 2025",
+                "value": 0.992,
+                "volume": 125
+              },
+              "relative_change": 0.01184,
+              "scope": "site",
+              "scope_id": "S009",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone.",
+                "Based on a sample of tracked garments."
+              ],
+              "change": -0.010763,
+              "comparison_id": "improvement_on_time_service_cycles",
+              "comparison_period": {
+                "counts": {
+                  "late_cycles": 5,
+                  "sampled_cycles": 284
+                },
+                "name": "H1 2025",
+                "value": 0.982394,
+                "volume": 284
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.487323,
+              "period": {
+                "counts": {
+                  "late_cycles": 4,
+                  "sampled_cycles": 141
+                },
+                "name": "H2 2025",
+                "value": 0.971631,
+                "volume": 141
+              },
+              "relative_change": -0.010956,
+              "scope": "site",
+              "scope_id": "S019",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone.",
+                "Based on a sample of tracked garments."
+              ],
+              "change": 0.009896,
+              "comparison_id": "improvement_on_time_service_cycles",
+              "comparison_period": {
+                "counts": {
+                  "late_cycles": 8,
+                  "sampled_cycles": 374
+                },
+                "name": "H1 2025",
+                "value": 0.97861,
+                "volume": 374
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.515399,
+              "period": {
+                "counts": {
+                  "late_cycles": 2,
+                  "sampled_cycles": 174
+                },
+                "name": "H2 2025",
+                "value": 0.988506,
+                "volume": 174
+              },
+              "relative_change": 0.010112,
+              "scope": "site",
+              "scope_id": "S001",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone.",
+                "Based on a sample of tracked garments."
+              ],
+              "change": -0.009245,
+              "comparison_id": "improvement_on_time_service_cycles",
+              "comparison_period": {
+                "counts": {
+                  "late_cycles": 6,
+                  "sampled_cycles": 404
+                },
+                "name": "H1 2025",
+                "value": 0.985149,
+                "volume": 404
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.487319,
+              "period": {
+                "counts": {
+                  "late_cycles": 4,
+                  "sampled_cycles": 166
+                },
+                "name": "H2 2025",
+                "value": 0.975904,
+                "volume": 166
+              },
+              "relative_change": -0.009384,
+              "scope": "site",
+              "scope_id": "S018",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone.",
+                "Based on a sample of tracked garments."
+              ],
+              "change": 0.009063,
+              "comparison_id": "improvement_on_time_service_cycles",
+              "comparison_period": {
+                "counts": {
+                  "late_cycles": 3,
+                  "sampled_cycles": 331
+                },
+                "name": "H1 2025",
+                "value": 0.990937,
+                "volume": 331
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.557486,
+              "period": {
+                "counts": {
+                  "late_cycles": 0,
+                  "sampled_cycles": 142
+                },
+                "name": "H2 2025",
+                "value": 1.0,
+                "volume": 142
+              },
+              "relative_change": 0.009146,
+              "scope": "site",
+              "scope_id": "S006",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone.",
+                "Based on a sample of tracked garments."
+              ],
+              "change": 0.008842,
+              "comparison_id": "improvement_on_time_service_cycles",
+              "comparison_period": {
+                "counts": {
+                  "late_cycles": 10,
+                  "sampled_cycles": 327
+                },
+                "name": "H1 2025",
+                "value": 0.969419,
+                "volume": 327
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.763354,
+              "period": {
+                "counts": {
+                  "late_cycles": 3,
+                  "sampled_cycles": 138
+                },
+                "name": "H2 2025",
+                "value": 0.978261,
+                "volume": 138
+              },
+              "relative_change": 0.009121,
+              "scope": "site",
+              "scope_id": "S008",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone.",
+                "Based on a sample of tracked garments."
+              ],
+              "change": 0.008299,
+              "comparison_id": "improvement_on_time_service_cycles",
+              "comparison_period": {
+                "counts": {
+                  "late_cycles": 2,
+                  "sampled_cycles": 241
+                },
+                "name": "H1 2025",
+                "value": 0.991701,
+                "volume": 241
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 1.0,
+              "period": {
+                "counts": {
+                  "late_cycles": 0,
+                  "sampled_cycles": 112
+                },
+                "name": "H2 2025",
+                "value": 1.0,
+                "volume": 112
+              },
+              "relative_change": 0.008368,
+              "scope": "site",
+              "scope_id": "S011",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone.",
+                "Based on a sample of tracked garments."
+              ],
+              "change": -0.008272,
+              "comparison_id": "improvement_on_time_service_cycles",
+              "comparison_period": {
+                "counts": {
+                  "late_cycles": 4,
+                  "sampled_cycles": 365
+                },
+                "name": "H1 2025",
+                "value": 0.989041,
+                "volume": 365
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.432576,
+              "period": {
+                "counts": {
+                  "late_cycles": 3,
+                  "sampled_cycles": 156
+                },
+                "name": "H2 2025",
+                "value": 0.980769,
+                "volume": 156
+              },
+              "relative_change": -0.008364,
+              "scope": "site",
+              "scope_id": "S017",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone.",
+                "Based on a sample of tracked garments."
+              ],
+              "change": -0.005807,
+              "comparison_id": "improvement_on_time_service_cycles",
+              "comparison_period": {
+                "counts": {
+                  "late_cycles": 6,
+                  "sampled_cycles": 351
+                },
+                "name": "H1 2025",
+                "value": 0.982906,
+                "volume": 351
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.709111,
+              "period": {
+                "counts": {
+                  "late_cycles": 3,
+                  "sampled_cycles": 131
+                },
+                "name": "H2 2025",
+                "value": 0.977099,
+                "volume": 131
+              },
+              "relative_change": -0.005908,
+              "scope": "site",
+              "scope_id": "S013",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone.",
+                "Based on a sample of tracked garments."
+              ],
+              "change": 0.005119,
+              "comparison_id": "improvement_on_time_service_cycles",
+              "comparison_period": {
+                "counts": {
+                  "late_cycles": 6,
+                  "sampled_cycles": 296
+                },
+                "name": "H1 2025",
+                "value": 0.97973,
+                "volume": 296
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 1.0,
+              "period": {
+                "counts": {
+                  "late_cycles": 2,
+                  "sampled_cycles": 132
+                },
+                "name": "H2 2025",
+                "value": 0.984848,
+                "volume": 132
+              },
+              "relative_change": 0.005225,
+              "scope": "site",
+              "scope_id": "S020",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone.",
+                "Based on a sample of tracked garments."
+              ],
+              "change": 0.005072,
+              "comparison_id": "improvement_on_time_service_cycles",
+              "comparison_period": {
+                "counts": {
+                  "late_cycles": 6,
+                  "sampled_cycles": 326
+                },
+                "name": "H1 2025",
+                "value": 0.981595,
+                "volume": 326
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 1.0,
+              "period": {
+                "counts": {
+                  "late_cycles": 2,
+                  "sampled_cycles": 150
+                },
+                "name": "H2 2025",
+                "value": 0.986667,
+                "volume": 150
+              },
+              "relative_change": 0.005167,
+              "scope": "site",
+              "scope_id": "S021",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone.",
+                "Based on a sample of tracked garments."
+              ],
+              "change": 0.005023,
+              "comparison_id": "improvement_on_time_service_cycles",
+              "comparison_period": {
+                "counts": {
+                  "late_cycles": 9,
+                  "sampled_cycles": 386
+                },
+                "name": "H1 2025",
+                "value": 0.976684,
+                "volume": 386
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 1.0,
+              "period": {
+                "counts": {
+                  "late_cycles": 3,
+                  "sampled_cycles": 164
+                },
+                "name": "H2 2025",
+                "value": 0.981707,
+                "volume": 164
+              },
+              "relative_change": 0.005143,
+              "scope": "site",
+              "scope_id": "S022",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone.",
+                "Based on a sample of tracked garments."
+              ],
+              "change": -0.004592,
+              "comparison_id": "improvement_on_time_service_cycles",
+              "comparison_period": {
+                "counts": {
+                  "late_cycles": 6,
+                  "sampled_cycles": 294
+                },
+                "name": "H1 2025",
+                "value": 0.979592,
+                "volume": 294
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.722519,
+              "period": {
+                "counts": {
+                  "late_cycles": 3,
+                  "sampled_cycles": 120
+                },
+                "name": "H2 2025",
+                "value": 0.975,
+                "volume": 120
+              },
+              "relative_change": -0.004687,
+              "scope": "site",
+              "scope_id": "S005",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone.",
+                "Based on a sample of tracked garments."
+              ],
+              "change": -0.003137,
+              "comparison_id": "improvement_on_time_service_cycles",
+              "comparison_period": {
+                "counts": {
+                  "late_cycles": 5,
+                  "sampled_cycles": 357
+                },
+                "name": "H1 2025",
+                "value": 0.985994,
+                "volume": 357
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.721974,
+              "period": {
+                "counts": {
+                  "late_cycles": 3,
+                  "sampled_cycles": 175
+                },
+                "name": "H2 2025",
+                "value": 0.982857,
+                "volume": 175
+              },
+              "relative_change": -0.003182,
+              "scope": "site",
+              "scope_id": "S024",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone.",
+                "Based on a sample of tracked garments."
+              ],
+              "change": -0.003015,
+              "comparison_id": "improvement_on_time_service_cycles",
+              "comparison_period": {
+                "counts": {
+                  "late_cycles": 6,
+                  "sampled_cycles": 370
+                },
+                "name": "H1 2025",
+                "value": 0.983784,
+                "volume": 370
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.728738,
+              "period": {
+                "counts": {
+                  "late_cycles": 3,
+                  "sampled_cycles": 156
+                },
+                "name": "H2 2025",
+                "value": 0.980769,
+                "volume": 156
+              },
+              "relative_change": -0.003064,
+              "scope": "site",
+              "scope_id": "S003",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone.",
+                "Based on a sample of tracked garments."
+              ],
+              "change": 0.002519,
+              "comparison_id": "improvement_on_time_service_cycles",
+              "comparison_period": {
+                "counts": {
+                  "late_cycles": 3,
+                  "sampled_cycles": 317
+                },
+                "name": "H1 2025",
+                "value": 0.990536,
+                "volume": 317
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 1.0,
+              "period": {
+                "counts": {
+                  "late_cycles": 1,
+                  "sampled_cycles": 144
+                },
+                "name": "H2 2025",
+                "value": 0.993056,
+                "volume": 144
+              },
+              "relative_change": 0.002543,
+              "scope": "site",
+              "scope_id": "S010",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone.",
+                "Based on a sample of tracked garments."
+              ],
+              "change": 0.002076,
+              "comparison_id": "improvement_on_time_service_cycles",
+              "comparison_period": {
+                "counts": {
+                  "late_cycles": 8,
+                  "sampled_cycles": 412
+                },
+                "name": "H1 2025",
+                "value": 0.980583,
+                "volume": 412
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 1.0,
+              "period": {
+                "counts": {
+                  "late_cycles": 3,
+                  "sampled_cycles": 173
+                },
+                "name": "H2 2025",
+                "value": 0.982659,
+                "volume": 173
+              },
+              "relative_change": 0.002118,
+              "scope": "site",
+              "scope_id": "S012",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone.",
+                "Based on a sample of tracked garments."
+              ],
+              "change": 0.001197,
+              "comparison_id": "improvement_on_time_service_cycles",
+              "comparison_period": {
+                "counts": {
+                  "late_cycles": 7,
+                  "sampled_cycles": 301
+                },
+                "name": "H1 2025",
+                "value": 0.976744,
+                "volume": 301
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 1.0,
+              "period": {
+                "counts": {
+                  "late_cycles": 3,
+                  "sampled_cycles": 136
+                },
+                "name": "H2 2025",
+                "value": 0.977941,
+                "volume": 136
+              },
+              "relative_change": 0.001225,
+              "scope": "site",
+              "scope_id": "S014",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone.",
+                "Based on a sample of tracked garments."
+              ],
+              "change": -0.000807,
+              "comparison_id": "improvement_on_time_service_cycles",
+              "comparison_period": {
+                "counts": {
+                  "late_cycles": 5,
+                  "sampled_cycles": 296
+                },
+                "name": "H1 2025",
+                "value": 0.983108,
+                "volume": 296
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 1.0,
+              "period": {
+                "counts": {
+                  "late_cycles": 2,
+                  "sampled_cycles": 113
+                },
+                "name": "H2 2025",
+                "value": 0.982301,
+                "volume": 113
+              },
+              "relative_change": -0.000821,
+              "scope": "site",
+              "scope_id": "S015",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone.",
+                "Based on a sample of tracked garments."
+              ],
+              "change": 0.017301,
+              "comparison_id": "improvement_on_time_service_cycles",
+              "comparison_period": {
+                "counts": {
+                  "late_cycles": 5,
+                  "sampled_cycles": 289
+                },
+                "name": "H1 2025",
+                "value": 0.982699,
+                "volume": 289
+              },
+              "customer_id": "CUST001",
+              "label": "not_evaluated",
+              "not_evaluated_reason": "89 sampled cycles in H2 2025, under the minimum of 100.",
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "late_cycles": 0,
+                  "sampled_cycles": 89
+                },
+                "name": "H2 2025",
+                "value": 1.0,
+                "volume": 89
+              },
+              "relative_change": 0.017606,
+              "scope": "site",
+              "scope_id": "S007",
+              "view": "KAM"
+            }
+          ]
+        },
+        {
+          "comparison_id": "improvement_on_time_service_cycles",
+          "customer_id": "CUST002",
+          "customer_result": {
+            "caveats": [
+              "Based on a sample of tracked garments."
+            ],
+            "change": -0.002286,
+            "comparison_id": "improvement_on_time_service_cycles",
+            "comparison_period": {
+              "counts": {
+                "late_cycles": 43,
+                "sampled_cycles": 2625
+              },
+              "name": "H1 2025",
+              "value": 0.983619,
+              "volume": 2625
+            },
+            "customer_id": "CUST002",
+            "label": "no_clear_change",
+            "not_evaluated_reason": null,
+            "p_value": 0.679872,
+            "period": {
+              "counts": {
+                "late_cycles": 21,
+                "sampled_cycles": 1125
+              },
+              "name": "H2 2025",
+              "value": 0.981333,
+              "volume": 1125
+            },
+            "relative_change": -0.002324,
+            "scope": "customer",
+            "scope_id": "CUST002",
+            "view": "Both"
+          },
+          "site_results": [
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone.",
+                "Based on a sample of tracked garments."
+              ],
+              "change": 0.020893,
+              "comparison_id": "improvement_on_time_service_cycles",
+              "comparison_period": {
+                "counts": {
+                  "late_cycles": 12,
+                  "sampled_cycles": 447
+                },
+                "name": "H1 2025",
+                "value": 0.973154,
+                "volume": 447
+              },
+              "customer_id": "CUST002",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.127774,
+              "period": {
+                "counts": {
+                  "late_cycles": 1,
+                  "sampled_cycles": 168
+                },
+                "name": "H2 2025",
+                "value": 0.994048,
+                "volume": 168
+              },
+              "relative_change": 0.02147,
+              "scope": "site",
+              "scope_id": "S027",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone.",
+                "Based on a sample of tracked garments."
+              ],
+              "change": -0.015875,
+              "comparison_id": "improvement_on_time_service_cycles",
+              "comparison_period": {
+                "counts": {
+                  "late_cycles": 7,
+                  "sampled_cycles": 475
+                },
+                "name": "H1 2025",
+                "value": 0.985263,
+                "volume": 475
+              },
+              "customer_id": "CUST002",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.216797,
+              "period": {
+                "counts": {
+                  "late_cycles": 6,
+                  "sampled_cycles": 196
+                },
+                "name": "H2 2025",
+                "value": 0.969388,
+                "volume": 196
+              },
+              "relative_change": -0.016113,
+              "scope": "site",
+              "scope_id": "S029",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone.",
+                "Based on a sample of tracked garments."
+              ],
+              "change": -0.009665,
+              "comparison_id": "improvement_on_time_service_cycles",
+              "comparison_period": {
+                "counts": {
+                  "late_cycles": 3,
+                  "sampled_cycles": 371
+                },
+                "name": "H1 2025",
+                "value": 0.991914,
+                "volume": 371
+              },
+              "customer_id": "CUST002",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.383114,
+              "period": {
+                "counts": {
+                  "late_cycles": 3,
+                  "sampled_cycles": 169
+                },
+                "name": "H2 2025",
+                "value": 0.982249,
+                "volume": 169
+              },
+              "relative_change": -0.009744,
+              "scope": "site",
+              "scope_id": "S030",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone.",
+                "Based on a sample of tracked garments."
+              ],
+              "change": -0.006507,
+              "comparison_id": "improvement_on_time_service_cycles",
+              "comparison_period": {
+                "counts": {
+                  "late_cycles": 6,
+                  "sampled_cycles": 475
+                },
+                "name": "H1 2025",
+                "value": 0.987368,
+                "volume": 475
+              },
+              "customer_id": "CUST002",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.503713,
+              "period": {
+                "counts": {
+                  "late_cycles": 4,
+                  "sampled_cycles": 209
+                },
+                "name": "H2 2025",
+                "value": 0.980861,
+                "volume": 209
+              },
+              "relative_change": -0.00659,
+              "scope": "site",
+              "scope_id": "S026",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone.",
+                "Based on a sample of tracked garments."
+              ],
+              "change": -0.003976,
+              "comparison_id": "improvement_on_time_service_cycles",
+              "comparison_period": {
+                "counts": {
+                  "late_cycles": 7,
+                  "sampled_cycles": 358
+                },
+                "name": "H1 2025",
+                "value": 0.980447,
+                "volume": 358
+              },
+              "customer_id": "CUST002",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.751941,
+              "period": {
+                "counts": {
+                  "late_cycles": 4,
+                  "sampled_cycles": 170
+                },
+                "name": "H2 2025",
+                "value": 0.976471,
+                "volume": 170
+              },
+              "relative_change": -0.004056,
+              "scope": "site",
+              "scope_id": "S025",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone.",
+                "Based on a sample of tracked garments."
+              ],
+              "change": 0.001948,
+              "comparison_id": "improvement_on_time_service_cycles",
+              "comparison_period": {
+                "counts": {
+                  "late_cycles": 8,
+                  "sampled_cycles": 499
+                },
+                "name": "H1 2025",
+                "value": 0.983968,
+                "volume": 499
+              },
+              "customer_id": "CUST002",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 1.0,
+              "period": {
+                "counts": {
+                  "late_cycles": 3,
+                  "sampled_cycles": 213
+                },
+                "name": "H2 2025",
+                "value": 0.985915,
+                "volume": 213
+              },
+              "relative_change": 0.001979,
+              "scope": "site",
+              "scope_id": "S028",
+              "view": "KAM"
+            }
+          ]
+        },
+        {
+          "comparison_id": "improvement_on_time_service_cycles",
+          "customer_id": "CUST003",
+          "customer_result": {
+            "caveats": [
+              "Based on a sample of tracked garments."
+            ],
+            "change": -0.010102,
+            "comparison_id": "improvement_on_time_service_cycles",
+            "comparison_period": {
+              "counts": {
+                "late_cycles": 12,
+                "sampled_cycles": 904
+              },
+              "name": "H1 2025",
+              "value": 0.986726,
+              "volume": 904
+            },
+            "customer_id": "CUST003",
+            "label": "no_clear_change",
+            "not_evaluated_reason": null,
+            "p_value": 0.228455,
+            "period": {
+              "counts": {
+                "late_cycles": 9,
+                "sampled_cycles": 385
+              },
+              "name": "H2 2025",
+              "value": 0.976623,
+              "volume": 385
+            },
+            "relative_change": -0.010238,
+            "scope": "customer",
+            "scope_id": "CUST003",
+            "view": "Both"
+          },
+          "site_results": [
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone.",
+                "Based on a sample of tracked garments."
+              ],
+              "change": -0.01399,
+              "comparison_id": "improvement_on_time_service_cycles",
+              "comparison_period": {
+                "counts": {
+                  "late_cycles": 1,
+                  "sampled_cycles": 178
+                },
+                "name": "H1 2025",
+                "value": 0.994382,
+                "volume": 178
+              },
+              "customer_id": "CUST003",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.300749,
+              "period": {
+                "counts": {
+                  "late_cycles": 2,
+                  "sampled_cycles": 102
+                },
+                "name": "H2 2025",
+                "value": 0.980392,
+                "volume": 102
+              },
+              "relative_change": -0.014069,
+              "scope": "site",
+              "scope_id": "S033",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone.",
+                "Based on a sample of tracked garments."
+              ],
+              "change": -0.026295,
+              "comparison_id": "improvement_on_time_service_cycles",
+              "comparison_period": {
+                "counts": {
+                  "late_cycles": 4,
+                  "sampled_cycles": 253
+                },
+                "name": "H1 2025",
+                "value": 0.98419,
+                "volume": 253
+              },
+              "customer_id": "CUST003",
+              "label": "not_evaluated",
+              "not_evaluated_reason": "95 sampled cycles in H2 2025, under the minimum of 100.",
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "late_cycles": 4,
+                  "sampled_cycles": 95
+                },
+                "name": "H2 2025",
+                "value": 0.957895,
+                "volume": 95
+              },
+              "relative_change": -0.026717,
+              "scope": "site",
+              "scope_id": "S031",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone.",
+                "Based on a sample of tracked garments."
+              ],
+              "change": -0.013518,
+              "comparison_id": "improvement_on_time_service_cycles",
+              "comparison_period": {
+                "counts": {
+                  "late_cycles": 4,
+                  "sampled_cycles": 234
+                },
+                "name": "H1 2025",
+                "value": 0.982906,
+                "volume": 234
+              },
+              "customer_id": "CUST003",
+              "label": "not_evaluated",
+              "not_evaluated_reason": "98 sampled cycles in H2 2025, under the minimum of 100.",
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "late_cycles": 3,
+                  "sampled_cycles": 98
+                },
+                "name": "H2 2025",
+                "value": 0.969388,
+                "volume": 98
+              },
+              "relative_change": -0.013753,
+              "scope": "site",
+              "scope_id": "S034",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone.",
+                "Based on a sample of tracked garments."
+              ],
+              "change": 0.012552,
+              "comparison_id": "improvement_on_time_service_cycles",
+              "comparison_period": {
+                "counts": {
+                  "late_cycles": 3,
+                  "sampled_cycles": 239
+                },
+                "name": "H1 2025",
+                "value": 0.987448,
+                "volume": 239
+              },
+              "customer_id": "CUST003",
+              "label": "not_evaluated",
+              "not_evaluated_reason": "90 sampled cycles in H2 2025, under the minimum of 100.",
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "late_cycles": 0,
+                  "sampled_cycles": 90
+                },
+                "name": "H2 2025",
+                "value": 1.0,
+                "volume": 90
+              },
+              "relative_change": 0.012712,
+              "scope": "site",
+              "scope_id": "S032",
+              "view": "KAM"
+            }
+          ]
+        },
+        {
+          "comparison_id": "improvement_service_requests",
+          "customer_id": "CUST001",
+          "customer_result": {
+            "caveats": [],
+            "change": 0.019203,
+            "comparison_id": "improvement_service_requests",
+            "comparison_period": {
+              "counts": {
+                "service_requests": 252,
+                "wearer_months": 57897
+              },
+              "name": "H1 2025",
+              "value": 0.435256,
+              "volume": 57897
+            },
+            "customer_id": "CUST001",
+            "label": "no_clear_change",
+            "not_evaluated_reason": null,
+            "p_value": 0.62818,
+            "period": {
+              "counts": {
+                "service_requests": 263,
+                "wearer_months": 57871
+              },
+              "name": "H2 2025",
+              "value": 0.454459,
+              "volume": 57871
+            },
+            "relative_change": 0.04412,
+            "scope": "customer",
+            "scope_id": "CUST001",
+            "view": "Both"
+          },
+          "site_results": [
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": 0.630076,
+              "comparison_id": "improvement_service_requests",
+              "comparison_period": {
+                "counts": {
+                  "service_requests": 6,
+                  "wearer_months": 1891
+                },
+                "name": "H1 2025",
+                "value": 0.317292,
+                "volume": 1891
+              },
+              "customer_id": "CUST001",
+              "label": "worse",
+              "not_evaluated_reason": null,
+              "p_value": 0.022665,
+              "period": {
+                "counts": {
+                  "service_requests": 18,
+                  "wearer_months": 1900
+                },
+                "name": "H2 2025",
+                "value": 0.947368,
+                "volume": 1900
+              },
+              "relative_change": 1.985789,
+              "scope": "site",
+              "scope_id": "S015",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": 0.355582,
+              "comparison_id": "improvement_service_requests",
+              "comparison_period": {
+                "counts": {
+                  "service_requests": 4,
+                  "wearer_months": 1956
+                },
+                "name": "H1 2025",
+                "value": 0.204499,
+                "volume": 1956
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.118481,
+              "period": {
+                "counts": {
+                  "service_requests": 11,
+                  "wearer_months": 1964
+                },
+                "name": "H2 2025",
+                "value": 0.560081,
+                "volume": 1964
+              },
+              "relative_change": 1.738798,
+              "scope": "site",
+              "scope_id": "S010",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": 0.700496,
+              "comparison_id": "improvement_service_requests",
+              "comparison_period": {
+                "counts": {
+                  "service_requests": 6,
+                  "wearer_months": 1003
+                },
+                "name": "H1 2025",
+                "value": 0.598205,
+                "volume": 1003
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.11496,
+              "period": {
+                "counts": {
+                  "service_requests": 13,
+                  "wearer_months": 1001
+                },
+                "name": "H2 2025",
+                "value": 1.298701,
+                "volume": 1001
+              },
+              "relative_change": 1.170996,
+              "scope": "site",
+              "scope_id": "S004",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": 0.243341,
+              "comparison_id": "improvement_service_requests",
+              "comparison_period": {
+                "counts": {
+                  "service_requests": 8,
+                  "wearer_months": 3227
+                },
+                "name": "H1 2025",
+                "value": 0.247908,
+                "volume": 3227
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.151695,
+              "period": {
+                "counts": {
+                  "service_requests": 16,
+                  "wearer_months": 3257
+                },
+                "name": "H2 2025",
+                "value": 0.49125,
+                "volume": 3257
+              },
+              "relative_change": 0.981578,
+              "scope": "site",
+              "scope_id": "S014",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": 0.253188,
+              "comparison_id": "improvement_service_requests",
+              "comparison_period": {
+                "counts": {
+                  "service_requests": 10,
+                  "wearer_months": 2391
+                },
+                "name": "H1 2025",
+                "value": 0.418235,
+                "volume": 2391
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.247009,
+              "period": {
+                "counts": {
+                  "service_requests": 16,
+                  "wearer_months": 2383
+                },
+                "name": "H2 2025",
+                "value": 0.671423,
+                "volume": 2383
+              },
+              "relative_change": 0.605371,
+              "scope": "site",
+              "scope_id": "S023",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": -0.157795,
+              "comparison_id": "improvement_service_requests",
+              "comparison_period": {
+                "counts": {
+                  "service_requests": 11,
+                  "wearer_months": 3823
+                },
+                "name": "H1 2025",
+                "value": 0.287732,
+                "volume": 3823
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.142192,
+              "period": {
+                "counts": {
+                  "service_requests": 5,
+                  "wearer_months": 3848
+                },
+                "name": "H2 2025",
+                "value": 0.129938,
+                "volume": 3848
+              },
+              "relative_change": -0.548408,
+              "scope": "site",
+              "scope_id": "S006",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": 0.20729,
+              "comparison_id": "improvement_service_requests",
+              "comparison_period": {
+                "counts": {
+                  "service_requests": 11,
+                  "wearer_months": 2793
+                },
+                "name": "H1 2025",
+                "value": 0.393842,
+                "volume": 2793
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.345192,
+              "period": {
+                "counts": {
+                  "service_requests": 17,
+                  "wearer_months": 2828
+                },
+                "name": "H2 2025",
+                "value": 0.601132,
+                "volume": 2828
+              },
+              "relative_change": 0.526328,
+              "scope": "site",
+              "scope_id": "S013",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": 0.09717,
+              "comparison_id": "improvement_service_requests",
+              "comparison_period": {
+                "counts": {
+                  "service_requests": 6,
+                  "wearer_months": 3129
+                },
+                "name": "H1 2025",
+                "value": 0.191755,
+                "volume": 3129
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.453487,
+              "period": {
+                "counts": {
+                  "service_requests": 9,
+                  "wearer_months": 3115
+                },
+                "name": "H2 2025",
+                "value": 0.288925,
+                "volume": 3115
+              },
+              "relative_change": 0.506742,
+              "scope": "site",
+              "scope_id": "S002",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": -0.123407,
+              "comparison_id": "improvement_service_requests",
+              "comparison_period": {
+                "counts": {
+                  "service_requests": 9,
+                  "wearer_months": 3203
+                },
+                "name": "H1 2025",
+                "value": 0.280987,
+                "volume": 3203
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.424023,
+              "period": {
+                "counts": {
+                  "service_requests": 5,
+                  "wearer_months": 3173
+                },
+                "name": "H2 2025",
+                "value": 0.15758,
+                "volume": 3173
+              },
+              "relative_change": -0.439192,
+              "scope": "site",
+              "scope_id": "S009",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": 0.268859,
+              "comparison_id": "improvement_service_requests",
+              "comparison_period": {
+                "counts": {
+                  "service_requests": 9,
+                  "wearer_months": 1151
+                },
+                "name": "H1 2025",
+                "value": 0.781929,
+                "volume": 1151
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.521882,
+              "period": {
+                "counts": {
+                  "service_requests": 12,
+                  "wearer_months": 1142
+                },
+                "name": "H2 2025",
+                "value": 1.050788,
+                "volume": 1142
+              },
+              "relative_change": 0.343841,
+              "scope": "site",
+              "scope_id": "S024",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": -0.122662,
+              "comparison_id": "improvement_service_requests",
+              "comparison_period": {
+                "counts": {
+                  "service_requests": 15,
+                  "wearer_months": 3968
+                },
+                "name": "H1 2025",
+                "value": 0.378024,
+                "volume": 3968
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.42461,
+              "period": {
+                "counts": {
+                  "service_requests": 10,
+                  "wearer_months": 3916
+                },
+                "name": "H2 2025",
+                "value": 0.255363,
+                "volume": 3916
+              },
+              "relative_change": -0.324481,
+              "scope": "site",
+              "scope_id": "S001",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": -0.158404,
+              "comparison_id": "improvement_service_requests",
+              "comparison_period": {
+                "counts": {
+                  "service_requests": 19,
+                  "wearer_months": 3805
+                },
+                "name": "H1 2025",
+                "value": 0.499343,
+                "volume": 3805
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.295705,
+              "period": {
+                "counts": {
+                  "service_requests": 13,
+                  "wearer_months": 3813
+                },
+                "name": "H2 2025",
+                "value": 0.340939,
+                "volume": 3813
+              },
+              "relative_change": -0.317225,
+              "scope": "site",
+              "scope_id": "S008",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": -0.26287,
+              "comparison_id": "improvement_service_requests",
+              "comparison_period": {
+                "counts": {
+                  "service_requests": 13,
+                  "wearer_months": 1548
+                },
+                "name": "H1 2025",
+                "value": 0.839793,
+                "volume": 1548
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.403116,
+              "period": {
+                "counts": {
+                  "service_requests": 9,
+                  "wearer_months": 1560
+                },
+                "name": "H2 2025",
+                "value": 0.576923,
+                "volume": 1560
+              },
+              "relative_change": -0.313018,
+              "scope": "site",
+              "scope_id": "S005",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": -0.158241,
+              "comparison_id": "improvement_service_requests",
+              "comparison_period": {
+                "counts": {
+                  "service_requests": 13,
+                  "wearer_months": 2505
+                },
+                "name": "H1 2025",
+                "value": 0.518962,
+                "volume": 2505
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.523486,
+              "period": {
+                "counts": {
+                  "service_requests": 9,
+                  "wearer_months": 2495
+                },
+                "name": "H2 2025",
+                "value": 0.360721,
+                "volume": 2495
+              },
+              "relative_change": -0.304918,
+              "scope": "site",
+              "scope_id": "S012",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": -0.342647,
+              "comparison_id": "improvement_service_requests",
+              "comparison_period": {
+                "counts": {
+                  "service_requests": 8,
+                  "wearer_months": 601
+                },
+                "name": "H1 2025",
+                "value": 1.331115,
+                "volume": 601
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.605477,
+              "period": {
+                "counts": {
+                  "service_requests": 6,
+                  "wearer_months": 607
+                },
+                "name": "H2 2025",
+                "value": 0.988468,
+                "volume": 607
+              },
+              "relative_change": -0.257414,
+              "scope": "site",
+              "scope_id": "S003",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": 0.07929,
+              "comparison_id": "improvement_service_requests",
+              "comparison_period": {
+                "counts": {
+                  "service_requests": 9,
+                  "wearer_months": 2639
+                },
+                "name": "H1 2025",
+                "value": 0.341038,
+                "volume": 2639
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.662336,
+              "period": {
+                "counts": {
+                  "service_requests": 11,
+                  "wearer_months": 2617
+                },
+                "name": "H2 2025",
+                "value": 0.420329,
+                "volume": 2617
+              },
+              "relative_change": 0.232497,
+              "scope": "site",
+              "scope_id": "S011",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": -0.13198,
+              "comparison_id": "improvement_service_requests",
+              "comparison_period": {
+                "counts": {
+                  "service_requests": 14,
+                  "wearer_months": 2323
+                },
+                "name": "H1 2025",
+                "value": 0.602669,
+                "volume": 2323
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.556043,
+              "period": {
+                "counts": {
+                  "service_requests": 11,
+                  "wearer_months": 2337
+                },
+                "name": "H2 2025",
+                "value": 0.470689,
+                "volume": 2337
+              },
+              "relative_change": -0.218993,
+              "scope": "site",
+              "scope_id": "S017",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": -0.162019,
+              "comparison_id": "improvement_service_requests",
+              "comparison_period": {
+                "counts": {
+                  "service_requests": 14,
+                  "wearer_months": 1814
+                },
+                "name": "H1 2025",
+                "value": 0.771775,
+                "volume": 1814
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.690066,
+              "period": {
+                "counts": {
+                  "service_requests": 11,
+                  "wearer_months": 1804
+                },
+                "name": "H2 2025",
+                "value": 0.609756,
+                "volume": 1804
+              },
+              "relative_change": -0.20993,
+              "scope": "site",
+              "scope_id": "S020",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": -0.062774,
+              "comparison_id": "improvement_service_requests",
+              "comparison_period": {
+                "counts": {
+                  "service_requests": 11,
+                  "wearer_months": 3343
+                },
+                "name": "H1 2025",
+                "value": 0.329046,
+                "volume": 3343
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.661953,
+              "period": {
+                "counts": {
+                  "service_requests": 9,
+                  "wearer_months": 3380
+                },
+                "name": "H2 2025",
+                "value": 0.266272,
+                "volume": 3380
+              },
+              "relative_change": -0.190775,
+              "scope": "site",
+              "scope_id": "S016",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": -0.05451,
+              "comparison_id": "improvement_service_requests",
+              "comparison_period": {
+                "counts": {
+                  "service_requests": 11,
+                  "wearer_months": 3581
+                },
+                "name": "H1 2025",
+                "value": 0.307177,
+                "volume": 3581
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.823815,
+              "period": {
+                "counts": {
+                  "service_requests": 9,
+                  "wearer_months": 3562
+                },
+                "name": "H2 2025",
+                "value": 0.252667,
+                "volume": 3562
+              },
+              "relative_change": -0.177454,
+              "scope": "site",
+              "scope_id": "S007",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": -0.062622,
+              "comparison_id": "improvement_service_requests",
+              "comparison_period": {
+                "counts": {
+                  "service_requests": 11,
+                  "wearer_months": 3046
+                },
+                "name": "H1 2025",
+                "value": 0.361129,
+                "volume": 3046
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.823849,
+              "period": {
+                "counts": {
+                  "service_requests": 9,
+                  "wearer_months": 3015
+                },
+                "name": "H2 2025",
+                "value": 0.298507,
+                "volume": 3015
+              },
+              "relative_change": -0.173406,
+              "scope": "site",
+              "scope_id": "S021",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": 0.055064,
+              "comparison_id": "improvement_service_requests",
+              "comparison_period": {
+                "counts": {
+                  "service_requests": 11,
+                  "wearer_months": 1804
+                },
+                "name": "H1 2025",
+                "value": 0.609756,
+                "volume": 1804
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 1.0,
+              "period": {
+                "counts": {
+                  "service_requests": 12,
+                  "wearer_months": 1805
+                },
+                "name": "H2 2025",
+                "value": 0.66482,
+                "volume": 1805
+              },
+              "relative_change": 0.090305,
+              "scope": "site",
+              "scope_id": "S019",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": -0.128281,
+              "comparison_id": "improvement_service_requests",
+              "comparison_period": {
+                "counts": {
+                  "service_requests": 11,
+                  "wearer_months": 737
+                },
+                "name": "H1 2025",
+                "value": 1.492537,
+                "volume": 737
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 1.0,
+              "period": {
+                "counts": {
+                  "service_requests": 10,
+                  "wearer_months": 733
+                },
+                "name": "H2 2025",
+                "value": 1.364256,
+                "volume": 733
+              },
+              "relative_change": -0.085948,
+              "scope": "site",
+              "scope_id": "S022",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": 0.0,
+              "comparison_id": "improvement_service_requests",
+              "comparison_period": {
+                "counts": {
+                  "service_requests": 12,
+                  "wearer_months": 1616
+                },
+                "name": "H1 2025",
+                "value": 0.742574,
+                "volume": 1616
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 1.0,
+              "period": {
+                "counts": {
+                  "service_requests": 12,
+                  "wearer_months": 1616
+                },
+                "name": "H2 2025",
+                "value": 0.742574,
+                "volume": 1616
+              },
+              "relative_change": 0.0,
+              "scope": "site",
+              "scope_id": "S018",
+              "view": "KAM"
+            }
+          ]
+        },
+        {
+          "comparison_id": "improvement_service_requests",
+          "customer_id": "CUST002",
+          "customer_result": {
+            "caveats": [],
+            "change": 0.021721,
+            "comparison_id": "improvement_service_requests",
+            "comparison_period": {
+              "counts": {
+                "service_requests": 85,
+                "wearer_months": 16135
+              },
+              "name": "H1 2025",
+              "value": 0.526805,
+              "volume": 16135
+            },
+            "customer_id": "CUST002",
+            "label": "no_clear_change",
+            "not_evaluated_reason": null,
+            "p_value": 0.819789,
+            "period": {
+              "counts": {
+                "service_requests": 88,
+                "wearer_months": 16043
+              },
+              "name": "H2 2025",
+              "value": 0.548526,
+              "volume": 16043
+            },
+            "relative_change": 0.041231,
+            "scope": "customer",
+            "scope_id": "CUST002",
+            "view": "Both"
+          },
+          "site_results": [
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": 0.816409,
+              "comparison_id": "improvement_service_requests",
+              "comparison_period": {
+                "counts": {
+                  "service_requests": 7,
+                  "wearer_months": 1349
+                },
+                "name": "H1 2025",
+                "value": 0.518903,
+                "volume": 1349
+              },
+              "customer_id": "CUST002",
+              "label": "worse",
+              "not_evaluated_reason": null,
+              "p_value": 0.028901,
+              "period": {
+                "counts": {
+                  "service_requests": 18,
+                  "wearer_months": 1348
+                },
+                "name": "H2 2025",
+                "value": 1.335312,
+                "volume": 1348
+              },
+              "relative_change": 1.573336,
+              "scope": "site",
+              "scope_id": "S029",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": -0.332742,
+              "comparison_id": "improvement_service_requests",
+              "comparison_period": {
+                "counts": {
+                  "service_requests": 13,
+                  "wearer_months": 2408
+                },
+                "name": "H1 2025",
+                "value": 0.539867,
+                "volume": 2408
+              },
+              "customer_id": "CUST002",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.063246,
+              "period": {
+                "counts": {
+                  "service_requests": 5,
+                  "wearer_months": 2414
+                },
+                "name": "H2 2025",
+                "value": 0.207125,
+                "volume": 2414
+              },
+              "relative_change": -0.616341,
+              "scope": "site",
+              "scope_id": "S025",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": 0.154957,
+              "comparison_id": "improvement_service_requests",
+              "comparison_period": {
+                "counts": {
+                  "service_requests": 10,
+                  "wearer_months": 3938
+                },
+                "name": "H1 2025",
+                "value": 0.253936,
+                "volume": 3938
+              },
+              "customer_id": "CUST002",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.246337,
+              "period": {
+                "counts": {
+                  "service_requests": 16,
+                  "wearer_months": 3913
+                },
+                "name": "H2 2025",
+                "value": 0.408893,
+                "volume": 3913
+              },
+              "relative_change": 0.610222,
+              "scope": "site",
+              "scope_id": "S028",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": -0.161438,
+              "comparison_id": "improvement_service_requests",
+              "comparison_period": {
+                "counts": {
+                  "service_requests": 22,
+                  "wearer_months": 3676
+                },
+                "name": "H1 2025",
+                "value": 0.598477,
+                "volume": 3676
+              },
+              "customer_id": "CUST002",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.417729,
+              "period": {
+                "counts": {
+                  "service_requests": 16,
+                  "wearer_months": 3661
+                },
+                "name": "H2 2025",
+                "value": 0.437039,
+                "volume": 3661
+              },
+              "relative_change": -0.269747,
+              "scope": "site",
+              "scope_id": "S027",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": 0.317849,
+              "comparison_id": "improvement_service_requests",
+              "comparison_period": {
+                "counts": {
+                  "service_requests": 15,
+                  "wearer_months": 913
+                },
+                "name": "H1 2025",
+                "value": 1.642935,
+                "volume": 913
+              },
+              "customer_id": "CUST002",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.728365,
+              "period": {
+                "counts": {
+                  "service_requests": 18,
+                  "wearer_months": 918
+                },
+                "name": "H2 2025",
+                "value": 1.960784,
+                "volume": 918
+              },
+              "relative_change": 0.193464,
+              "scope": "site",
+              "scope_id": "S026",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": -0.071528,
+              "comparison_id": "improvement_service_requests",
+              "comparison_period": {
+                "counts": {
+                  "service_requests": 18,
+                  "wearer_months": 3851
+                },
+                "name": "H1 2025",
+                "value": 0.467411,
+                "volume": 3851
+              },
+              "customer_id": "CUST002",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.728619,
+              "period": {
+                "counts": {
+                  "service_requests": 15,
+                  "wearer_months": 3789
+                },
+                "name": "H2 2025",
+                "value": 0.395883,
+                "volume": 3789
+              },
+              "relative_change": -0.153031,
+              "scope": "site",
+              "scope_id": "S030",
+              "view": "KAM"
+            }
+          ]
+        },
+        {
+          "comparison_id": "improvement_service_requests",
+          "customer_id": "CUST003",
+          "customer_result": {
+            "caveats": [],
+            "change": 0.040271,
+            "comparison_id": "improvement_service_requests",
+            "comparison_period": {
+              "counts": {
+                "service_requests": 29,
+                "wearer_months": 9486
+              },
+              "name": "H1 2025",
+              "value": 0.305714,
+              "volume": 9486
+            },
+            "customer_id": "CUST003",
+            "label": "no_clear_change",
+            "not_evaluated_reason": null,
+            "p_value": 0.703602,
+            "period": {
+              "counts": {
+                "service_requests": 33,
+                "wearer_months": 9538
+              },
+              "name": "H2 2025",
+              "value": 0.345984,
+              "volume": 9538
+            },
+            "relative_change": 0.131727,
+            "scope": "customer",
+            "scope_id": "CUST003",
+            "view": "Both"
+          },
+          "site_results": [
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": 0.989927,
+              "comparison_id": "improvement_service_requests",
+              "comparison_period": {
+                "counts": {
+                  "service_requests": 3,
+                  "wearer_months": 815
+                },
+                "name": "H1 2025",
+                "value": 0.368098,
+                "volume": 815
+              },
+              "customer_id": "CUST003",
+              "label": "worse",
+              "not_evaluated_reason": null,
+              "p_value": 0.03462,
+              "period": {
+                "counts": {
+                  "service_requests": 11,
+                  "wearer_months": 810
+                },
+                "name": "H2 2025",
+                "value": 1.358025,
+                "volume": 810
+              },
+              "relative_change": 2.6893,
+              "scope": "site",
+              "scope_id": "S032",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": 0.248226,
+              "comparison_id": "improvement_service_requests",
+              "comparison_period": {
+                "counts": {
+                  "service_requests": 4,
+                  "wearer_months": 2809
+                },
+                "name": "H1 2025",
+                "value": 0.142399,
+                "volume": 2809
+              },
+              "customer_id": "CUST003",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.118473,
+              "period": {
+                "counts": {
+                  "service_requests": 11,
+                  "wearer_months": 2816
+                },
+                "name": "H2 2025",
+                "value": 0.390625,
+                "volume": 2816
+              },
+              "relative_change": 1.743164,
+              "scope": "site",
+              "scope_id": "S034",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": -0.290962,
+              "comparison_id": "improvement_service_requests",
+              "comparison_period": {
+                "counts": {
+                  "service_requests": 10,
+                  "wearer_months": 2052
+                },
+                "name": "H1 2025",
+                "value": 0.487329,
+                "volume": 2052
+              },
+              "customer_id": "CUST003",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.179607,
+              "period": {
+                "counts": {
+                  "service_requests": 4,
+                  "wearer_months": 2037
+                },
+                "name": "H2 2025",
+                "value": 0.196367,
+                "volume": 2037
+              },
+              "relative_change": -0.597054,
+              "scope": "site",
+              "scope_id": "S031",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": -0.134315,
+              "comparison_id": "improvement_service_requests",
+              "comparison_period": {
+                "counts": {
+                  "service_requests": 12,
+                  "wearer_months": 3810
+                },
+                "name": "H1 2025",
+                "value": 0.314961,
+                "volume": 3810
+              },
+              "customer_id": "CUST003",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": 0.259422,
+              "period": {
+                "counts": {
+                  "service_requests": 7,
+                  "wearer_months": 3875
+                },
+                "name": "H2 2025",
+                "value": 0.180645,
+                "volume": 3875
+              },
+              "relative_change": -0.426452,
+              "scope": "site",
+              "scope_id": "S033",
+              "view": "KAM"
+            }
+          ]
+        },
+        {
+          "comparison_id": "improvement_scan_coverage",
+          "customer_id": "CUST001",
+          "customer_result": {
+            "caveats": [],
+            "change": 0.001339,
+            "comparison_id": "improvement_scan_coverage",
+            "comparison_period": {
+              "counts": {
+                "active_assets_scanned": 159449,
+                "allocated_pieces": 189957
+              },
+              "name": "H1 2025",
+              "value": 0.839395,
+              "volume": 31660
+            },
+            "customer_id": "CUST001",
+            "label": "no_clear_change",
+            "not_evaluated_reason": null,
+            "p_value": null,
+            "period": {
+              "counts": {
+                "active_assets_scanned": 159811,
+                "allocated_pieces": 190085
+              },
+              "name": "H2 2025",
+              "value": 0.840734,
+              "volume": 31681
+            },
+            "relative_change": 0.001595,
+            "scope": "customer",
+            "scope_id": "CUST001",
+            "view": "Both"
+          },
+          "site_results": [
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": 0.048053,
+              "comparison_id": "improvement_scan_coverage",
+              "comparison_period": {
+                "counts": {
+                  "active_assets_scanned": 8717,
+                  "allocated_pieces": 10810
+                },
+                "name": "H1 2025",
+                "value": 0.806383,
+                "volume": 1802
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "active_assets_scanned": 9198,
+                  "allocated_pieces": 10765
+                },
+                "name": "H2 2025",
+                "value": 0.854436,
+                "volume": 1794
+              },
+              "relative_change": 0.05959,
+              "scope": "site",
+              "scope_id": "S009",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": 0.047254,
+              "comparison_id": "improvement_scan_coverage",
+              "comparison_period": {
+                "counts": {
+                  "active_assets_scanned": 10162,
+                  "allocated_pieces": 12543
+                },
+                "name": "H1 2025",
+                "value": 0.810173,
+                "volume": 2090
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "active_assets_scanned": 10795,
+                  "allocated_pieces": 12590
+                },
+                "name": "H2 2025",
+                "value": 0.857427,
+                "volume": 2098
+              },
+              "relative_change": 0.058325,
+              "scope": "site",
+              "scope_id": "S016",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": 0.039961,
+              "comparison_id": "improvement_scan_coverage",
+              "comparison_period": {
+                "counts": {
+                  "active_assets_scanned": 4836,
+                  "allocated_pieces": 5793
+                },
+                "name": "H1 2025",
+                "value": 0.834801,
+                "volume": 966
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "active_assets_scanned": 5043,
+                  "allocated_pieces": 5765
+                },
+                "name": "H2 2025",
+                "value": 0.874761,
+                "volume": 961
+              },
+              "relative_change": 0.047869,
+              "scope": "site",
+              "scope_id": "S015",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": -0.040852,
+              "comparison_id": "improvement_scan_coverage",
+              "comparison_period": {
+                "counts": {
+                  "active_assets_scanned": 11086,
+                  "allocated_pieces": 12792
+                },
+                "name": "H1 2025",
+                "value": 0.866635,
+                "volume": 2132
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "active_assets_scanned": 10518,
+                  "allocated_pieces": 12737
+                },
+                "name": "H2 2025",
+                "value": 0.825783,
+                "volume": 2123
+              },
+              "relative_change": -0.047139,
+              "scope": "site",
+              "scope_id": "S001",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": -0.034795,
+              "comparison_id": "improvement_scan_coverage",
+              "comparison_period": {
+                "counts": {
+                  "active_assets_scanned": 6044,
+                  "allocated_pieces": 7081
+                },
+                "name": "H1 2025",
+                "value": 0.853552,
+                "volume": 1180
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "active_assets_scanned": 5823,
+                  "allocated_pieces": 7112
+                },
+                "name": "H2 2025",
+                "value": 0.818757,
+                "volume": 1185
+              },
+              "relative_change": -0.040765,
+              "scope": "site",
+              "scope_id": "S017",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": -0.034783,
+              "comparison_id": "improvement_scan_coverage",
+              "comparison_period": {
+                "counts": {
+                  "active_assets_scanned": 5317,
+                  "allocated_pieces": 6208
+                },
+                "name": "H1 2025",
+                "value": 0.856476,
+                "volume": 1035
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "active_assets_scanned": 5106,
+                  "allocated_pieces": 6214
+                },
+                "name": "H2 2025",
+                "value": 0.821693,
+                "volume": 1036
+              },
+              "relative_change": -0.040611,
+              "scope": "site",
+              "scope_id": "S010",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": 0.028853,
+              "comparison_id": "improvement_scan_coverage",
+              "comparison_period": {
+                "counts": {
+                  "active_assets_scanned": 3035,
+                  "allocated_pieces": 3659
+                },
+                "name": "H1 2025",
+                "value": 0.829462,
+                "volume": 610
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "active_assets_scanned": 3138,
+                  "allocated_pieces": 3656
+                },
+                "name": "H2 2025",
+                "value": 0.858315,
+                "volume": 609
+              },
+              "relative_change": 0.034786,
+              "scope": "site",
+              "scope_id": "S005",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": -0.029609,
+              "comparison_id": "improvement_scan_coverage",
+              "comparison_period": {
+                "counts": {
+                  "active_assets_scanned": 2874,
+                  "allocated_pieces": 3363
+                },
+                "name": "H1 2025",
+                "value": 0.854594,
+                "volume": 560
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "active_assets_scanned": 2767,
+                  "allocated_pieces": 3354
+                },
+                "name": "H2 2025",
+                "value": 0.824985,
+                "volume": 559
+              },
+              "relative_change": -0.034647,
+              "scope": "site",
+              "scope_id": "S024",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": -0.028949,
+              "comparison_id": "improvement_scan_coverage",
+              "comparison_period": {
+                "counts": {
+                  "active_assets_scanned": 7412,
+                  "allocated_pieces": 8612
+                },
+                "name": "H1 2025",
+                "value": 0.86066,
+                "volume": 1435
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "active_assets_scanned": 7176,
+                  "allocated_pieces": 8628
+                },
+                "name": "H2 2025",
+                "value": 0.831711,
+                "volume": 1438
+              },
+              "relative_change": -0.033636,
+              "scope": "site",
+              "scope_id": "S012",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": -0.019168,
+              "comparison_id": "improvement_scan_coverage",
+              "comparison_period": {
+                "counts": {
+                  "active_assets_scanned": 4859,
+                  "allocated_pieces": 5638
+                },
+                "name": "H1 2025",
+                "value": 0.86183,
+                "volume": 940
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "active_assets_scanned": 4772,
+                  "allocated_pieces": 5663
+                },
+                "name": "H2 2025",
+                "value": 0.842663,
+                "volume": 944
+              },
+              "relative_change": -0.02224,
+              "scope": "site",
+              "scope_id": "S020",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": -0.017564,
+              "comparison_id": "improvement_scan_coverage",
+              "comparison_period": {
+                "counts": {
+                  "active_assets_scanned": 6818,
+                  "allocated_pieces": 8122
+                },
+                "name": "H1 2025",
+                "value": 0.839448,
+                "volume": 1354
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "active_assets_scanned": 6760,
+                  "allocated_pieces": 8225
+                },
+                "name": "H2 2025",
+                "value": 0.821884,
+                "volume": 1371
+              },
+              "relative_change": -0.020923,
+              "scope": "site",
+              "scope_id": "S011",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": 0.016198,
+              "comparison_id": "improvement_scan_coverage",
+              "comparison_period": {
+                "counts": {
+                  "active_assets_scanned": 9428,
+                  "allocated_pieces": 11208
+                },
+                "name": "H1 2025",
+                "value": 0.841185,
+                "volume": 1868
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "active_assets_scanned": 9679,
+                  "allocated_pieces": 11289
+                },
+                "name": "H2 2025",
+                "value": 0.857383,
+                "volume": 1882
+              },
+              "relative_change": 0.019257,
+              "scope": "site",
+              "scope_id": "S013",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": 0.015661,
+              "comparison_id": "improvement_scan_coverage",
+              "comparison_period": {
+                "counts": {
+                  "active_assets_scanned": 7924,
+                  "allocated_pieces": 9343
+                },
+                "name": "H1 2025",
+                "value": 0.848122,
+                "volume": 1557
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "active_assets_scanned": 8028,
+                  "allocated_pieces": 9294
+                },
+                "name": "H2 2025",
+                "value": 0.863783,
+                "volume": 1549
+              },
+              "relative_change": 0.018466,
+              "scope": "site",
+              "scope_id": "S023",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": -0.015069,
+              "comparison_id": "improvement_scan_coverage",
+              "comparison_period": {
+                "counts": {
+                  "active_assets_scanned": 7536,
+                  "allocated_pieces": 8982
+                },
+                "name": "H1 2025",
+                "value": 0.839011,
+                "volume": 1497
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "active_assets_scanned": 7399,
+                  "allocated_pieces": 8980
+                },
+                "name": "H2 2025",
+                "value": 0.823942,
+                "volume": 1497
+              },
+              "relative_change": -0.017961,
+              "scope": "site",
+              "scope_id": "S002",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": 0.013897,
+              "comparison_id": "improvement_scan_coverage",
+              "comparison_period": {
+                "counts": {
+                  "active_assets_scanned": 3642,
+                  "allocated_pieces": 4439
+                },
+                "name": "H1 2025",
+                "value": 0.820455,
+                "volume": 740
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "active_assets_scanned": 3687,
+                  "allocated_pieces": 4419
+                },
+                "name": "H2 2025",
+                "value": 0.834352,
+                "volume": 736
+              },
+              "relative_change": 0.016938,
+              "scope": "site",
+              "scope_id": "S019",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": 0.013512,
+              "comparison_id": "improvement_scan_coverage",
+              "comparison_period": {
+                "counts": {
+                  "active_assets_scanned": 11962,
+                  "allocated_pieces": 14328
+                },
+                "name": "H1 2025",
+                "value": 0.834869,
+                "volume": 2388
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "active_assets_scanned": 12131,
+                  "allocated_pieces": 14299
+                },
+                "name": "H2 2025",
+                "value": 0.848381,
+                "volume": 2383
+              },
+              "relative_change": 0.016185,
+              "scope": "site",
+              "scope_id": "S008",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": 0.013031,
+              "comparison_id": "improvement_scan_coverage",
+              "comparison_period": {
+                "counts": {
+                  "active_assets_scanned": 9470,
+                  "allocated_pieces": 11548
+                },
+                "name": "H1 2025",
+                "value": 0.820055,
+                "volume": 1925
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "active_assets_scanned": 9553,
+                  "allocated_pieces": 11467
+                },
+                "name": "H2 2025",
+                "value": 0.833086,
+                "volume": 1911
+              },
+              "relative_change": 0.01589,
+              "scope": "site",
+              "scope_id": "S014",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": -0.010168,
+              "comparison_id": "improvement_scan_coverage",
+              "comparison_period": {
+                "counts": {
+                  "active_assets_scanned": 8574,
+                  "allocated_pieces": 10081
+                },
+                "name": "H1 2025",
+                "value": 0.850511,
+                "volume": 1680
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "active_assets_scanned": 8432,
+                  "allocated_pieces": 10034
+                },
+                "name": "H2 2025",
+                "value": 0.840343,
+                "volume": 1672
+              },
+              "relative_change": -0.011955,
+              "scope": "site",
+              "scope_id": "S021",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": -0.006452,
+              "comparison_id": "improvement_scan_coverage",
+              "comparison_period": {
+                "counts": {
+                  "active_assets_scanned": 9593,
+                  "allocated_pieces": 11534
+                },
+                "name": "H1 2025",
+                "value": 0.831715,
+                "volume": 1922
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "active_assets_scanned": 9578,
+                  "allocated_pieces": 11606
+                },
+                "name": "H2 2025",
+                "value": 0.825263,
+                "volume": 1934
+              },
+              "relative_change": -0.007758,
+              "scope": "site",
+              "scope_id": "S006",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": -0.006228,
+              "comparison_id": "improvement_scan_coverage",
+              "comparison_period": {
+                "counts": {
+                  "active_assets_scanned": 2665,
+                  "allocated_pieces": 3211
+                },
+                "name": "H1 2025",
+                "value": 0.82996,
+                "volume": 535
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "active_assets_scanned": 2631,
+                  "allocated_pieces": 3194
+                },
+                "name": "H2 2025",
+                "value": 0.823732,
+                "volume": 532
+              },
+              "relative_change": -0.007503,
+              "scope": "site",
+              "scope_id": "S004",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": 0.005901,
+              "comparison_id": "improvement_scan_coverage",
+              "comparison_period": {
+                "counts": {
+                  "active_assets_scanned": 3762,
+                  "allocated_pieces": 4688
+                },
+                "name": "H1 2025",
+                "value": 0.802474,
+                "volume": 781
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "active_assets_scanned": 3822,
+                  "allocated_pieces": 4728
+                },
+                "name": "H2 2025",
+                "value": 0.808376,
+                "volume": 788
+              },
+              "relative_change": 0.007354,
+              "scope": "site",
+              "scope_id": "S018",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": -0.00444,
+              "comparison_id": "improvement_scan_coverage",
+              "comparison_period": {
+                "counts": {
+                  "active_assets_scanned": 10818,
+                  "allocated_pieces": 12540
+                },
+                "name": "H1 2025",
+                "value": 0.862679,
+                "volume": 2090
+              },
+              "customer_id": "CUST001",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "active_assets_scanned": 10843,
+                  "allocated_pieces": 12634
+                },
+                "name": "H2 2025",
+                "value": 0.85824,
+                "volume": 2106
+              },
+              "relative_change": -0.005146,
+              "scope": "site",
+              "scope_id": "S007",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": 0.009243,
+              "comparison_id": "improvement_scan_coverage",
+              "comparison_period": {
+                "counts": {
+                  "active_assets_scanned": 1711,
+                  "allocated_pieces": 1990
+                },
+                "name": "H1 2025",
+                "value": 0.859799,
+                "volume": 332
+              },
+              "customer_id": "CUST001",
+              "label": "not_evaluated",
+              "not_evaluated_reason": "332 allocated pieces, monthly average in H1 2025, under the minimum of 500. 332 allocated pieces, monthly average in H2 2025, under the minimum of 500.",
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "active_assets_scanned": 1732,
+                  "allocated_pieces": 1993
+                },
+                "name": "H2 2025",
+                "value": 0.869042,
+                "volume": 332
+              },
+              "relative_change": 0.01075,
+              "scope": "site",
+              "scope_id": "S022",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": 0.000117,
+              "comparison_id": "improvement_scan_coverage",
+              "comparison_period": {
+                "counts": {
+                  "active_assets_scanned": 1204,
+                  "allocated_pieces": 1444
+                },
+                "name": "H1 2025",
+                "value": 0.833795,
+                "volume": 241
+              },
+              "customer_id": "CUST001",
+              "label": "not_evaluated",
+              "not_evaluated_reason": "241 allocated pieces, monthly average in H1 2025, under the minimum of 500. 240 allocated pieces, monthly average in H2 2025, under the minimum of 500.",
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "active_assets_scanned": 1200,
+                  "allocated_pieces": 1439
+                },
+                "name": "H2 2025",
+                "value": 0.833912,
+                "volume": 240
+              },
+              "relative_change": 0.000141,
+              "scope": "site",
+              "scope_id": "S003",
+              "view": "KAM"
+            }
+          ]
+        },
+        {
+          "comparison_id": "improvement_scan_coverage",
+          "customer_id": "CUST002",
+          "customer_result": {
+            "caveats": [],
+            "change": 0.013702,
+            "comparison_id": "improvement_scan_coverage",
+            "comparison_period": {
+              "counts": {
+                "active_assets_scanned": 46268,
+                "allocated_pieces": 55394
+              },
+              "name": "H1 2025",
+              "value": 0.835253,
+              "volume": 9232
+            },
+            "customer_id": "CUST002",
+            "label": "no_clear_change",
+            "not_evaluated_reason": null,
+            "p_value": null,
+            "period": {
+              "counts": {
+                "active_assets_scanned": 46729,
+                "allocated_pieces": 55043
+              },
+              "name": "H2 2025",
+              "value": 0.848954,
+              "volume": 9174
+            },
+            "relative_change": 0.016404,
+            "scope": "customer",
+            "scope_id": "CUST002",
+            "view": "Both"
+          },
+          "site_results": [
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": 0.042007,
+              "comparison_id": "improvement_scan_coverage",
+              "comparison_period": {
+                "counts": {
+                  "active_assets_scanned": 11240,
+                  "allocated_pieces": 13696
+                },
+                "name": "H1 2025",
+                "value": 0.820678,
+                "volume": 2283
+              },
+              "customer_id": "CUST002",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "active_assets_scanned": 11786,
+                  "allocated_pieces": 13662
+                },
+                "name": "H2 2025",
+                "value": 0.862685,
+                "volume": 2277
+              },
+              "relative_change": 0.051186,
+              "scope": "site",
+              "scope_id": "S027",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": 0.034841,
+              "comparison_id": "improvement_scan_coverage",
+              "comparison_period": {
+                "counts": {
+                  "active_assets_scanned": 10799,
+                  "allocated_pieces": 12896
+                },
+                "name": "H1 2025",
+                "value": 0.837391,
+                "volume": 2149
+              },
+              "customer_id": "CUST002",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "active_assets_scanned": 11189,
+                  "allocated_pieces": 12828
+                },
+                "name": "H2 2025",
+                "value": 0.872233,
+                "volume": 2138
+              },
+              "relative_change": 0.041607,
+              "scope": "site",
+              "scope_id": "S030",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": -0.031073,
+              "comparison_id": "improvement_scan_coverage",
+              "comparison_period": {
+                "counts": {
+                  "active_assets_scanned": 2871,
+                  "allocated_pieces": 3327
+                },
+                "name": "H1 2025",
+                "value": 0.86294,
+                "volume": 554
+              },
+              "customer_id": "CUST002",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "active_assets_scanned": 2741,
+                  "allocated_pieces": 3295
+                },
+                "name": "H2 2025",
+                "value": 0.831866,
+                "volume": 549
+              },
+              "relative_change": -0.036008,
+              "scope": "site",
+              "scope_id": "S026",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": -0.013247,
+              "comparison_id": "improvement_scan_coverage",
+              "comparison_period": {
+                "counts": {
+                  "active_assets_scanned": 3905,
+                  "allocated_pieces": 4692
+                },
+                "name": "H1 2025",
+                "value": 0.832268,
+                "volume": 782
+              },
+              "customer_id": "CUST002",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "active_assets_scanned": 3815,
+                  "allocated_pieces": 4658
+                },
+                "name": "H2 2025",
+                "value": 0.819021,
+                "volume": 776
+              },
+              "relative_change": -0.015916,
+              "scope": "site",
+              "scope_id": "S029",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": -0.006374,
+              "comparison_id": "improvement_scan_coverage",
+              "comparison_period": {
+                "counts": {
+                  "active_assets_scanned": 10959,
+                  "allocated_pieces": 12922
+                },
+                "name": "H1 2025",
+                "value": 0.848089,
+                "volume": 2154
+              },
+              "customer_id": "CUST002",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "active_assets_scanned": 10779,
+                  "allocated_pieces": 12806
+                },
+                "name": "H2 2025",
+                "value": 0.841715,
+                "volume": 2134
+              },
+              "relative_change": -0.007515,
+              "scope": "site",
+              "scope_id": "S028",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": -0.002521,
+              "comparison_id": "improvement_scan_coverage",
+              "comparison_period": {
+                "counts": {
+                  "active_assets_scanned": 6494,
+                  "allocated_pieces": 7861
+                },
+                "name": "H1 2025",
+                "value": 0.826104,
+                "volume": 1310
+              },
+              "customer_id": "CUST002",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "active_assets_scanned": 6419,
+                  "allocated_pieces": 7794
+                },
+                "name": "H2 2025",
+                "value": 0.823582,
+                "volume": 1299
+              },
+              "relative_change": -0.003052,
+              "scope": "site",
+              "scope_id": "S025",
+              "view": "KAM"
+            }
+          ]
+        },
+        {
+          "comparison_id": "improvement_scan_coverage",
+          "customer_id": "CUST003",
+          "customer_result": {
+            "caveats": [],
+            "change": 0.009377,
+            "comparison_id": "improvement_scan_coverage",
+            "comparison_period": {
+              "counts": {
+                "active_assets_scanned": 27265,
+                "allocated_pieces": 32649
+              },
+              "name": "H1 2025",
+              "value": 0.835094,
+              "volume": 5442
+            },
+            "customer_id": "CUST003",
+            "label": "no_clear_change",
+            "not_evaluated_reason": null,
+            "p_value": null,
+            "period": {
+              "counts": {
+                "active_assets_scanned": 27306,
+                "allocated_pieces": 32335
+              },
+              "name": "H2 2025",
+              "value": 0.844472,
+              "volume": 5389
+            },
+            "relative_change": 0.011229,
+            "scope": "customer",
+            "scope_id": "CUST003",
+            "view": "Both"
+          },
+          "site_results": [
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": 0.03865,
+              "comparison_id": "improvement_scan_coverage",
+              "comparison_period": {
+                "counts": {
+                  "active_assets_scanned": 6467,
+                  "allocated_pieces": 7742
+                },
+                "name": "H1 2025",
+                "value": 0.835314,
+                "volume": 1290
+              },
+              "customer_id": "CUST003",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "active_assets_scanned": 6747,
+                  "allocated_pieces": 7720
+                },
+                "name": "H2 2025",
+                "value": 0.873964,
+                "volume": 1287
+              },
+              "relative_change": 0.04627,
+              "scope": "site",
+              "scope_id": "S031",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": 0.038015,
+              "comparison_id": "improvement_scan_coverage",
+              "comparison_period": {
+                "counts": {
+                  "active_assets_scanned": 9291,
+                  "allocated_pieces": 11279
+                },
+                "name": "H1 2025",
+                "value": 0.823743,
+                "volume": 1880
+              },
+              "customer_id": "CUST003",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "active_assets_scanned": 9550,
+                  "allocated_pieces": 11082
+                },
+                "name": "H2 2025",
+                "value": 0.861758,
+                "volume": 1847
+              },
+              "relative_change": 0.046149,
+              "scope": "site",
+              "scope_id": "S033",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": -0.033036,
+              "comparison_id": "improvement_scan_coverage",
+              "comparison_period": {
+                "counts": {
+                  "active_assets_scanned": 8541,
+                  "allocated_pieces": 10172
+                },
+                "name": "H1 2025",
+                "value": 0.839658,
+                "volume": 1695
+              },
+              "customer_id": "CUST003",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "active_assets_scanned": 8113,
+                  "allocated_pieces": 10058
+                },
+                "name": "H2 2025",
+                "value": 0.806622,
+                "volume": 1676
+              },
+              "relative_change": -0.039345,
+              "scope": "site",
+              "scope_id": "S034",
+              "view": "KAM"
+            },
+            {
+              "caveats": [
+                "About 1 in 20 Sites shows a clear change by chance alone."
+              ],
+              "change": -0.024836,
+              "comparison_id": "improvement_scan_coverage",
+              "comparison_period": {
+                "counts": {
+                  "active_assets_scanned": 2966,
+                  "allocated_pieces": 3456
+                },
+                "name": "H1 2025",
+                "value": 0.858218,
+                "volume": 576
+              },
+              "customer_id": "CUST003",
+              "label": "no_clear_change",
+              "not_evaluated_reason": null,
+              "p_value": null,
+              "period": {
+                "counts": {
+                  "active_assets_scanned": 2896,
+                  "allocated_pieces": 3475
+                },
+                "name": "H2 2025",
+                "value": 0.833381,
+                "volume": 579
+              },
+              "relative_change": -0.028939,
+              "scope": "site",
+              "scope_id": "S032",
+              "view": "KAM"
+            }
+          ]
+        }
+      ],
+      "label": "within 2025",
+      "period": {
+        "months": [
+          "2025-07",
+          "2025-08",
+          "2025-09",
+          "2025-10",
+          "2025-11",
+          "2025-12"
+        ],
+        "name": "H2 2025"
+      },
+      "selected_period": "2025"
+    }
+  },
+  "meta": {
+    "name": "improvement-trends",
+    "source_file": "Lindstrom_SinceAI_Customer_Value_Synthetic_Data_Pack.xlsx",
+    "source_sha256": "b50603f7112956bbd49d81f6e83d1e3879be8329e2076c1b7aee9d861e08e217"
+  }
+}

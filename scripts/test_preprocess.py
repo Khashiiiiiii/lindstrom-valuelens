@@ -976,3 +976,169 @@ def test_footprint_handprint_labels_use_glossary_terms(footprint_handprint):
         assert "—" not in text, where
         for term in avoid:
             assert not re.search(rf"\b{term}\b", text, re.IGNORECASE), (where, term)
+
+
+# improvement-trends.json
+
+
+def test_fisher_exact_two_sided_matches_the_tea_tasting_example():
+    # Fisher's lady tasting tea: 3 of 4 right in each cup group, two-sided p = 34/70.
+    assert preprocess.fisher_exact_two_sided(3, 4, 1, 4) == pytest.approx(34 / 70)
+
+
+def test_fisher_exact_two_sided_for_northstar_turku():
+    # 0 late of 296 sampled cycles, then 4 of 126. Only the observed table is as extreme as itself.
+    assert preprocess.fisher_exact_two_sided(0, 296, 4, 126) == pytest.approx(0.0076833, rel=1e-4)
+    assert preprocess.fisher_exact_two_sided(5, 300, 5, 300) == pytest.approx(1.0)
+
+
+def test_conditional_binomial_two_sided_with_equal_exposure_is_a_fair_coin():
+    # 3 events against 7 on equal exposure: binomial(10, 0.5), P(X <= 3 or X >= 7) = 352/1024.
+    assert preprocess.conditional_binomial_two_sided(3, 1000, 7, 1000) == pytest.approx(352 / 1024)
+
+
+def test_conditional_binomial_two_sided_handles_large_counts():
+    p = preprocess.conditional_binomial_two_sided(252, 57897, 263, 57871)
+    assert 0.6 < p < 0.65
+    assert preprocess.conditional_binomial_two_sided(0, 600, 0, 600) == 1.0
+
+
+@pytest.fixture(scope="module")
+def improvement(out_dir) -> dict:
+    return json.loads((out_dir / "improvement-trends.json").read_text(encoding="utf-8"))
+
+
+ON_TIME, REQUESTS, SCAN = (
+    "improvement_on_time_service_cycles", "improvement_service_requests", "improvement_scan_coverage",
+)
+
+
+def _site_names(master) -> dict:
+    return {s["site_id"]: s["site_name"] for s in master["data"]["sites"]}
+
+
+def _site_results(improvement, comparison_id):
+    return [r for c in improvement["data"]["results"]["comparisons"] if c["comparison_id"] == comparison_id
+            for r in c["site_results"]]
+
+
+def _sites_labelled(improvement, master, comparison_id, label):
+    names = _site_names(master)
+    return sorted(names[r["scope_id"]] for r in _site_results(improvement, comparison_id) if r["label"] == label)
+
+
+def test_default_comparison_is_h2_against_h1_within_2025(improvement):
+    results = improvement["data"]["results"]
+    assert (results["selected_period"], results["compare_to"], results["label"]) == ("2025", "h2_vs_h1", "within 2025")
+    assert results["period"] == {"name": "H2 2025", "months": [f"2025-{m:02d}" for m in range(7, 13)]}
+    assert results["comparison_period"]["months"] == [f"2025-{m:02d}" for m in range(1, 7)]
+    assert len(results["comparisons"]) == 9
+    assert sum(len(c["site_results"]) for c in results["comparisons"]) == 3 * 34
+
+
+def test_every_customer_shows_no_clear_change_on_all_three_comparisons(improvement):
+    customers = [c["customer_result"] for c in improvement["data"]["results"]["comparisons"]]
+    assert {r["label"] for r in customers} == {"no_clear_change"}
+    count_tests = [r["p_value"] for r in customers if r["comparison_id"] != SCAN]
+    assert 0.22 < min(count_tests) and max(count_tests) < 0.88
+    assert all(r["view"] == "Both" for r in customers)
+
+
+def test_worse_sites_and_no_better_site(improvement, master):
+    assert _sites_labelled(improvement, master, REQUESTS, "worse") == [
+        "Apex Västerås", "Mediora Kraków", "NorthStar Stockholm",
+    ]
+    assert _sites_labelled(improvement, master, ON_TIME, "worse") == ["NorthStar Turku"]
+    for comparison_id in (ON_TIME, REQUESTS, SCAN):
+        assert _sites_labelled(improvement, master, comparison_id, "better") == []
+    assert _sites_labelled(improvement, master, SCAN, "worse") == []
+
+
+def test_northstar_turku_on_time_cycles(improvement):
+    turku = next(r for r in _site_results(improvement, ON_TIME) if r["scope_id"] == "S002")
+    assert turku["comparison_period"]["counts"] == {"late_cycles": 0, "sampled_cycles": 296}
+    assert turku["period"]["counts"] == {"late_cycles": 4, "sampled_cycles": 126}
+    assert turku["p_value"] < 0.05
+    assert turku["caveats"] == [preprocess.SITE_CHANCE_CAVEAT, preprocess.SAMPLE_CAVEAT]
+    assert turku["view"] == "KAM"
+
+
+def test_sites_not_evaluated_under_the_guards(improvement, master):
+    assert _sites_labelled(improvement, master, ON_TIME, "not_evaluated") == [
+        "Mediora Kraków", "Mediora Poznań", "Mediora Warsaw", "NorthStar Vaasa",
+    ]
+    assert _sites_labelled(improvement, master, SCAN, "not_evaluated") == ["NorthStar Gdańsk", "NorthStar Tampere"]
+    assert _sites_labelled(improvement, master, REQUESTS, "not_evaluated") == []
+    vaasa = next(r for r in _site_results(improvement, ON_TIME) if r["scope_id"] == "S007")
+    assert vaasa["not_evaluated_reason"] == "89 sampled cycles in H2 2025, under the minimum of 100."
+    assert vaasa["p_value"] is None
+
+
+def test_site_results_are_ordered_worse_better_no_clear_change_not_evaluated(improvement):
+    order = ["worse", "better", "no_clear_change", "not_evaluated"]
+    for comparison in improvement["data"]["results"]["comparisons"]:
+        sites = comparison["site_results"]
+        assert [order.index(r["label"]) for r in sites] == sorted(order.index(r["label"]) for r in sites)
+        clear = [abs(r["relative_change"]) for r in sites if r["label"] == "no_clear_change"]
+        assert clear == sorted(clear, reverse=True)
+    mediora_requests = next(c for c in improvement["data"]["results"]["comparisons"]
+                            if (c["comparison_id"], c["customer_id"]) == (REQUESTS, "CUST003"))
+    assert mediora_requests["site_results"][0]["scope_id"] == "S032"
+
+
+def test_improvement_catalogue_holds_the_three_comparisons(improvement):
+    catalogue = improvement["catalogue"]
+    assert [e["id"] for e in catalogue] == [ON_TIME, REQUESTS, SCAN]
+    assert [e["kpi_id"] for e in catalogue] == [
+        "on_time_service_cycle_share", "service_requests_per_100_wearers", "scan_coverage",
+    ]
+    assert [e["better_when"] for e in catalogue] == ["higher", "lower", "higher"]
+    assert [e["minimum_volume"] for e in catalogue] == [100, 600, 500]
+    for entry in catalogue:
+        assert entry["id"] == preprocess.catalogue_id(entry["name"])
+        assert (entry["evidence_area"], entry["review_part"], entry["view"], entry["site_view"]) == (
+            "Improvement", "Look forward", "Both", "KAM")
+        assert entry["grain"] == "Customer, Site"
+        assert (entry["data_status"], entry["threshold_data_status"]) == ("SYNTHETIC", "TEAM_ASSUMPTION")
+        assert entry["rationale"] == ("No public benchmark exists. Set so that 2025 noise between half-years "
+                                      "is not reported as change.")
+        assert "About 1 in 20 Sites shows a clear change by chance alone." in entry["caveats"]
+    assert "Based on a sample of tracked garments." in catalogue[0]["caveats"]
+
+
+def test_improvement_defaults_are_the_override_parameters(improvement):
+    assert improvement["data"]["defaults"] == {
+        "test_level": 0.95,
+        "scan_coverage_threshold_points": 5,
+        "minimum_sampled_cycles": 100,
+        "minimum_wearer_months": 600,
+        "minimum_allocated_pieces_monthly_average": 500,
+    }
+
+
+def test_compare_to_convention(improvement):
+    convention = improvement["data"]["compare_to"]
+    assert [v["value"] for v in convention["values"]] == ["previous_period", "h2_vs_h1", "none"]
+    assert [(r["compare_to"], r["label"]) for r in convention["default_rule"]] == [
+        ("h2_vs_h1", "within 2025"), ("previous_period", None),
+    ]
+    assert {a["answer"] for a in convention["not_available"]} == {"not available: the data holds 2025 only"}
+    assert len(convention["not_available"]) == 2
+
+
+def test_january_2026_cycles_fall_outside_every_2025_period(improvement, service):
+    note = improvement["data"]["data_transparency_notes"]
+    assert [n["id"] for n in note] == ["cycles_delivered_in_2026_01"]
+    assert note[0]["text"].startswith("23 sampled service cycles")
+    customers = [c["customer_result"] for c in improvement["data"]["results"]["comparisons"]
+                 if c["comparison_id"] == ON_TIME]
+    in_2025 = sum(f["cycles"] for f in service["data"]["cycles"] if f["month"].startswith("2025"))
+    assert sum(r["period"]["volume"] + r["comparison_period"]["volume"] for r in customers) == in_2025
+
+
+def test_improvement_avoids_glossary_terms_and_em_dashes(improvement):
+    text = json.dumps({"catalogue": improvement["catalogue"], "data": improvement["data"]}, ensure_ascii=False).lower()
+    assert "—" not in text
+    for term in ("baseline", "trend", "delta", "prior period", "reference period", "complaint", "confidence",
+                 "recommendation", "alert"):
+        assert term not in text, term
