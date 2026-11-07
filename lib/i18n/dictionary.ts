@@ -132,6 +132,15 @@ export const DICTIONARY = {
   "reuse": { en: "Reuse", sv: "Återanvändning", fi: "Uudelleenkäyttö" },
   "energy_recovery": { en: "Energy recovery", sv: "Energiåtervinning", fi: "Energiahyötykäyttö" },
   "incineration": { en: "Incineration", sv: "Förbränning", fi: "Poltto" },
+  // Repair types, as the workbook writes them (breakdown repair_type)
+  "BUTTON": { en: "Button", sv: "Knapp", fi: "Nappi" },
+  "DARNING / PATCHING": { en: "Darning and patching", sv: "Stoppning och lagning", fi: "Parsinta ja paikkaus" },
+  "OTHER ACCESSORIES": { en: "Other accessories", sv: "Övriga tillbehör", fi: "Muut tarvikkeet" },
+  "OTHER SEAM STITCHING": { en: "Other seam stitching", sv: "Övriga sömmar", fi: "Muut saumat" },
+  "ZIPPER": { en: "Zipper", sv: "Blixtlås", fi: "Vetoketju" },
+  // Emission sources (breakdown emission_source)
+  "process": { en: "Laundry process", sv: "Tvättprocess", fi: "Pesuprosessi" },
+  "delivery": { en: "Delivery transport", sv: "Leveranstransporter", fi: "Toimituskuljetukset" },
   "pickup_to_in_laundry": { en: "Pickup to laundry", sv: "Upphämtning till tvätteri", fi: "Noudosta pesulaan" },
   "in_laundry_to_out_laundry": { en: "In the laundry", sv: "I tvätteriet", fi: "Pesulassa" },
   "out_laundry_to_delivered": { en: "Laundry to delivery", sv: "Tvätteri till leverans", fi: "Pesulasta toimitukseen" },
@@ -281,7 +290,7 @@ export const DICTIONARY = {
   },
   "Account health scan coverage": { sv: "Kundhälsa, skanningstäckning", fi: "Asiakkuuden tila, skannauskattavuus" },
 
-  // Units. Pass the value as n to pick the form, for example t(lang, "Sites_unit", { n: 24 }).
+  // Units. The value picks the form, for example t(lang, "Sites_unit", { n: 24 }) or dataLabel(lang, "hours", 1).
   "Sites_unit": {
     en: { one: "Site", other: "Sites" },
     sv: { one: "anläggning", other: "anläggningar" },
@@ -377,9 +386,9 @@ export const DICTIONARY = {
     sv: "Kontrollera passform, arbetsförhållanden och hantering för plagget.",
     fi: "Tarkista vaatteen istuvuus, työolosuhteet ja käsittely.",
   },
-  "Customer_owner": { en: "Customer", sv: "Kunden", fi: "Asiakas" },
+  "Customer_owner": { en: "Customer", sv: "kunden", fi: "asiakas" },
   "Lindström_owner": { en: "Lindström", sv: "Lindström", fi: "Lindström" },
-  "Joint_owner": { en: "Joint", sv: "Gemensamt", fi: "Yhteinen" },
+  "Joint_owner": { en: "Joint", sv: "gemensamt", fi: "yhteinen" },
   "Owner: {x}": { sv: "Ansvarig: {x}", fi: "Vastuu: {x}" },
 
   // Baseline labels of the handprint KPIs (runKpi detail.baseline_label)

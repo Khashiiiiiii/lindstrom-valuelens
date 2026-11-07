@@ -48,11 +48,12 @@ export function t<K extends DictionaryKey>(lang: Lang, key: K, ...[vars]: VarsFo
 
 /**
  * The text for a value from data/processed, such as a KPI name or a breakdown key, in the language. A value with no
- * entry shows in English. A data id with no entry reads as words, so "unknown_route" shows as "Unknown route".
+ * entry shows in English. A data id with no entry reads as words, so "unknown_route" shows as "Unknown route". For
+ * a unit, the number n, such as a KpiResult value, picks the "one" or "other" form. With no number it is "other".
  */
-export function dataLabel(lang: Lang, value: string): string {
+export function dataLabel(lang: Lang, value: string, n?: number | null): string {
   const english = ENTRIES[value] === undefined && SNAKE_ID.test(value) ? idAsWords(value) : value;
-  return lookup(lang, value, undefined, english);
+  return lookup(lang, value, n ?? undefined, english);
 }
 
 /** A number in the language's locale, for example a decimal comma in SV and FI. */

@@ -9,6 +9,7 @@ import type { LeverOwner } from "./data/opportunity-signals.ts";
 import { getOpportunitySignals } from "./data/opportunity-signals.ts";
 import type { ComparisonLabel } from "./data/period-comparisons.ts";
 import type { DataStatus, ReviewPart } from "./data/processed.ts";
+import type { KpiAnswer, KpiQuery } from "./data/query.ts";
 import { getViewsAndReview } from "./data/views-and-review.ts";
 import type { DictionaryKey } from "./i18n.ts";
 import { AI_TRANSLATION_NOTE, dataLabel, formatNumber, monthName, t } from "./i18n.ts";
@@ -22,7 +23,7 @@ test("every period comparison label, data status, rating, review part and lever 
   assert.equal(t("en", labelKey("better")), "Better");
   assert.equal(t("sv", labelKey("better")), "Bättre");
   assert.equal(t("fi", labelKey("better")), "Parantunut");
-  assert.equal(t("sv", labelKey("Joint_owner")), "Gemensamt");
+  assert.equal(t("sv", labelKey("Joint_owner")), "gemensamt");
 });
 
 test("t picks the one or other form with Intl.PluralRules", () => {
@@ -72,6 +73,13 @@ test("dataLabel returns the English text for a data value with no SV or FI entry
   assert.equal(dataLabel("en", "energy_recovery"), "Energy recovery");
 });
 
+test("dataLabel picks a unit's one or other form from the value, and the other form with no value", () => {
+  assert.equal(dataLabel("fi", "hours", 1), "tunti");
+  assert.equal(dataLabel("fi", "hours", 24), "tuntia");
+  assert.equal(dataLabel("en", "wearers", 1), "wearer");
+  assert.equal(dataLabel("en", "wearers"), "wearers");
+});
+
 test("dataLabel shows a data id with no entry as readable English, never the raw id", () => {
   assert.equal(dataLabel("sv", "unknown_route"), "Unknown route");
   assert.equal(dataLabel("en", "NEW_STATUS"), "New status");
@@ -103,15 +111,33 @@ test("in development, a data value with no entry gives a console warning in ever
   assert.doesNotMatch(warnings[0], /energy_recovery/);
 });
 
+/** runKpi, or null if it throws an error that matches `skip`. */
+function runKpiOrSkip(kpi_id: string, query: KpiQuery, skip: RegExp): KpiAnswer | null {
+  try {
+    return runKpi(kpi_id, query);
+  } catch (error) {
+    if (error instanceof Error && skip.test(error.message)) return null;
+    throw error;
+  }
+}
+
 test("every KPI, tile, priority, signal and lever name, unit, breakdown key and baseline label in the data has SV and FI text", async (ctx) => {
   const values = new Set<string>();
   for (const kpi of listKpis("KAM")) {
     values.add(kpi.name);
-    const variants = [{}, { unit: "per_active_wearer" }, { baseline_id: "B_HOME" }, { baseline_id: "B_INHOUSE" }] as const;
+    const variants = [
+      {},
+      { unit: "per_active_wearer" },
+      { baseline_id: "B_HOME" },
+      { baseline_id: "B_INHOUSE" },
+      ...["repair_type", "emission_source", "treatment_route"].map((breakdown) => ({ breakdown })),
+    ] as const;
     for (const variant of variants) {
       if (Object.keys(variant).some((p) => !(kpi.parameters as string[]).includes(p))) continue;
-      const answer = runKpi(kpi.id, { scope: { customer_id: "CUST001" }, period: "2025", view: "KAM", ...variant });
-      if ("withheld" in answer) continue;
+      const query = { scope: { customer_id: "CUST001" }, period: "2025", view: "KAM", ...variant } as const;
+      // listKpis says a KPI takes a breakdown, not which one. runKpi names the right one when it throws.
+      const answer = runKpiOrSkip(kpi.id, query, /has no breakdown/);
+      if (answer === null || "withheld" in answer) continue;
       values.add(answer.unit);
       for (const part of answer.breakdown ?? []) values.add(part.key);
       if (answer.detail?.kind === "handprint") values.add(answer.detail.baseline_label);
@@ -127,10 +153,11 @@ test("every KPI, tile, priority, signal and lever name, unit, breakdown key and 
 });
 
 test("a context-suffixed key has its own translation and English text with no suffix", () => {
-  assert.equal(t("sv", "Customer_owner"), "Kunden");
+  assert.equal(t("sv", "Customer_owner"), "kunden");
   assert.equal(t("sv", "Customer"), "Kund");
   assert.equal(t("en", "Customer_owner"), "Customer");
-  assert.equal(t("sv", "Owner: {x}", { x: t("sv", "Customer_owner") }), "Ansvarig: Kunden");
+  assert.equal(t("fi", "Joint_owner"), "yhteinen");
+  assert.equal(t("sv", "Owner: {x}", { x: t("sv", "Customer_owner") }), "Ansvarig: kunden");
 });
 
 test("the dictionary holds the AI translation note in all 3 languages", () => {
