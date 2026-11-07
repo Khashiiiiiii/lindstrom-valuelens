@@ -470,3 +470,137 @@ def test_service_kpis_avoid_glossary_terms_and_em_dashes(out_dir):
     # wrote for Garments in circulation, where it says what the KPI is not.
     for term in ("idle", "complaint", "ticket", "unused garments", "fleet", "garment stock", "loop", "rotation"):
         assert term not in text, term
+
+
+# public-reference.json
+
+
+@pytest.fixture(scope="module")
+def public_reference(out_dir) -> dict:
+    return json.loads((out_dir / "public-reference.json").read_text(encoding="utf-8"))
+
+
+def test_every_public_figure_has_a_source_and_year(public_reference):
+    assert public_reference["meta"]["name"] == "public-reference"
+    assert public_reference["catalogue"] == []
+    figures = public_reference["data"]["figures"]
+    assert figures
+    for figure in figures:
+        assert figure["data_status"] == "PUBLIC_REFERENCE", figure["id"]
+        assert figure["source"].strip(), figure["id"]
+        assert isinstance(figure["year"], int) and 2010 <= figure["year"] <= 2026, figure["id"]
+        for field in ("unit", "scope", "applicability"):
+            assert figure[field].strip(), (figure["id"], field)
+    assert len({f["id"] for f in figures}) == len(figures)
+
+
+def test_public_figures_hold_the_values_the_ticket_lists(public_reference):
+    values = {f["id"]: (f["value"], f["unit"], f["year"]) for f in public_reference["data"]["figures"]}
+    assert values == {
+        # Lindström 2025 report
+        "lindstrom_water_per_washed_kg_group": (6.82, "L/kg", 2025),
+        "lindstrom_water_per_washed_kg_workwear": (12.5, "L/kg", 2025),
+        "lindstrom_laundry_energy_per_washed_kg": (0.99, "kWh/kg", 2025),
+        "lindstrom_emissions_per_washed_kg_scope_1_2": (0.19, "kgCO2e/kg", 2025),
+        "lindstrom_emissions_per_washed_kg_scope_1_2_3": (0.71, "kgCO2e/kg", 2025),
+        "lindstrom_textile_waste_recycled_share": (66, "%", 2025),
+        "lindstrom_textiles_repaired": (2_900_000, "pieces", 2025),
+        "lindstrom_emissions_per_euro_of_turnover": (0.281, "kgCO2e/EUR", 2025),
+        # Peer context
+        "lindstrom_emissions_per_euro_gap_to_peer_average": (13, "% below", 2025),
+        "lindstrom_emissions_per_euro_gap_to_average_with_lindstrom": (10.8, "% below", 2025),
+        "jsg_emissions_per_gbp_of_revenue": (0.31, "kgCO2e/GBP", 2024),
+        # Industrial laundries
+        "industrial_laundry_water_per_kg_by_machine_type": ({"low": 4.5, "high": 22}, "L/kg", 2026),
+        "jsg_water_per_kg": (6.7, "L/kg", 2024),
+        "salesianer_water_per_kg": (8.87, "L/kg", 2025),
+        "whole_plant_laundry_energy_per_kg": ({"low": 1.6, "high": 1.7}, "kWh/kg", 2024),
+        # Home washing, JRC 2017
+        "home_washing_water_per_kg": ({"low": 13, "high": 20}, "L/kg", 2017),
+        "home_washing_energy_per_kg": ({"low": 0.19, "high": 0.30}, "kWh/kg", 2017),
+        # Rationale for the B_LOCAL low case
+        "large_operator_emissions_per_kg_scope_1_2": ({"low": 0.19, "high": 0.30}, "kgCO2e/kg", 2025),
+        # Lindström UK, 2022
+        "lindstrom_garment_washes_per_life": (50, "washes", 2022),
+        "lindstrom_garment_repairs_per_life": (6, "repairs", 2022),
+    }
+
+
+def test_the_peer_gaps_follow_from_the_brief_table():
+    # Brief: Elis 0.40, Cintas 0.20, Salesianer 0.31, JSG 0.38, Lindström 0.28.
+    peers = [0.40, 0.20, 0.31, 0.38]
+    assert round((1 - 0.28 / (sum(peers) / 4)) * 100) == 13
+    assert round((1 - 0.28 / ((sum(peers) + 0.28) / 5)) * 100, 1) == 10.8
+
+
+def test_public_reference_gaps(public_reference):
+    gaps = public_reference["data"]["gaps"]
+    assert [g["id"] for g in gaps] == [
+        "on_time_service_cycle_target", "garment_sets_per_wearer", "etsa_and_bref_laundry_figures",
+    ]
+    for gap in gaps:
+        assert gap["finding"].strip() and gap["treatment"].strip()
+
+
+def test_group_emissions_intensity_context_line(public_reference):
+    line = public_reference["data"]["context_lines"]["group_emissions_intensity"]
+    assert line["text"] == (
+        "Lindström Group 0.28 kg CO2e per euro of turnover, 13% below the average of Elis, Cintas, "
+        "Salesianer and Johnson Service Group."
+    )
+    assert (line["evidence_area"], line["view"], line["data_status"]) == (
+        "Sustainability Value", "Both", "PUBLIC_REFERENCE",
+    )
+    notes = [n["text"] for n in line["kam_notes"]]
+    assert len(notes) == 2
+    assert "10.8%" in notes[0] and "left out of the average" in notes[0]
+    assert "0.38" in notes[1] and "0.31 per GBP" in notes[1]
+    figure_ids = {f["id"] for f in public_reference["data"]["figures"]}
+    for ids in [line["figure_ids"], *(n["figure_ids"] for n in line["kam_notes"])]:
+        assert ids and set(ids) <= figure_ids
+
+
+def walk(value, path=""):
+    """Every (path, string) in a JSON value."""
+    if isinstance(value, dict):
+        for key, item in value.items():
+            yield from walk(item, f"{path}.{key}")
+    elif isinstance(value, list):
+        for i, item in enumerate(value):
+            yield from walk(item, f"{path}[{i}]")
+    elif isinstance(value, str):
+        yield path, value
+
+
+def test_no_public_figure_is_turned_into_a_customer_figure(public_reference):
+    # ADR 0005: no Customer spend exists, so the per-euro intensity is never multiplied into a Customer figure.
+    for path, text in walk(public_reference["data"]):
+        assert not re.search(r"\bCUST\d+|\bS\d{3}\b|customer_id|site_id", text), (path, text)
+    keys = set(re.findall(r"\.(\w+)", " ".join(path for path, _ in walk(public_reference["data"]))))
+    assert keys and not any("customer" in k.lower() or "spend" in k.lower() for k in keys), keys
+    units = {f["unit"] for f in public_reference["data"]["figures"]}
+    assert {u for u in units if "EUR" in u or "GBP" in u} == {"kgCO2e/EUR", "kgCO2e/GBP"}
+
+
+def test_public_reference_labels_use_glossary_terms(public_reference):
+    # Avoid terms of Public reference, Baseline, Handprint, Footprint, Customer and Service cycle.
+    avoid = ["benchmark", "industry average", "reference scenario", "savings", "positive impact", "impact",
+             "consumption", "account", "client", "company", "delivery", "rotation", "loop", "complaint"]
+    for path, text in walk(public_reference["data"]):
+        if path.endswith(("url", "source")):
+            continue
+        assert "—" not in text, path
+        for term in avoid:
+            assert not re.search(rf"\b{term}\b", text, re.IGNORECASE), (path, term)
+
+
+def test_baseline_factors_quoted_in_public_figures_match_the_workbook(public_reference, master):
+    # The builder does not read the workbook, so the factors its text quotes could go stale.
+    baselines = {b["baseline_id"]: b for b in master["data"]["baselines"]}
+    assert (baselines["B_LOCAL"]["water_l_per_kg"], baselines["B_INHOUSE"]["water_l_per_kg"]) == (9.5, 12.5)
+    assert (baselines["B_LOCAL"]["energy_kwh_per_kg"], baselines["B_HOME"]["energy_kwh_per_kg"]) == (1.05, 1.18)
+    assert (baselines["B_LOCAL"]["process_kgco2e_per_kg"], baselines["B_HOME"]["water_l_per_kg"]) == (0.62, 20)
+    text = " ".join(f["applicability"] for f in public_reference["data"]["figures"])
+    for quoted in ["B_LOCAL baseline of 9.5 L/kg", "B_LOCAL baseline (1.05 kWh/kg)", "B_HOME baseline (20 L/kg)",
+                   "1.18 kWh/kg", "B_LOCAL process factor (0.62 kgCO2e/kg)"]:
+        assert quoted in text, quoted

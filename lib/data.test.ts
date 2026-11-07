@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { getMasterData, getOperationalCircularityKpis, getServiceKpis } from "./data.ts";
+import { getMasterData, getOperationalCircularityKpis, getPublicReference, getServiceKpis } from "./data.ts";
 
 test("getMasterData reads the generated master data", () => {
   const master = getMasterData();
@@ -41,4 +41,19 @@ test("getServiceKpis reads the service performance and adoption KPIs", () => {
   );
   assert.equal(northstar?.cycles, 11353);
   assert.equal(service.data.data_transparency_notes[0].id, "cycles_delivered_in_2026_01");
+});
+
+test("getPublicReference reads the generated public reference figures", () => {
+  const file = getPublicReference();
+  assert.equal(file.meta.name, "public-reference");
+  assert.equal(file.catalogue.length, 0);
+  assert.equal(file.data.figures.length, 20);
+  assert.equal(file.data.gaps.length, 3);
+  const energy = file.data.figures.find((f) => f.id === "lindstrom_laundry_energy_per_washed_kg");
+  assert.equal(energy?.value, 0.99);
+  const homeWater = file.data.figures.find((f) => f.id === "home_washing_water_per_kg");
+  assert.deepEqual(homeWater?.value, { low: 13, high: 20 });
+  const line = file.data.context_lines.group_emissions_intensity;
+  assert.equal(line.view, "Both");
+  assert.equal(line.kam_notes.length, 2);
 });

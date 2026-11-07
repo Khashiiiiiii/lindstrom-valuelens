@@ -1,0 +1,423 @@
+{
+  "catalogue": [],
+  "data": {
+    "context_lines": {
+      "group_emissions_intensity": {
+        "caveats": [
+          "The intensity is never multiplied into a Customer figure. No Customer spend exists."
+        ],
+        "data_status": "PUBLIC_REFERENCE",
+        "evidence_area": "Sustainability Value",
+        "figure_ids": [
+          "lindstrom_emissions_per_euro_of_turnover",
+          "lindstrom_emissions_per_euro_gap_to_peer_average"
+        ],
+        "kam_notes": [
+          {
+            "figure_ids": [
+              "lindstrom_emissions_per_euro_gap_to_average_with_lindstrom"
+            ],
+            "text": "The 13% holds only when Lindström is left out of the average. It is 10.8% when Lindström is included."
+          },
+          {
+            "figure_ids": [
+              "jsg_emissions_per_gbp_of_revenue"
+            ],
+            "text": "The Johnson Service Group figure of 0.38 does not match JSG's 2024 report, which gives about 0.31 per GBP."
+          }
+        ],
+        "text": "Lindström Group 0.28 kg CO2e per euro of turnover, 13% below the average of Elis, Cintas, Salesianer and Johnson Service Group.",
+        "view": "Both"
+      }
+    },
+    "figures": [
+      {
+        "applicability": "Close to the dataset's laundry water of 6.74 L/kg (washed-kg weighted). The dataset's laundries are workwear laundries, so the workwear figure may fit them better.",
+        "data_status": "PUBLIC_REFERENCE",
+        "derived": false,
+        "id": "lindstrom_water_per_washed_kg_group",
+        "name": "Lindström water per washed kg, group",
+        "page": "47, 53",
+        "scope": "All Lindström laundries and all 7 service lines, 2025. It was 7.08 L/kg in 2024.",
+        "source": "Lindström Sustainability Report 2025, Lindström Oy, published March 2026. EY limited assurance (ISAE 3000) over E1 climate, E3 water and E5 circular economy.",
+        "unit": "L/kg",
+        "url": "https://d2ris6qfzcz0wn.cloudfront.net/wp-content/uploads/2026/03/Lindstrom-Sustainability-Report-2025.pdf",
+        "used_in": [
+          "data_transparency"
+        ],
+        "value": 6.82,
+        "year": 2025
+      },
+      {
+        "applicability": "Above the B_LOCAL baseline of 9.5 L/kg and close to the B_INHOUSE baseline of 12.5 L/kg.",
+        "data_status": "PUBLIC_REFERENCE",
+        "derived": false,
+        "id": "lindstrom_water_per_washed_kg_workwear",
+        "name": "Lindström water per washed kg, workwear",
+        "page": "53",
+        "scope": "Lindström workwear laundries only, 2025. It was 13.0 L/kg in 2024.",
+        "source": "Lindström Sustainability Report 2025, Lindström Oy, published March 2026. EY limited assurance (ISAE 3000) over E1 climate, E3 water and E5 circular economy.",
+        "unit": "L/kg",
+        "url": "https://d2ris6qfzcz0wn.cloudfront.net/wp-content/uploads/2026/03/Lindstrom-Sustainability-Report-2025.pdf",
+        "used_in": [
+          "data_transparency"
+        ],
+        "value": 12.5,
+        "year": 2025
+      },
+      {
+        "applicability": "The dataset's laundry energy (0.70 kWh/kg, washed-kg weighted) is about 30% below it. The B_LOCAL baseline (1.05 kWh/kg) is close to it.",
+        "data_status": "PUBLIC_REFERENCE",
+        "derived": false,
+        "id": "lindstrom_laundry_energy_per_washed_kg",
+        "name": "Lindström laundry energy per washed kg",
+        "page": "44",
+        "scope": "Energy used in Lindström laundries only, 2025. Excludes Lindström's own vehicles. It was 1.01 in 2024.",
+        "source": "Lindström Sustainability Report 2025, Lindström Oy, published March 2026. EY limited assurance (ISAE 3000) over E1 climate, E3 water and E5 circular economy.",
+        "unit": "kWh/kg",
+        "url": "https://d2ris6qfzcz0wn.cloudfront.net/wp-content/uploads/2026/03/Lindstrom-Sustainability-Report-2025.pdf",
+        "used_in": [
+          "data_transparency"
+        ],
+        "value": 0.99,
+        "year": 2025
+      },
+      {
+        "applicability": "The dataset's laundry process CO2e (0.106 kgCO2e/kg, washed-kg weighted) is below it. It is the low end of the Scope 1+2 range of large operators.",
+        "data_status": "PUBLIC_REFERENCE",
+        "derived": false,
+        "id": "lindstrom_emissions_per_washed_kg_scope_1_2",
+        "name": "Lindström emissions per washed kg, Scope 1+2",
+        "page": "44",
+        "scope": "Lindström group, Scope 1+2, 2025. It was 0.23 in 2024 and 0.30 in 2021.",
+        "source": "Lindström Sustainability Report 2025, Lindström Oy, published March 2026. EY limited assurance (ISAE 3000) over E1 climate, E3 water and E5 circular economy.",
+        "unit": "kgCO2e/kg",
+        "url": "https://d2ris6qfzcz0wn.cloudfront.net/wp-content/uploads/2026/03/Lindstrom-Sustainability-Report-2025.pdf",
+        "used_in": [
+          "data_transparency",
+          "team_assumption_rationale"
+        ],
+        "value": 0.19,
+        "year": 2025
+      },
+      {
+        "applicability": "The B_LOCAL process factor (0.62 kgCO2e/kg) is close to this full-scope figure, while the dataset's laundry actuals are near Scope 1+2 levels. Emissions saved against B_LOCAL may be overstated.",
+        "data_status": "PUBLIC_REFERENCE",
+        "derived": false,
+        "id": "lindstrom_emissions_per_washed_kg_scope_1_2_3",
+        "name": "Lindström emissions per washed kg, Scope 1+2+3",
+        "page": "44",
+        "scope": "Lindström group, Scope 1+2+3, 2025. It was 0.79 in 2024 and 0.90 in 2021.",
+        "source": "Lindström Sustainability Report 2025, Lindström Oy, published March 2026. EY limited assurance (ISAE 3000) over E1 climate, E3 water and E5 circular economy.",
+        "unit": "kgCO2e/kg",
+        "url": "https://d2ris6qfzcz0wn.cloudfront.net/wp-content/uploads/2026/03/Lindstrom-Sustainability-Report-2025.pdf",
+        "used_in": [
+          "data_transparency"
+        ],
+        "value": 0.71,
+        "year": 2025
+      },
+      {
+        "applicability": "A group figure. It never stands in for a Customer's recycled or reused share.",
+        "data_status": "PUBLIC_REFERENCE",
+        "derived": false,
+        "id": "lindstrom_textile_waste_recycled_share",
+        "name": "Lindström textile waste recycled",
+        "page": "54, 61",
+        "scope": "Lindström group, 2025. It was 69.9% in 2024. The target of 100% by 2025 was missed after stoppages at recycling partners.",
+        "source": "Lindström Sustainability Report 2025, Lindström Oy, published March 2026. EY limited assurance (ISAE 3000) over E1 climate, E3 water and E5 circular economy.",
+        "unit": "%",
+        "url": "https://d2ris6qfzcz0wn.cloudfront.net/wp-content/uploads/2026/03/Lindstrom-Sustainability-Report-2025.pdf",
+        "used_in": [
+          "data_transparency"
+        ],
+        "value": 66,
+        "year": 2025
+      },
+      {
+        "applicability": "A group count. It never stands in for a Customer's repairs.",
+        "data_status": "PUBLIC_REFERENCE",
+        "derived": false,
+        "id": "lindstrom_textiles_repaired",
+        "name": "Lindström textiles repaired",
+        "page": "54",
+        "scope": "Lindström group, 2025. The report says this is not comparable with 2024 data.",
+        "source": "Lindström Sustainability Report 2025, Lindström Oy, published March 2026. EY limited assurance (ISAE 3000) over E1 climate, E3 water and E5 circular economy.",
+        "unit": "pieces",
+        "url": "https://d2ris6qfzcz0wn.cloudfront.net/wp-content/uploads/2026/03/Lindstrom-Sustainability-Report-2025.pdf",
+        "used_in": [
+          "data_transparency"
+        ],
+        "value": 2900000,
+        "year": 2025
+      },
+      {
+        "applicability": "A group intensity. It is never multiplied into a Customer figure, because the data holds no Customer spend (ADR 0005).",
+        "data_status": "PUBLIC_REFERENCE",
+        "derived": false,
+        "id": "lindstrom_emissions_per_euro_of_turnover",
+        "name": "Lindström emissions per euro of turnover",
+        "page": "44",
+        "scope": "Lindström group, Scope 1+2+3, market-based, net revenue EUR 541.9 million, 2025. Location-based it is 0.296. The customer brief and the context line round it to 0.28.",
+        "source": "Lindström Sustainability Report 2025, Lindström Oy, published March 2026. EY limited assurance (ISAE 3000) over E1 climate, E3 water and E5 circular economy.",
+        "unit": "kgCO2e/EUR",
+        "url": "https://d2ris6qfzcz0wn.cloudfront.net/wp-content/uploads/2026/03/Lindstrom-Sustainability-Report-2025.pdf",
+        "used_in": [
+          "context_line"
+        ],
+        "value": 0.281,
+        "year": 2025
+      },
+      {
+        "applicability": "Only the Lindström value is verified. The Elis, Cintas and Salesianer per-euro values are unverified, and Scope 3 boundaries differ between operators, so the gap is rough.",
+        "data_status": "PUBLIC_REFERENCE",
+        "derived": true,
+        "id": "lindstrom_emissions_per_euro_gap_to_peer_average",
+        "name": "Lindström emissions per euro, gap to the peer average",
+        "page": "44",
+        "scope": "0.28 against 0.3225 kg CO2e/EUR, the average of the 4 peers in the customer brief: Elis, Cintas, Salesianer and Johnson Service Group. Lindström is left out of the average. The brief gives no years for the peer values, so the year is that of the Lindström value.",
+        "source": "Customer brief note 6, peer table in kg CO2e per euro of turnover: Elis 0.40, Cintas 0.20, Salesianer 0.31, Johnson Service Group 0.38, Lindström 0.28. The brief names no sources or years. Lindström figure from the Lindström Sustainability Report 2025, Lindström Oy, published March 2026. EY limited assurance (ISAE 3000) over E1 climate, E3 water and E5 circular economy.",
+        "unit": "% below",
+        "url": "https://d2ris6qfzcz0wn.cloudfront.net/wp-content/uploads/2026/03/Lindstrom-Sustainability-Report-2025.pdf",
+        "used_in": [
+          "context_line"
+        ],
+        "value": 13,
+        "year": 2025
+      },
+      {
+        "applicability": "A KAM note under the context line uses it, next to the 13% of the line itself.",
+        "data_status": "PUBLIC_REFERENCE",
+        "derived": true,
+        "id": "lindstrom_emissions_per_euro_gap_to_average_with_lindstrom",
+        "name": "Lindström emissions per euro, gap to the average with Lindström included",
+        "page": "44",
+        "scope": "0.28 against the average of the 4 peers and Lindström in the customer brief. The brief gives no years for the peer values, so the year is that of the Lindström value.",
+        "source": "Customer brief note 6, peer table in kg CO2e per euro of turnover: Elis 0.40, Cintas 0.20, Salesianer 0.31, Johnson Service Group 0.38, Lindström 0.28. The brief names no sources or years. Lindström figure from the Lindström Sustainability Report 2025, Lindström Oy, published March 2026. EY limited assurance (ISAE 3000) over E1 climate, E3 water and E5 circular economy.",
+        "unit": "% below",
+        "url": "https://d2ris6qfzcz0wn.cloudfront.net/wp-content/uploads/2026/03/Lindstrom-Sustainability-Report-2025.pdf",
+        "used_in": [
+          "context_line"
+        ],
+        "value": 10.8,
+        "year": 2025
+      },
+      {
+        "applicability": "It does not match the customer brief's 0.38 per euro. A pound is worth more than a euro, so JSG's figure per euro is lower still. The brief may use another year or boundary.",
+        "data_status": "PUBLIC_REFERENCE",
+        "derived": true,
+        "id": "jsg_emissions_per_gbp_of_revenue",
+        "name": "Johnson Service Group emissions per pound of revenue",
+        "page": "39",
+        "scope": "Johnson Service Group, 159,948 tCO2e (Scope 1+2+3) over GBP 513.4 million revenue, 2024.",
+        "source": "Johnson Service Group Sustainability Report 2024. Moderate assurance (AA1000AS v3) by Jacobs.",
+        "unit": "kgCO2e/GBP",
+        "url": "https://jsg.com/media/2249780/2025-0290-sustainability-report-2024.pdf",
+        "used_in": [
+          "context_line"
+        ],
+        "value": 0.31,
+        "year": 2024
+      },
+      {
+        "applicability": "The B_LOCAL (9.5 L/kg) and B_INHOUSE (12.5 L/kg) water factors fall inside this range.",
+        "data_status": "PUBLIC_REFERENCE",
+        "derived": false,
+        "id": "industrial_laundry_water_per_kg_by_machine_type",
+        "name": "Industrial laundry water per kg, by machine type",
+        "page": null,
+        "scope": "Machine level, Australia. Tunnel washers use 4.5 to 5 L/kg with water recycling and 7.5 to 12 without. Washer-extractors use 12 to 15 L/kg after water saving and 17 to 22 before.",
+        "source": "NSW Government, Commercial laundries water saving tips. The page has no date, so the year is the year it was read (2026).",
+        "unit": "L/kg",
+        "url": "https://www.water.dcceew.nsw.gov.au/our-work/projects-and-programs/water-efficiency-program/water-saving-tips/commerical-laundries",
+        "used_in": [
+          "data_transparency",
+          "team_assumption_rationale"
+        ],
+        "value": {
+          "high": 22,
+          "low": 4.5
+        },
+        "year": 2026
+      },
+      {
+        "applicability": "A peer laundry figure, close to the dataset's laundry water of 6.74 L/kg.",
+        "data_status": "PUBLIC_REFERENCE",
+        "derived": false,
+        "id": "jsg_water_per_kg",
+        "name": "Johnson Service Group water per kg",
+        "page": "39",
+        "scope": "Johnson Service Group, 6.698 m3 per tonne processed, 2024. UK healthcare linen, hospitality and workwear.",
+        "source": "Johnson Service Group Sustainability Report 2024. Moderate assurance (AA1000AS v3) by Jacobs.",
+        "unit": "L/kg",
+        "url": "https://jsg.com/media/2249780/2025-0290-sustainability-report-2024.pdf",
+        "used_in": [
+          "data_transparency",
+          "team_assumption_rationale"
+        ],
+        "value": 6.7,
+        "year": 2024
+      },
+      {
+        "applicability": "A peer laundry figure, a little below the B_LOCAL water factor of 9.5 L/kg.",
+        "data_status": "PUBLIC_REFERENCE",
+        "derived": false,
+        "id": "salesianer_water_per_kg",
+        "name": "Salesianer water per kg",
+        "page": null,
+        "scope": "Salesianer Miettex group, financial year 2025/2026. The 2030 target is 7.20 L/kg.",
+        "source": "Salesianer Miettex, sustainability report summary 2025/26.",
+        "unit": "L/kg",
+        "url": "https://www.salesianer.com/files/Inhalte/Folder/SALESIANER-Nachhaltigkeitsbericht-Zusammenfassung-2025_26-EN-DIGITAL.pdf",
+        "used_in": [
+          "data_transparency",
+          "team_assumption_rationale"
+        ],
+        "value": 8.87,
+        "year": 2025
+      },
+      {
+        "applicability": "It is the only whole-plant energy range found. It gives an upper end for the B_LOCAL energy factor (1.05 kWh/kg).",
+        "data_status": "PUBLIC_REFERENCE",
+        "derived": false,
+        "id": "whole_plant_laundry_energy_per_kg",
+        "name": "Whole-plant laundry energy per kg",
+        "page": null,
+        "scope": "Typical UK and European laundries, whole plant, per kg of dry textiles.",
+        "source": "Robarts S., Laundry and Cleaning News, 21.02.2024, quoting Richard Neale of LTC Worldwide. Trade press, with no cited dataset.",
+        "unit": "kWh/kg",
+        "url": "https://laundryandcleaningnews.com/?p=18081",
+        "used_in": [
+          "data_transparency",
+          "team_assumption_rationale"
+        ],
+        "value": {
+          "high": 1.7,
+          "low": 1.6
+        },
+        "year": 2024
+      },
+      {
+        "applicability": "The B_HOME baseline (20 L/kg) is at the top of this range.",
+        "data_status": "PUBLIC_REFERENCE",
+        "derived": true,
+        "id": "home_washing_water_per_kg",
+        "name": "Home washing water per kg",
+        "page": "385",
+        "scope": "EU real-life home washing at 3.4 kg loads on 7 kg machines, by programme. Cotton programmes use about 13.7 L/kg.",
+        "source": "Boyano A. et al. (2017). Ecodesign and Energy Label for Household Washing machines and washer dryers, preparatory study, final report. JRC108604, EUR 28809 EN, Publications Office of the EU. Table 5.4.",
+        "unit": "L/kg",
+        "url": "https://www.energimyndigheten.se/4ae46a/globalassets/energieffektivisering_/jag-ar-saljare-eller-tillverkare/dokument/produkter-med-krav/tvattmaskiner-hushall/forstudie-revision-tvatt_20171117_jrc108604.pdf",
+        "used_in": [
+          "data_transparency",
+          "team_assumption_rationale"
+        ],
+        "value": {
+          "high": 20,
+          "low": 13
+        },
+        "year": 2017
+      },
+      {
+        "applicability": "The B_HOME baseline's 1.18 kWh/kg only fits if tumble drying is included.",
+        "data_status": "PUBLIC_REFERENCE",
+        "derived": false,
+        "id": "home_washing_energy_per_kg",
+        "name": "Home washing energy per kg, washing only",
+        "page": "385",
+        "scope": "EU real-life home washing at 3.4 kg loads, cotton programmes at 40 and 60 °C. Washing only, no drying.",
+        "source": "Boyano A. et al. (2017). Ecodesign and Energy Label for Household Washing machines and washer dryers, preparatory study, final report. JRC108604, EUR 28809 EN, Publications Office of the EU. Table 5.4.",
+        "unit": "kWh/kg",
+        "url": "https://www.energimyndigheten.se/4ae46a/globalassets/energieffektivisering_/jag-ar-saljare-eller-tillverkare/dokument/produkter-med-krav/tvattmaskiner-hushall/forstudie-revision-tvatt_20171117_jrc108604.pdf",
+        "used_in": [
+          "data_transparency",
+          "team_assumption_rationale"
+        ],
+        "value": {
+          "high": 0.3,
+          "low": 0.19
+        },
+        "year": 2017
+      },
+      {
+        "applicability": "It is the rationale for the TEAM_ASSUMPTION low case of 0.30 kgCO2e/kg for the B_LOCAL process factor, which is the top of this range. The B_LOCAL process factor of 0.62 is 2 to 3 times this range.",
+        "data_status": "PUBLIC_REFERENCE",
+        "derived": true,
+        "id": "large_operator_emissions_per_kg_scope_1_2",
+        "name": "Large operator emissions per kg, Scope 1+2",
+        "page": null,
+        "scope": "Lindström 0.19 (2025) and Johnson Service Group 0.303 (2024), Scope 1+2 per kg processed. Lindström's own figure was 0.30 in 2021.",
+        "source": "Lindström Sustainability Report 2025, Lindström Oy, published March 2026. EY limited assurance (ISAE 3000) over E1 climate, E3 water and E5 circular economy. p. 44. Johnson Service Group Sustainability Report 2024. Moderate assurance (AA1000AS v3) by Jacobs. p. 39.",
+        "unit": "kgCO2e/kg",
+        "url": "https://d2ris6qfzcz0wn.cloudfront.net/wp-content/uploads/2026/03/Lindstrom-Sustainability-Report-2025.pdf",
+        "used_in": [
+          "team_assumption_rationale"
+        ],
+        "value": {
+          "high": 0.3,
+          "low": 0.19
+        },
+        "year": 2025
+      },
+      {
+        "applicability": "About one wash every 3 weeks per garment, which fits a pool of several sets per wearer.",
+        "data_status": "PUBLIC_REFERENCE",
+        "derived": false,
+        "id": "lindstrom_garment_washes_per_life",
+        "name": "Lindström garment washes per life",
+        "page": null,
+        "scope": "A Lindström work garment, which lasts 3 years on average.",
+        "source": "Lindström UK, The benefits of renting workwear rather than buying, 29.11.2022.",
+        "unit": "washes",
+        "url": "https://lindstromgroup.com/uk/article/the-benefits-of-renting-workwear-rather-than-buying/",
+        "used_in": [
+          "team_assumption_rationale"
+        ],
+        "value": 50,
+        "year": 2022
+      },
+      {
+        "applicability": "About 6 repairs per garment life, so 1 replacement postponed per repair (A002) is generous.",
+        "data_status": "PUBLIC_REFERENCE",
+        "derived": false,
+        "id": "lindstrom_garment_repairs_per_life",
+        "name": "Lindström garment repairs per life",
+        "page": null,
+        "scope": "A Lindström work garment over its life of about 50 washes.",
+        "source": "Lindström UK, The benefits of renting workwear rather than buying, 29.11.2022.",
+        "unit": "repairs",
+        "url": "https://lindstromgroup.com/uk/article/the-benefits-of-renting-workwear-rather-than-buying/",
+        "used_in": [
+          "team_assumption_rationale"
+        ],
+        "value": 6,
+        "year": 2022
+      }
+    ],
+    "gaps": [
+      {
+        "finding": "No public source gives a target share of on-time service cycles in workwear or textile rental. Operator reports, ETSA papers and the UK Crown Commercial Service framework RM6154 were checked.",
+        "id": "on_time_service_cycle_target",
+        "topic": "On-time service cycle target",
+        "treatment": "On-time thresholds are TEAM_ASSUMPTION values. A contract target would be KAM-entered, which ADR 0004 leaves out of scope."
+      },
+      {
+        "finding": "No primary source gives a 3-set or 5-set rule. The only published count is 11 sets per wearer for a 5-day week in US public uniform rental contracts (Colleton County RFP, 2015).",
+        "id": "garment_sets_per_wearer",
+        "topic": "Garment sets per wearer",
+        "treatment": "Shown as a data gap. A set count, if one is used, is a TEAM_ASSUMPTION value."
+      },
+      {
+        "finding": "ETSA publishes no water, energy or CO2 figure per kg. The EU Textiles BREF (JRC, 2023) covers textile pre-treatment and dyeing, not laundries.",
+        "id": "etsa_and_bref_laundry_figures",
+        "topic": "ETSA and BREF laundry figures",
+        "treatment": "Laundry factors are compared with operator reports, the NSW Government ranges, JRC 2017 and trade press instead."
+      }
+    ]
+  },
+  "meta": {
+    "name": "public-reference",
+    "source_file": "Lindstrom_SinceAI_Customer_Value_Synthetic_Data_Pack.xlsx",
+    "source_sha256": "b50603f7112956bbd49d81f6e83d1e3879be8329e2076c1b7aee9d861e08e217"
+  }
+}
