@@ -204,3 +204,14 @@ a.pill:hover { border-color: var(--line2); background: var(--hover); }
 .opp h3 { margin: 0; font-size: 15px; display: flex; align-items: center; gap: 8px; color: var(--navy); }
 .opp .num { width: 22px; height: 22px; flex: none; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 12px; display: inline-flex; align-items: center; justify-content: center; }
 .opp .proposed { font-size: 12px; color: var(--est-fg); font-style: italic; }
+
+/* Data and assumptions (#32) */
+.dataitems { display: grid; gap: 12px; max-width: 1100px; }
+.dataitem p { margin: 0 0 10px; }
+.datalist { margin: 0; padding-left: 18px; display: grid; gap: 8px; font-size: 13px; }
+.datatable { box-shadow: none; margin-top: 10px; }
+.datatable tbody tr { cursor: default; }
+.datatable tbody tr:hover { background: transparent; }
+.datatable .nowrap { white-space: nowrap; }
+.logocredit { margin-top: 16px; }
+.logocredit a { color: inherit; }
