@@ -64,6 +64,14 @@ _Avoid_: Focus area, preference, theme
 A fixed rule that flags a Site, or one product at a Site, for discussion when it does worse than the Customer's other Sites, and names the lever it points to.
 _Avoid_: Insight, alert, recommendation
 
+**AI observation**:
+A short statement the LLM writes from KPI, opportunity signal or period comparison results. Every figure in it comes from one of those results and keeps its data status. It finds nothing the fixed rules did not.
+_Avoid_: Insight, AI finding, recommendation
+
+**Assistant answer**:
+The LLM's reply to a prompt the KAM or Customer decision-maker writes. It follows the same rules as an AI observation, and it may also change the Customer priorities the dashboard shows.
+_Avoid_: Insight, chat response, AI summary
+
 **Lever**:
 The change an opportunity signal points to that could close its gap, together with who can make it: the Customer, Lindström or both (Joint).
 _Avoid_: Action, fix, recommendation
