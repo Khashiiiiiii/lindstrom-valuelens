@@ -164,3 +164,61 @@ test("firstScreen follows changed priorities: NorthStar with Water and Emissions
     /Unknown Customer priority "Hygiene"/,
   );
 });
+
+test("firstScreen with a NorthStar Site gives a Site count of 1 and runs every tile and block for the Site", () => {
+  for (const view of VIEWS) {
+    const screen = firstScreen({ customer_id: "CUST001", site_id: "S008", view, period: "2025" });
+    assert.equal(screen.site_count, 1);
+    const answers = [...screen.tiles, ...screen.priority_blocks].flatMap((t) => t.answers);
+    assert.ok(answers.length > 0);
+    for (const answer of answers) {
+      if ("withheld" in answer) continue;
+      assert.deepEqual(answer.scope, { customer_id: "CUST001", site_id: "S008" }, answer.kpi_id);
+    }
+  }
+});
+
+test("firstScreen with a Site counts that Site's fired results and keeps only signal groups with a result there", () => {
+  // Fired results per Site in opportunity-signals.json. Signal 4 is KAM view only (ADR 0011).
+  const scan = "allocated_garments_with_no_scan_activity_above_peers";
+  const s008 = ["washes_per_garment_above_peers", "late_service_cycles_above_peers"];
+  const s023 = ["garment_allocation_above_peers", "washes_per_garment_above_peers"];
+  const expected = {
+    S008: { KAM: s008, Customer: s008 },
+    S018: { KAM: [scan, "service_request_rate_above_peers"], Customer: [scan] },
+    S023: { KAM: s023, Customer: s023 },
+  };
+  for (const [site_id, byView] of Object.entries(expected)) {
+    for (const view of VIEWS) {
+      const signals: string[] = byView[view];
+      const screen = firstScreen({ customer_id: "CUST001", site_id, view, period: "2025" });
+      const { fired_count, signal_count, top_signal_group_signal_id } = screen.optimisation_potential;
+      assert.equal(fired_count, signals.length, `${site_id} ${view}`);
+      assert.equal(signal_count, signals.length, `${site_id} ${view}`);
+      assert.ok(top_signal_group_signal_id !== null && signals.includes(top_signal_group_signal_id), `${site_id} ${view}`);
+      for (const block of screen.priority_blocks) {
+        const id = block.signal_group_signal_id;
+        assert.ok(id === null || signals.includes(id), `${site_id} ${view} ${block.priority_id}`);
+      }
+    }
+  }
+});
+
+test("firstScreen with a Site uses the Site's account health rating in the KAM view", () => {
+  const rating = (site_id?: string) => {
+    const kam = firstScreen({ customer_id: "CUST001", site_id, view: "KAM", period: "2025-02" }).kam_additions;
+    assert.ok(kam);
+    const detail = result(kam.account_health).detail;
+    assert.equal(detail?.kind, "account_health");
+    return detail.rating;
+  };
+  assert.deepEqual([rating().scope_id, rating().rating], ["CUST001", "green"]);
+  assert.deepEqual([rating("S018").scope_id, rating("S018").rating], ["S018", "amber"]);
+});
+
+test("firstScreen throws on a Site of another Customer", () => {
+  assert.throws(
+    () => firstScreen({ customer_id: "CUST002", site_id: "S008", view: "Customer", period: "2025" }),
+    /Site S008 belongs to CUST001, not CUST002/,
+  );
+});

@@ -8,7 +8,8 @@ import type { LeverOwner, SignalGroup, SignalGroupQuery, SignalId } from "./oppo
 import { getOpportunitySignals, signalGroups } from "./opportunity-signals.ts";
 import type { CatalogueEntry, DataStatus, ProcessedFile, ReviewPart, View } from "./processed.ts";
 import { readProcessed } from "./processed.ts";
-import type { KpiAnswer, KpiQuery, Period } from "./query.ts";
+import type { KpiAnswer, KpiQuery, Period, Scope } from "./query.ts";
+import { resolveScope } from "./query.ts";
 
 /** A pointer into another processed file: ids in its catalogue, or a dotted key in its data. */
 export type ProcessedRef =
@@ -172,7 +173,7 @@ export function proposedNextSteps(query: SignalGroupQuery): ProposedNextStep[] {
     }));
 }
 
-export interface FirstScreenQuery extends SignalGroupQuery {
+export interface FirstScreenQuery extends SignalGroupQuery, Pick<Scope, "site_id"> {
   /** The period of the tile and block KPIs. Signal groups are 2025 only, as stored. */
   period: Period;
 }
@@ -228,13 +229,20 @@ function priorityBlocks(order: CustomerPriorityId[], view: KpiQuery["view"], gro
 /**
  * The first screen: the 9 common tiles as runKpi answers for the period, the Optimisation potential count and top
  * signal group, and up to 3 priority blocks with their answers. The KAM view adds account health and the
- * Customer's industry dashboard_emphasis. Throws on an unknown Customer, period or priority.
+ * Customer's industry dashboard_emphasis. With a Site, every answer uses the Site scope and the Site count is 1.
+ * With a Site, Optimisation potential counts only the fired results at that Site. The signal groups keep the
+ * Customer's ranking, but only the groups with a result at that Site. Throws on an unknown Customer, Site, period
+ * or priority, and on a Site of another Customer.
  */
-export function firstScreen({ customer_id, view, period, priorities }: FirstScreenQuery): FirstScreenResult {
+export function firstScreen({ customer_id, site_id, view, period, priorities }: FirstScreenQuery): FirstScreenResult {
   const priority_ids = resolvePriorities(customer_id, priorities);
-  const query: KpiQuery = { scope: { customer_id }, period, view };
+  const scope = site_id === undefined ? { customer_id } : { customer_id, site_id };
+  resolveScope(scope);
+  const query: KpiQuery = { scope, period, view };
   const answers = (kpi_ids: string[]) => kpi_ids.map((id) => runKpi(id, query));
-  const groups = signalGroups({ customer_id, view, priorities: priority_ids });
+  // Keep the groups with a result at the Site, in the Customer's ranking. fired_count below counts only those results.
+  const atSite = (r: { site_id: string }) => site_id === undefined || r.site_id === site_id;
+  const groups = signalGroups({ customer_id, view, priorities: priority_ids }).filter((g) => g.results.some(atSite));
   const master = getMasterData().data;
   return {
     customer_id,
@@ -242,9 +250,9 @@ export function firstScreen({ customer_id, view, period, priorities }: FirstScre
     period,
     priority_ids,
     tiles: getViewsAndReview().data.first_screen.common_tiles.map((t) => ({ ...t, answers: answers(t.kpi_ids) })),
-    site_count: master.sites.filter((s) => s.customer_id === customer_id).length,
+    site_count: site_id === undefined ? master.sites.filter((s) => s.customer_id === customer_id).length : 1,
     optimisation_potential: {
-      fired_count: groups.reduce((total, g) => total + g.fired_count, 0),
+      fired_count: groups.reduce((total, g) => total + g.results.filter(atSite).length, 0),
       signal_count: groups.length,
       top_signal_group_signal_id: groups[0]?.signal_id ?? null,
     },
