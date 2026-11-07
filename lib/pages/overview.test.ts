@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import type { KpiAnswer } from "../data.ts";
-import { firstScreen, getAccountHealth, getMasterData, getPeriodComparisons } from "../data.ts";
+import { firstScreen, getAccountHealth, getMasterData, getPeriodComparisons, signalResults } from "../data.ts";
 import type { OverviewPage } from "./overview.ts";
 import { overviewPage } from "./overview.ts";
 
@@ -192,6 +192,21 @@ test("the Customer view holds no account health, no dashboard_emphasis and no tu
     const json = JSON.stringify({ ...page, priority_blocks: page.priority_blocks.map(({ skipped_kpis, ...b }) => b) });
     for (const banned of ["account_health", "dashboard_emphasis", "turnaround_by_stage"]) {
       assert.ok(!json.includes(banned), `${banned} with priorities ${priorities}`);
+    }
+  }
+});
+
+test("with a Site filter the Site count tile reads 1 and the fired count is that Site's fired results", () => {
+  // The fired results in opportunity-signals.json. S005's second result is signal 4, which is KAM view only.
+  const expected = { S001: { KAM: 0, Customer: 0 }, S005: { KAM: 2, Customer: 1 }, S008: { KAM: 2, Customer: 2 } };
+  for (const view of ["KAM", "Customer"] as const) {
+    for (const [site_id, counts] of Object.entries(expected)) {
+      const page = overviewPage({ customer_id: "CUST001", site_id, period: "2025", view });
+      assert.equal(page.site_count, 1);
+      const fired = signalResults({ customer_id: "CUST001", site_id, view }).filter((r) => r.fired);
+      assert.equal(fired.length, counts[view], `${view} ${site_id}`);
+      assert.equal(page.optimisation_potential.fired_count, fired.length, `${view} ${site_id}`);
+      for (const tile of page.tiles) for (const a of tile.answers) if (!("withheld" in a)) assert.equal(a.scope.site_id, site_id);
     }
   }
 });

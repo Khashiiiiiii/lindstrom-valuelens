@@ -167,3 +167,30 @@ a.pill:hover { border-color: var(--line2); background: var(--hover); }
 .chip:hover:not(:disabled) { background: var(--accent-soft); }
 .linkbtn { border: none; background: none; padding: 0; color: var(--accent); text-decoration: underline; }
 .linkbtn:hover:not(:disabled) { background: none; }
+
+/* Sites page and the Site filter chip (#30) */
+.filters { display: flex; gap: 8px; margin: -8px 0 14px; }
+.sitechip { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; border: 1px solid var(--accent-line); background: var(--accent-soft); color: var(--accent); padding: 3px 4px 3px 12px; font-size: 13px; font-weight: 500; }
+.sitechip .muted { font-weight: 400; }
+.chipclear { width: 22px; height: 22px; padding: 0; border: none; border-radius: 999px; background: transparent; color: inherit; display: inline-flex; align-items: center; justify-content: center; }
+.chipclear:hover:not(:disabled) { background: var(--panel); }
+.chipclear svg { width: 12px; height: 12px; }
+.hbars { display: grid; gap: 4px; }
+.hbar { display: grid; grid-template-columns: 220px 1fr 80px; align-items: center; gap: 10px; font-size: 12px; text-align: left; border: none; background: transparent; color: var(--text); padding: 3px 6px; border-radius: 8px; font-weight: 400; }
+.hbar:hover:not(:disabled), .hbar.on { background: var(--accent-soft); }
+.hbar .lbl { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hbar .track { height: 10px; background: var(--seg); border-radius: 999px; overflow: hidden; }
+.hbar .fill { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--c1), var(--c2)); }
+.hbar .v { text-align: right; font-variant-numeric: tabular-nums; }
+@media (max-width: 1100px) { .hbar { grid-template-columns: 150px 1fr 70px; } }
+.sitetable { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); overflow-x: auto; }
+.sitetable table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.sitetable th, .sitetable td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; text-align: left; }
+.sitetable th { font-size: 12px; color: var(--text2); font-weight: 600; }
+.sitetable th .muted { font-weight: 400; }
+.sitetable .num { text-align: right; font-variant-numeric: tabular-nums; }
+.sitetable tbody tr { cursor: pointer; }
+.sitetable tbody tr:hover, .sitetable tbody tr.on { background: var(--accent-soft); }
+.sitelink { border: none; background: transparent; padding: 0; color: var(--text); font-weight: 600; text-align: left; }
+.sitelink:hover:not(:disabled) { background: transparent; color: var(--accent); }
+.badge.fired { background: var(--bad-bg); color: var(--bad); margin: 0 4px 4px 0; }

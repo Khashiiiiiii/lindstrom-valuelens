@@ -156,6 +156,7 @@ export const DICTIONARY = {
     sv: "Klicka på en anläggning för att filtrera alla sidor till den. Kolumnerna följer prioriteringsblocken.",
     fi: "Napsauta toimipaikkaa rajataksesi kaikki sivut siihen. Sarakkeet seuraavat painopistelohkoja.",
   },
+  "Clear the Site filter": { sv: "Rensa anläggningsfiltret", fi: "Poista toimipaikkarajaus" },
   "Fired signals": { sv: "Utlösta signaler", fi: "Lauenneet signaalit" },
   "Loading Sites...": { sv: "Läser in anläggningar...", fi: "Ladataan toimipaikkoja..." },
   "Signal groups": { sv: "Signalgrupper", fi: "Signaaliryhmät" },

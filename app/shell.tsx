@@ -96,6 +96,7 @@ export function Shell({ children }: { children: ReactNode }) {
   const items = menuItems(lang);
   const current = items.find((i) => pathname === i.href || pathname.startsWith(`${i.href}/`)) ?? items[0];
   const customer = meta?.customers.find((c) => c.customer_id === state?.customer_id) ?? null;
+  const site = meta?.sites.find((s) => s.site_id === state?.site_id) ?? null;
   const note = translationNote(lang);
 
   return (
@@ -153,6 +154,7 @@ export function Shell({ children }: { children: ReactNode }) {
           </button>
           <span className="crumb">
             <b>{customer?.customer_name}</b>
+            {site && ` / ${site.site_name}`}
           </span>
           <span className="grow" />
           <span className="seg" role="group" aria-label={t(lang, "Language")}>
@@ -168,6 +170,23 @@ export function Shell({ children }: { children: ReactNode }) {
             <h1>{current.title}</h1>
             {state && meta && <PeriodAndView lang={lang} state={state} dispatch={dispatch} months={meta.months} />}
           </div>
+          {site && (
+            <div className="filters">
+              <span className="sitechip">
+                <span className="muted">{t(lang, "Site")}:</span> {site.site_name}
+                <button
+                  className="chipclear"
+                  title={t(lang, "Clear the Site filter")}
+                  aria-label={t(lang, "Clear the Site filter")}
+                  onClick={() => dispatch({ type: "site", site_id: null })}
+                >
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M18.3 5.7 12 12l6.3 6.3-1.4 1.4L10.6 13.4 4.3 19.7l-1.4-1.4L9.2 12 2.9 5.7l1.4-1.4 6.3 6.3 6.3-6.3z" />
+                  </svg>
+                </button>
+              </span>
+            </div>
+          )}
           {note && <div className="note">{note}</div>}
           {error && <div className="card warn">{error}</div>}
           {state && meta ? (

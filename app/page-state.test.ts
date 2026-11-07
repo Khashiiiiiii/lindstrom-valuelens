@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { metadataPage } from "../lib/pages/metadata.ts";
+import { overviewPage } from "../lib/pages/overview.ts";
 import { pageRequest, pageState } from "./page-state.ts";
 
 const { customers } = metadataPage({ customer_id: "CUST001", period: "2025", view: "KAM" });
@@ -51,4 +52,16 @@ test("the page request carries the state, with no site_id when no Site filter is
     priorities: ["water", "service_reliability", "emissions"],
   });
   assert.equal(pageRequest(pageState(state, { type: "site", site_id: "S008" })).site_id, "S008");
+});
+
+test("clearing the Site chip returns the page request to the Customer scope", () => {
+  const customer = pageState(null, { type: "customer", customer: northstar });
+  const filtered = pageState(customer, { type: "site", site_id: "S008" });
+  const cleared = pageState(filtered, { type: "site", site_id: null });
+  assert.deepEqual(cleared, customer);
+  assert.deepEqual(pageRequest(cleared), pageRequest(customer));
+  assert.ok(!("site_id" in pageRequest(cleared)));
+  const overview = overviewPage(pageRequest(cleared));
+  assert.equal(overview.site_count, 24);
+  assert.equal(overview.optimisation_potential.fired_count, 18);
 });
