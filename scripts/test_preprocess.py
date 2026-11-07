@@ -126,6 +126,7 @@ import pipeline.footprint_handprint_kpis  # noqa: E402
 import pipeline.opportunity_signals  # noqa: E402
 import pipeline.period_comparisons  # noqa: E402
 import pipeline.service_kpis  # noqa: E402
+import pipeline.views_and_review  # noqa: E402
 import pipeline.workbook  # noqa: E402
 
 
@@ -1545,3 +1546,295 @@ def test_signal_catalogue_names_what_each_guard_counts(signals):
     ]
     requests = next(e for e in signals["catalogue"] if e["id"] == SIGNAL_IDS[3])
     assert [m["parameter"] for m in requests["minimum_volume"]] == ["minimum_wearer_months", "minimum_service_requests"]
+
+
+# views-and-review.json
+
+LEVERS = {
+    "a": {"lever": "Lever a.", "lever_owner": "Joint", "customer_priority_ids": ["service_reliability"]},
+    "b": {"lever": "Lever b.", "lever_owner": "Customer", "customer_priority_ids": ["water"]},
+    "c": {"lever": "Lever c.", "lever_owner": "Lindström", "customer_priority_ids": ["circularity"]},
+    "k": {"lever": "Lever k.", "lever_owner": "Joint", "customer_priority_ids": ["water"]},
+}
+
+
+def _fired(signal_id, site_id, gap, view="Both", product_id=None):
+    return {"signal_id": signal_id, "customer_id": "C1", "site_id": site_id, "product_id": product_id,
+            "gap": gap, "fired": True, "view": view}
+
+
+def test_signal_groups_rank_by_highest_matching_priority_then_largest_gap_and_leave_out_kam_results():
+    fired = [
+        _fired("a", "S1", 0.9), _fired("a", "S2", 1.4),
+        _fired("b", "S3", 0.2, product_id="P1"), _fired("b", "S1", 0.3, product_id="P2"),
+        _fired("c", "S4", 2.0), _fired("c", "S5", 3.0),
+        _fired("k", "S6", 9.0, view="KAM"),
+    ]
+    groups = pipeline.views_and_review.signal_groups(fired, LEVERS, ["water", "service_reliability"], "Customer")
+    assert [g["signal_id"] for g in groups] == ["b", "a", "c"]
+    assert [g["rank"] for g in groups] == [1, 2, 3]
+    assert [g["matched_priority_id"] for g in groups] == ["water", "service_reliability", None]
+    assert [g["largest_gap"] for g in groups] == [0.3, 1.4, 3.0]
+    b = groups[0]
+    assert (b["lever"], b["lever_owner"], b["fired_count"]) == ("Lever b.", "Customer", 2)
+    assert [(r["site_id"], r["product_id"]) for r in b["results"]] == [("S1", "P2"), ("S3", "P1")]
+
+
+def test_signal_groups_in_the_kam_view_keep_kam_only_results():
+    fired = [_fired("b", "S3", 0.2), _fired("k", "S6", 9.0, view="KAM")]
+    groups = pipeline.views_and_review.signal_groups(fired, LEVERS, ["water"], "KAM")
+    assert [g["signal_id"] for g in groups] == ["k", "b"]
+
+
+HEADLINES = {
+    "water": ["water_use_allocated", "washes_per_garment"],
+    "traceability": ["scan_coverage", "turnaround_by_stage"],
+    "service_reliability": ["on_time_service_cycle_share", "late_service_cycles"],
+    "circularity": ["repair_rate"],
+}
+
+
+def _blocks(order, view):
+    groups = pipeline.views_and_review.signal_groups(
+        [_fired("a", "S1", 0.9), _fired("k", "S6", 9.0, view="KAM"), _fired("b", "S3", 0.2)], LEVERS, order, view,
+    )
+    return pipeline.views_and_review.priority_blocks(
+        order, HEADLINES, {"on_time_service_cycle_share"}, {"turnaround_by_stage"}, groups, LEVERS, view,
+    )
+
+
+def test_priority_blocks_take_up_to_three_priorities_and_skip_common_row_and_kam_only_kpis():
+    blocks = _blocks(["traceability", "service_reliability", "water", "circularity"], "Customer")
+    assert [b["priority_id"] for b in blocks] == ["traceability", "service_reliability", "water"]
+    assert [b["position"] for b in blocks] == [1, 2, 3]
+    assert blocks[0]["kpi_ids"] == ["scan_coverage"]
+    assert blocks[0]["skipped_kpis"] == [{"kpi_id": "turnaround_by_stage", "reason": "kam_only"}]
+    assert blocks[1]["kpi_ids"] == ["late_service_cycles"]
+    assert blocks[1]["skipped_kpis"] == [{"kpi_id": "on_time_service_cycle_share", "reason": "on_common_row"}]
+
+
+def test_a_priority_block_shows_the_top_fired_signal_group_matching_its_priority():
+    customer = {b["priority_id"]: b["signal_group_signal_id"] for b in _blocks(["water", "service_reliability", "circularity"], "Customer")}
+    assert customer == {"water": "b", "service_reliability": "a", "circularity": None}
+    kam = {b["priority_id"]: b for b in _blocks(["water", "traceability"], "KAM")}
+    # In the KAM view signal k (gap 9.0) outranks b on Water, and turnaround by stage stays in.
+    assert kam["water"]["signal_group_signal_id"] == "k"
+    assert kam["traceability"]["kpi_ids"] == ["scan_coverage", "turnaround_by_stage"]
+
+
+REF_OUTPUTS = {
+    "service-kpis": {"catalogue": [{"id": "scan_coverage"}], "data": {"notes": [{"id": "n1"}]}},
+    "master-data": {"catalogue": [], "data": {"assumptions": [{"assumption_id": "A001"}], "months": []}},
+}
+
+
+def test_references_pass_on_known_catalogue_ids_data_keys_and_item_ids():
+    pipeline.views_and_review.check_references([
+        {"file": "service-kpis", "catalogue_ids": ["scan_coverage"]},
+        {"file": "service-kpis", "data_key": "notes", "id_field": "id", "ids": ["n1"]},
+        {"file": "master-data", "data_key": "months"},
+    ], REF_OUTPUTS)
+
+
+@pytest.mark.parametrize("ref, unknown", [
+    ({"file": "service-kpis", "catalogue_ids": ["scan_coverage", "scan_rate"]}, "scan_rate"),
+    ({"file": "service-kpi", "catalogue_ids": ["scan_coverage"]}, "service-kpi"),
+    ({"file": "master-data", "data_key": "assumptions.list"}, "assumptions.list"),
+    ({"file": "master-data", "data_key": "assumptions", "id_field": "assumption_id", "ids": ["A009"]}, "A009"),
+])
+def test_references_fail_on_an_unknown_file_catalogue_id_data_key_or_item_id(ref, unknown):
+    with pytest.raises(ValueError, match=re.escape(unknown)):
+        pipeline.views_and_review.check_references([ref], REF_OUTPUTS)
+
+
+@pytest.fixture(scope="module")
+def views(out_dir) -> dict:
+    return json.loads((out_dir / "views-and-review.json").read_text(encoding="utf-8"))
+
+
+def _defaults(views, customer_id):
+    return next(d for d in views["data"]["defaults_by_customer"] if d["customer_id"] == customer_id)
+
+
+def test_optimisation_potential_counts_fired_signal_results_per_view(views):
+    counts = {
+        view: [
+            (_defaults(views, c)["views"][view]["optimisation_potential"]["fired_count"],
+             len(_defaults(views, c)["views"][view]["signal_groups"]))
+            for c in ("CUST001", "CUST002", "CUST003")
+        ]
+        for view in ("Customer", "KAM")
+    }
+    assert counts["Customer"] == [(13, 5), (6, 3), (3, 2)]
+    assert [n for n, _ in counts["KAM"]] == [18, 8, 3]
+
+
+def test_default_priority_blocks_per_customer(views):
+    blocks = {
+        c: [b["priority_id"] for b in _defaults(views, c)["views"]["Customer"]["priority_blocks"]]
+        for c in ("CUST001", "CUST002", "CUST003")
+    }
+    assert blocks == {
+        "CUST001": ["water", "service_reliability", "emissions"],
+        "CUST002": ["garment_utilisation", "circularity"],
+        "CUST003": ["traceability", "service_reliability"],
+    }
+
+
+def test_proposed_next_steps_take_the_top_three_signal_groups_with_their_lever_owner(views, signals):
+    steps = {c: _defaults(views, c)["views"]["Customer"]["proposed_next_steps"] for c in ("CUST001", "CUST002", "CUST003")}
+    assert [len(s) for s in steps.values()] == [3, 3, 2]
+    northstar = [s["signal_id"] for s in steps["CUST001"]]
+    assert northstar[:2] == ["washes_per_garment_above_peers", "late_service_cycles_above_peers"]
+    # The third is the largest gap of signals 1, 2 and 6, which match none of NorthStar's priorities.
+    unmatched = [SIGNAL_IDS[0], SIGNAL_IDS[1], SIGNAL_IDS[5]]
+    largest = max(
+        (r for e in signals["data"]["evaluations"] for r in e["results"]
+         if r["fired"] and r["customer_id"] == "CUST001" and r["signal_id"] in unmatched),
+        key=lambda r: r["gap"],
+    )
+    assert northstar[2] == largest["signal_id"]
+    owners = {e["id"]: e["lever_owner"] for e in signals["catalogue"]}
+    for step in [s for c in steps.values() for s in c]:
+        assert step["lever_owner"] == owners[step["signal_id"]]
+        assert step["status_text"] == "Proposed, to be agreed in the meeting."
+        assert not any("date" in key for key in step)
+
+
+def test_the_customer_view_and_export_leave_out_signal_4_and_the_kam_view_keeps_it(views):
+    for d in views["data"]["defaults_by_customer"]:
+        customer = d["views"]["Customer"]
+        assert SIGNAL_IDS[3] not in [g["signal_id"] for g in customer["signal_groups"]]
+        assert SIGNAL_IDS[3] not in [s["signal_id"] for s in customer["proposed_next_steps"]]
+        assert d["export"]["follows_view"] == "Customer"
+    assert SIGNAL_IDS[3] in [g["signal_id"] for g in _defaults(views, "CUST001")["views"]["KAM"]["signal_groups"]]
+
+
+def test_every_catalogue_entry_in_every_file_has_a_view_and_a_review_part(out_dir):
+    parts = {"Look back", "Show value", "Build trust", "Look forward", "Agree actions"}
+    files = sorted(out_dir.glob("*.json"))
+    assert "views-and-review.json" in [f.name for f in files]
+    for path in files:
+        for entry in json.loads(path.read_text(encoding="utf-8"))["catalogue"]:
+            assert entry["view"] in {"KAM", "Customer", "Both"}, (path.name, entry["id"])
+            assert entry["review_part"] in parts, (path.name, entry["id"])
+
+
+def _built_outputs(out_dir):
+    return {
+        p.stem: {k: v for k, v in json.loads(p.read_text(encoding="utf-8")).items() if k != "meta"}
+        for p in out_dir.glob("*.json") if p.stem != "views-and-review"
+    }
+
+
+def test_the_build_stops_on_an_unknown_catalogue_id(out_dir):
+    outputs = _built_outputs(out_dir)
+    pipeline.views_and_review.build_views_and_review(outputs)
+    outputs["service-kpis"]["catalogue"] = [
+        e for e in outputs["service-kpis"]["catalogue"] if e["id"] != "garments_in_circulation"
+    ]
+    with pytest.raises(ValueError, match="garments_in_circulation"):
+        pipeline.views_and_review.build_views_and_review(outputs)
+
+
+def test_the_build_stops_on_a_catalogue_entry_without_a_review_part(out_dir):
+    outputs = _built_outputs(out_dir)
+    outputs["extra"] = {"catalogue": [{"id": "x", "view": "Both", "review_part": "Appendix"}], "data": {}}
+    with pytest.raises(ValueError, match="Appendix"):
+        pipeline.views_and_review.build_views_and_review(outputs)
+
+
+def test_the_build_stops_on_a_kam_view_entry_missing_from_the_kam_only_list(out_dir):
+    outputs = _built_outputs(out_dir)
+    outputs["service-kpis"]["catalogue"][0] = {**outputs["service-kpis"]["catalogue"][0], "view": "KAM"}
+    with pytest.raises(ValueError, match="on_time_service_cycle_share"):
+        pipeline.views_and_review.build_views_and_review(outputs)
+
+
+def test_kam_only_items(views):
+    assert [i["id"] for i in views["data"]["views"]["kam_only"]] == [
+        "account_health", "turnaround_by_stage", "dashboard_emphasis", "improvement_site_grain",
+        "service_request_rate_above_peers", "signal_results_that_did_not_fire_or_were_not_evaluated",
+        "full_data_transparency",
+    ]
+    assert views["data"]["views"]["default_view"] == "Both"
+
+
+def test_data_transparency_has_a_customer_and_a_kam_version(views, master):
+    transparency = views["data"]["views"]["data_transparency"]
+    customer = [i["id"] for i in transparency["customer"]["items"]]
+    kam = [i["id"] for i in transparency["kam"]["items"]]
+    assert customer == ["baseline_used", "assumption_list", "data_status_legend", "data_gaps"]
+    assert kam[:4] == customer
+    assert kam[4:] == [
+        "laundry_water_and_energy_factors", "laundry_waste_factors", "process_co2e_per_kwh",
+        "baseline_factors_and_dataset_actuals_against_public_figures", "group_emissions_intensity_notes",
+        "january_2026_cycles", "thresholds_and_guards",
+    ]
+    items = {i["id"]: i for i in transparency["customer"]["items"]}
+    assert [e["id"] for e in items["data_gaps"]["entries"]] == [
+        "customer_experience", "contract_slas", "cost", "hygiene", "safety", "compliance",
+    ]
+    assert items["assumption_list"]["refs"][0]["ids"] == ["A001", "A002", "A003", "A004", "A005"]
+    assert "TEAM_ASSUMPTION" in [e["data_status"] for e in items["data_status_legend"]["entries"]]
+    guards = next(i for i in transparency["kam"]["items"] if i["id"] == "thresholds_and_guards")["entries"]
+    # The account health rule and its 3 inputs, 3 period comparisons and 6 signals.
+    assert len(guards) == 13 and all(g["rationale"] for g in guards)
+
+
+def test_first_screen_common_tiles_and_kam_additions(views):
+    screen = views["data"]["first_screen"]
+    assert [t["id"] for t in screen["common_tiles"]] == [
+        "site_count", "active_wearers", "garments_in_circulation", "washed_kg", "repairs",
+        "on_time_service_cycle_share", "service_requests_per_100_wearers", "emissions_saved_and_water_saved",
+        "optimisation_potential",
+    ]
+    saved = screen["common_tiles"][7]
+    assert saved["kpi_ids"] == ["emissions_saved", "water_saved"]
+    assert [c["kpi_id"] for c in saved["caveats"]] == ["emissions_saved", "emissions_saved"]
+    assert [a["id"] for a in screen["kam_additions"]] == ["account_health", "dashboard_emphasis"]
+    assert screen["priority_blocks"]["max_blocks"] == 3
+
+
+def test_mediora_traceability_block_leaves_out_turnaround_by_stage_in_the_customer_view(views):
+    mediora = _defaults(views, "CUST003")["views"]
+    customer = mediora["Customer"]["priority_blocks"][0]
+    assert customer["kpi_ids"] == ["scan_coverage", "allocated_garments_with_no_scan_activity"]
+    assert customer["skipped_kpis"] == [{"kpi_id": "turnaround_by_stage", "reason": "kam_only"}]
+    assert "turnaround_by_stage" in mediora["KAM"]["priority_blocks"][0]["kpi_ids"]
+    assert customer["signal_group_signal_id"] == "allocated_garments_with_no_scan_activity_above_peers"
+
+
+def test_review_has_five_parts_with_a_65_35_page_split(views):
+    review = views["data"]["review"]
+    assert [p["name"] for p in review["parts"]] == [
+        "Look back", "Show value", "Build trust", "Look forward", "Agree actions",
+    ]
+    assert [(s["split_group"], s["page_share"], s["part_ids"]) for s in review["split"]] == [
+        ("evidence_and_value", 0.65, ["look_back", "show_value", "build_trust"]),
+        ("future_planning", 0.35, ["look_forward", "agree_actions"]),
+    ]
+    assert review["follows_view"] == "Customer"
+    look_back = {r["file"]: r["catalogue_ids"] for r in review["parts"][0]["catalogue_refs"]}
+    assert "account-health" not in look_back
+    assert "turnaround_by_stage" not in look_back["service-kpis"]
+    look_forward = {r["file"]: r["catalogue_ids"] for r in review["parts"][3]["catalogue_refs"]}
+    assert SIGNAL_IDS[3] not in look_forward["opportunity-signals"]
+
+
+def test_views_and_review_avoid_glossary_terms_and_em_dashes(views):
+    text = json.dumps(views, ensure_ascii=False)
+    assert "—" not in text
+    for term in ("insight", "alert", "recommendation", "idle", "complaint", "action item", "agreed action"):
+        assert not re.search(rf"\b{term}", text, re.IGNORECASE), term
+
+
+def test_the_export_breaks_priority_block_kpis_down_by_site_but_never_improvement(views):
+    assert _defaults(views, "CUST002")["export"]["site_breakdown_kpi_ids"] == [
+        "garments_per_wearer", "scan_coverage", "allocated_garments_with_no_scan_activity",
+        "repair_rate", "replacements_postponed_estimated", "recycled_or_reused_share",
+    ]
+    defaults = pipeline.views_and_review.customer_defaults(
+        "C1", ["improvement", "water"], [], LEVERS, set(), set(), {"water_use_allocated", "washes_per_garment"},
+    )
+    assert defaults["export"]["site_breakdown_kpi_ids"] == ["water_use_allocated", "washes_per_garment"]

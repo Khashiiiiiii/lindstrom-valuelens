@@ -130,3 +130,25 @@ export type {
   TurnaroundByStage,
 } from "./data/opportunity-signals.ts";
 export { getOpportunitySignals } from "./data/opportunity-signals.ts";
+
+export type {
+  CustomerViewDefaults,
+  DataStatusLegendEntry,
+  DataTransparencyItem,
+  FirstScreen,
+  FirstScreenTile,
+  HeadlineKpis,
+  PriorityBlock,
+  ProcessedRef,
+  ProposedNextStep,
+  ResolvedView,
+  ReviewConfig,
+  ReviewPartConfig,
+  SignalGroup,
+  SplitGroup,
+  ThresholdAndGuard,
+  ViewItem,
+  ViewsAndReview,
+  ViewsConfig,
+} from "./data/views-and-review.ts";
+export { getViewsAndReview } from "./data/views-and-review.ts";

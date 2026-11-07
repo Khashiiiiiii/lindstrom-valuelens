@@ -7,9 +7,10 @@ and is written by one build_<name>() function listed in BUILDERS. The same
 workbook always gives byte-identical files: keys are sorted and no timestamp is
 written. meta.source_sha256 names the workbook.
 
-Every builder runs before any file is written. Then check_kpi_references() checks
-each catalogue entry's kpi_ids against the other files' catalogues, and stops the
-run on an unknown id. It is the only cross-file step; build code stays in pipeline/.
+Every builder runs before any file is written. OUTPUT_BUILDERS run after BUILDERS
+and read the other outputs in memory, the same content the JSON files get. Then
+check_kpi_references() checks each catalogue entry's kpi_ids against the other
+files' catalogues, and stops the run on an unknown id. Build code stays in pipeline/.
 """
 
 from __future__ import annotations
@@ -29,6 +30,7 @@ from pipeline.opportunity_signals import build_opportunity_signals
 from pipeline.operational_circularity_kpis import build_operational_circularity_kpis
 from pipeline.public_reference import build_public_reference
 from pipeline.service_kpis import build_service_kpis
+from pipeline.views_and_review import build_views_and_review
 from pipeline.workbook import Record, Workbook
 
 
@@ -60,6 +62,11 @@ BUILDERS: dict[str, Callable[[Workbook], Record]] = {
     "opportunity-signals": build_opportunity_signals,
 }
 
+# Builders that read the other outputs instead of the workbook.
+OUTPUT_BUILDERS: dict[str, Callable[[dict[str, Record]], Record]] = {
+    "views-and-review": build_views_and_review,
+}
+
 
 # CLI
 
@@ -68,6 +75,7 @@ def run(xlsx: Path, out: Path) -> list[Path]:
     wb = Workbook(xlsx)
     out.mkdir(parents=True, exist_ok=True)
     outputs = {name: build(wb) for name, build in BUILDERS.items()}
+    outputs.update({name: build(dict(outputs)) for name, build in OUTPUT_BUILDERS.items()})
     check_kpi_references(outputs)
     written = []
     for name, built in outputs.items():

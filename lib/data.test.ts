@@ -11,6 +11,7 @@ import {
   getOpportunitySignals,
   getPublicReference,
   getServiceKpis,
+  getViewsAndReview,
 } from "./data.ts";
 
 test("getMasterData reads the generated master data", () => {
@@ -161,4 +162,18 @@ test("getOpportunitySignals reads the 6 signals, their 2025 evaluation and the r
   const pori = file.data.evaluations[4].results.find((r) => r.fired);
   assert.ok(pori?.turnaround_by_stage?.median_in_laundry_to_out_laundry_hours);
   assert.equal(file.data.inputs.site_month.length, 408);
+});
+
+test("getViewsAndReview reads the views, first screen and review structure", () => {
+  const file = getViewsAndReview();
+  assert.equal(file.meta.name, "views-and-review");
+  assert.deepEqual(file.catalogue.map((e) => e.id), ["optimisation_potential", "signal_group", "proposed_next_step"]);
+  assert.equal(file.data.first_screen.common_tiles.length, 9);
+  assert.deepEqual(file.data.review.parts.map((p) => p.name), [
+    "Look back", "Show value", "Build trust", "Look forward", "Agree actions",
+  ]);
+  const northstar = file.data.defaults_by_customer.find((d) => d.customer_id === "CUST001");
+  assert.equal(northstar?.views.Customer.optimisation_potential.fired_count, 13);
+  assert.equal(northstar?.views.KAM.optimisation_potential.fired_count, 18);
+  assert.equal(northstar?.views.Customer.proposed_next_steps.length, 3);
 });

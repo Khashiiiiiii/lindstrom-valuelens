@@ -1,0 +1,2491 @@
+{
+  "catalogue": [
+    {
+      "assumptions": [],
+      "caveats": [
+        "Signal thresholds and guards are TEAM_ASSUMPTION values.",
+        "It counts Sites to discuss, not an amount saved."
+      ],
+      "core_or_industry": "Core KPI",
+      "customer_question": "Are the issues we raise being solved?",
+      "data_status": "SYNTHETIC",
+      "definition": "The count of fired opportunity signal results in the view, with the top-ranked signal group named. The Customer view leaves out signal 4.",
+      "evidence_area": "Improvement",
+      "grain": "Customer",
+      "id": "optimisation_potential",
+      "name": "Optimisation potential",
+      "review_part": "Look forward",
+      "source_fields": [
+        "Repairs.repair_count",
+        "Service_Activity.active_assets_scanned",
+        "Service_Activity.active_wearers",
+        "Service_Activity.allocated_pieces",
+        "Service_Activity.packed_pieces",
+        "Service_Activity.service_requests",
+        "Service_Activity.washed_pieces",
+        "Service_Cycles.cycle_hours",
+        "Service_Cycles.delivered_timestamp",
+        "Service_Cycles.performance_flag"
+      ],
+      "view": "Both"
+    },
+    {
+      "assumptions": [],
+      "caveats": [
+        "Signal thresholds and guards are TEAM_ASSUMPTION values."
+      ],
+      "core_or_industry": "Core KPI",
+      "customer_question": "Are the issues we raise being solved?",
+      "data_status": "SYNTHETIC",
+      "definition": "The fired results of one opportunity signal for one Customer, with 1 lever, its lever owner and the Sites (and products) it fired on. Groups rank by the position of their highest matching Customer priority, then by their largest relative gap. Groups that match no priority come last.",
+      "evidence_area": "Improvement",
+      "grain": "Customer",
+      "id": "signal_group",
+      "name": "Signal group",
+      "review_part": "Look forward",
+      "source_fields": [
+        "Repairs.repair_count",
+        "Service_Activity.active_assets_scanned",
+        "Service_Activity.active_wearers",
+        "Service_Activity.allocated_pieces",
+        "Service_Activity.packed_pieces",
+        "Service_Activity.service_requests",
+        "Service_Activity.washed_pieces",
+        "Service_Cycles.cycle_hours",
+        "Service_Cycles.delivered_timestamp",
+        "Service_Cycles.performance_flag"
+      ],
+      "view": "Both"
+    },
+    {
+      "assumptions": [],
+      "caveats": [
+        "Proposed, to be agreed in the meeting."
+      ],
+      "core_or_industry": "Core KPI",
+      "customer_question": "Are the issues we raise being solved?",
+      "data_status": "SYNTHETIC",
+      "definition": "The lever of one of the top 3 signal groups, or fewer if fewer fire, with the signal's lever owner. Marked proposed, to be agreed in the meeting. It has no date.",
+      "evidence_area": "Improvement",
+      "grain": "Customer",
+      "id": "proposed_next_step",
+      "name": "Proposed next step",
+      "review_part": "Agree actions",
+      "source_fields": [
+        "Repairs.repair_count",
+        "Service_Activity.active_assets_scanned",
+        "Service_Activity.active_wearers",
+        "Service_Activity.allocated_pieces",
+        "Service_Activity.packed_pieces",
+        "Service_Activity.service_requests",
+        "Service_Activity.washed_pieces",
+        "Service_Cycles.cycle_hours",
+        "Service_Cycles.delivered_timestamp",
+        "Service_Cycles.performance_flag"
+      ],
+      "view": "Both"
+    }
+  ],
+  "data": {
+    "defaults_by_customer": [
+      {
+        "customer_id": "CUST001",
+        "export": {
+          "follows_view": "Customer",
+          "site_breakdown_kpi_ids": [
+            "water_use_allocated",
+            "washes_per_garment",
+            "turnaround_hours_median",
+            "late_service_cycles",
+            "service_request_free_site_months",
+            "emissions_allocated",
+            "energy_saved",
+            "avoided_product_co2e_estimated"
+          ]
+        },
+        "priority_ids": [
+          "water",
+          "service_reliability",
+          "emissions"
+        ],
+        "views": {
+          "Customer": {
+            "optimisation_potential": {
+              "fired_count": 13,
+              "signal_count": 5,
+              "top_signal_group_signal_id": "washes_per_garment_above_peers"
+            },
+            "priority_blocks": [
+              {
+                "kpi_ids": [
+                  "water_use_allocated",
+                  "washes_per_garment"
+                ],
+                "position": 1,
+                "priority_id": "water",
+                "signal_group_signal_id": "washes_per_garment_above_peers",
+                "skipped_kpis": []
+              },
+              {
+                "kpi_ids": [
+                  "turnaround_hours_median",
+                  "late_service_cycles",
+                  "service_request_free_site_months"
+                ],
+                "position": 2,
+                "priority_id": "service_reliability",
+                "signal_group_signal_id": "late_service_cycles_above_peers",
+                "skipped_kpis": []
+              },
+              {
+                "kpi_ids": [
+                  "emissions_allocated",
+                  "energy_saved",
+                  "avoided_product_co2e_estimated"
+                ],
+                "position": 3,
+                "priority_id": "emissions",
+                "signal_group_signal_id": "washes_per_garment_above_peers",
+                "skipped_kpis": []
+              }
+            ],
+            "proposed_next_steps": [
+              {
+                "lever": "Review the Site's garment change routine.",
+                "lever_owner": "Customer",
+                "position": 1,
+                "results": [
+                  {
+                    "product_id": "P1001",
+                    "site_id": "S008"
+                  },
+                  {
+                    "product_id": "P1001",
+                    "site_id": "S022"
+                  },
+                  {
+                    "product_id": "P1001",
+                    "site_id": "S023"
+                  },
+                  {
+                    "product_id": "P1002",
+                    "site_id": "S005"
+                  }
+                ],
+                "signal_id": "washes_per_garment_above_peers",
+                "status": "proposed",
+                "status_text": "Proposed, to be agreed in the meeting."
+              },
+              {
+                "lever": "Investigate the late cycles by stage.",
+                "lever_owner": "Lindström",
+                "position": 2,
+                "results": [
+                  {
+                    "product_id": null,
+                    "site_id": "S008"
+                  }
+                ],
+                "signal_id": "late_service_cycles_above_peers",
+                "status": "proposed",
+                "status_text": "Proposed, to be agreed in the meeting."
+              },
+              {
+                "lever": "Check wearer counts and spares, then right-size the allocation.",
+                "lever_owner": "Joint",
+                "position": 3,
+                "results": [
+                  {
+                    "product_id": "P1001",
+                    "site_id": "S013"
+                  },
+                  {
+                    "product_id": "P1001",
+                    "site_id": "S023"
+                  },
+                  {
+                    "product_id": "P1001",
+                    "site_id": "S007"
+                  },
+                  {
+                    "product_id": "P1004",
+                    "site_id": "S011"
+                  },
+                  {
+                    "product_id": "P1002",
+                    "site_id": "S014"
+                  }
+                ],
+                "signal_id": "garment_allocation_above_peers",
+                "status": "proposed",
+                "status_text": "Proposed, to be agreed in the meeting."
+              }
+            ],
+            "signal_groups": [
+              {
+                "fired_count": 4,
+                "largest_gap": 0.152205,
+                "lever": "Review the Site's garment change routine.",
+                "lever_owner": "Customer",
+                "matched_priority_id": "water",
+                "rank": 1,
+                "results": [
+                  {
+                    "gap": 0.152205,
+                    "product_id": "P1001",
+                    "site_id": "S008"
+                  },
+                  {
+                    "gap": 0.12982,
+                    "product_id": "P1001",
+                    "site_id": "S022"
+                  },
+                  {
+                    "gap": 0.121399,
+                    "product_id": "P1001",
+                    "site_id": "S023"
+                  },
+                  {
+                    "gap": 0.110209,
+                    "product_id": "P1002",
+                    "site_id": "S005"
+                  }
+                ],
+                "signal_id": "washes_per_garment_above_peers"
+              },
+              {
+                "fired_count": 1,
+                "largest_gap": 0.633487,
+                "lever": "Investigate the late cycles by stage.",
+                "lever_owner": "Lindström",
+                "matched_priority_id": "service_reliability",
+                "rank": 2,
+                "results": [
+                  {
+                    "gap": 0.633487,
+                    "product_id": null,
+                    "site_id": "S008"
+                  }
+                ],
+                "signal_id": "late_service_cycles_above_peers"
+              },
+              {
+                "fired_count": 5,
+                "largest_gap": 0.435993,
+                "lever": "Check wearer counts and spares, then right-size the allocation.",
+                "lever_owner": "Joint",
+                "matched_priority_id": null,
+                "rank": 3,
+                "results": [
+                  {
+                    "gap": 0.435993,
+                    "product_id": "P1001",
+                    "site_id": "S013"
+                  },
+                  {
+                    "gap": 0.405781,
+                    "product_id": "P1001",
+                    "site_id": "S023"
+                  },
+                  {
+                    "gap": 0.376558,
+                    "product_id": "P1001",
+                    "site_id": "S007"
+                  },
+                  {
+                    "gap": 0.369467,
+                    "product_id": "P1004",
+                    "site_id": "S011"
+                  },
+                  {
+                    "gap": 0.315066,
+                    "product_id": "P1002",
+                    "site_id": "S014"
+                  }
+                ],
+                "signal_id": "garment_allocation_above_peers"
+              },
+              {
+                "fired_count": 1,
+                "largest_gap": 0.214569,
+                "lever": "Check whether the garments are spares, not needed or missing scans.",
+                "lever_owner": "Joint",
+                "matched_priority_id": null,
+                "rank": 4,
+                "results": [
+                  {
+                    "gap": 0.214569,
+                    "product_id": null,
+                    "site_id": "S018"
+                  }
+                ],
+                "signal_id": "allocated_garments_with_no_scan_activity_above_peers"
+              },
+              {
+                "fired_count": 2,
+                "largest_gap": 0.191327,
+                "lever": "Check fit, working conditions and handling for that garment.",
+                "lever_owner": "Joint",
+                "matched_priority_id": null,
+                "rank": 5,
+                "results": [
+                  {
+                    "gap": 0.191327,
+                    "product_id": "P1002",
+                    "site_id": "S014"
+                  },
+                  {
+                    "gap": 0.154767,
+                    "product_id": "P1004",
+                    "site_id": "S011"
+                  }
+                ],
+                "signal_id": "repair_rate_above_peers"
+              }
+            ]
+          },
+          "KAM": {
+            "optimisation_potential": {
+              "fired_count": 18,
+              "signal_count": 6,
+              "top_signal_group_signal_id": "washes_per_garment_above_peers"
+            },
+            "priority_blocks": [
+              {
+                "kpi_ids": [
+                  "water_use_allocated",
+                  "washes_per_garment"
+                ],
+                "position": 1,
+                "priority_id": "water",
+                "signal_group_signal_id": "washes_per_garment_above_peers",
+                "skipped_kpis": []
+              },
+              {
+                "kpi_ids": [
+                  "turnaround_hours_median",
+                  "late_service_cycles",
+                  "service_request_free_site_months"
+                ],
+                "position": 2,
+                "priority_id": "service_reliability",
+                "signal_group_signal_id": "service_request_rate_above_peers",
+                "skipped_kpis": []
+              },
+              {
+                "kpi_ids": [
+                  "emissions_allocated",
+                  "energy_saved",
+                  "avoided_product_co2e_estimated"
+                ],
+                "position": 3,
+                "priority_id": "emissions",
+                "signal_group_signal_id": "washes_per_garment_above_peers",
+                "skipped_kpis": []
+              }
+            ],
+            "proposed_next_steps": [
+              {
+                "lever": "Review the Site's garment change routine.",
+                "lever_owner": "Customer",
+                "position": 1,
+                "results": [
+                  {
+                    "product_id": "P1001",
+                    "site_id": "S008"
+                  },
+                  {
+                    "product_id": "P1001",
+                    "site_id": "S022"
+                  },
+                  {
+                    "product_id": "P1001",
+                    "site_id": "S023"
+                  },
+                  {
+                    "product_id": "P1002",
+                    "site_id": "S005"
+                  }
+                ],
+                "signal_id": "washes_per_garment_above_peers",
+                "status": "proposed",
+                "status_text": "Proposed, to be agreed in the meeting."
+              },
+              {
+                "lever": "Review the Site's service requests with the Customer.",
+                "lever_owner": "Joint",
+                "position": 2,
+                "results": [
+                  {
+                    "product_id": null,
+                    "site_id": "S022"
+                  },
+                  {
+                    "product_id": null,
+                    "site_id": "S024"
+                  },
+                  {
+                    "product_id": null,
+                    "site_id": "S018"
+                  },
+                  {
+                    "product_id": null,
+                    "site_id": "S005"
+                  },
+                  {
+                    "product_id": null,
+                    "site_id": "S020"
+                  }
+                ],
+                "signal_id": "service_request_rate_above_peers",
+                "status": "proposed",
+                "status_text": "Proposed, to be agreed in the meeting."
+              },
+              {
+                "lever": "Investigate the late cycles by stage.",
+                "lever_owner": "Lindström",
+                "position": 3,
+                "results": [
+                  {
+                    "product_id": null,
+                    "site_id": "S008"
+                  }
+                ],
+                "signal_id": "late_service_cycles_above_peers",
+                "status": "proposed",
+                "status_text": "Proposed, to be agreed in the meeting."
+              }
+            ],
+            "signal_groups": [
+              {
+                "fired_count": 4,
+                "largest_gap": 0.152205,
+                "lever": "Review the Site's garment change routine.",
+                "lever_owner": "Customer",
+                "matched_priority_id": "water",
+                "rank": 1,
+                "results": [
+                  {
+                    "gap": 0.152205,
+                    "product_id": "P1001",
+                    "site_id": "S008"
+                  },
+                  {
+                    "gap": 0.12982,
+                    "product_id": "P1001",
+                    "site_id": "S022"
+                  },
+                  {
+                    "gap": 0.121399,
+                    "product_id": "P1001",
+                    "site_id": "S023"
+                  },
+                  {
+                    "gap": 0.110209,
+                    "product_id": "P1002",
+                    "site_id": "S005"
+                  }
+                ],
+                "signal_id": "washes_per_garment_above_peers"
+              },
+              {
+                "fired_count": 5,
+                "largest_gap": 2.246753,
+                "lever": "Review the Site's service requests with the Customer.",
+                "lever_owner": "Joint",
+                "matched_priority_id": "service_reliability",
+                "rank": 2,
+                "results": [
+                  {
+                    "gap": 2.246753,
+                    "product_id": null,
+                    "site_id": "S022"
+                  },
+                  {
+                    "gap": 1.081434,
+                    "product_id": null,
+                    "site_id": "S024"
+                  },
+                  {
+                    "gap": 0.687669,
+                    "product_id": null,
+                    "site_id": "S018"
+                  },
+                  {
+                    "gap": 0.608752,
+                    "product_id": null,
+                    "site_id": "S005"
+                  },
+                  {
+                    "gap": 0.570431,
+                    "product_id": null,
+                    "site_id": "S020"
+                  }
+                ],
+                "signal_id": "service_request_rate_above_peers"
+              },
+              {
+                "fired_count": 1,
+                "largest_gap": 0.633487,
+                "lever": "Investigate the late cycles by stage.",
+                "lever_owner": "Lindström",
+                "matched_priority_id": "service_reliability",
+                "rank": 3,
+                "results": [
+                  {
+                    "gap": 0.633487,
+                    "product_id": null,
+                    "site_id": "S008"
+                  }
+                ],
+                "signal_id": "late_service_cycles_above_peers"
+              },
+              {
+                "fired_count": 5,
+                "largest_gap": 0.435993,
+                "lever": "Check wearer counts and spares, then right-size the allocation.",
+                "lever_owner": "Joint",
+                "matched_priority_id": null,
+                "rank": 4,
+                "results": [
+                  {
+                    "gap": 0.435993,
+                    "product_id": "P1001",
+                    "site_id": "S013"
+                  },
+                  {
+                    "gap": 0.405781,
+                    "product_id": "P1001",
+                    "site_id": "S023"
+                  },
+                  {
+                    "gap": 0.376558,
+                    "product_id": "P1001",
+                    "site_id": "S007"
+                  },
+                  {
+                    "gap": 0.369467,
+                    "product_id": "P1004",
+                    "site_id": "S011"
+                  },
+                  {
+                    "gap": 0.315066,
+                    "product_id": "P1002",
+                    "site_id": "S014"
+                  }
+                ],
+                "signal_id": "garment_allocation_above_peers"
+              },
+              {
+                "fired_count": 1,
+                "largest_gap": 0.214569,
+                "lever": "Check whether the garments are spares, not needed or missing scans.",
+                "lever_owner": "Joint",
+                "matched_priority_id": null,
+                "rank": 5,
+                "results": [
+                  {
+                    "gap": 0.214569,
+                    "product_id": null,
+                    "site_id": "S018"
+                  }
+                ],
+                "signal_id": "allocated_garments_with_no_scan_activity_above_peers"
+              },
+              {
+                "fired_count": 2,
+                "largest_gap": 0.191327,
+                "lever": "Check fit, working conditions and handling for that garment.",
+                "lever_owner": "Joint",
+                "matched_priority_id": null,
+                "rank": 6,
+                "results": [
+                  {
+                    "gap": 0.191327,
+                    "product_id": "P1002",
+                    "site_id": "S014"
+                  },
+                  {
+                    "gap": 0.154767,
+                    "product_id": "P1004",
+                    "site_id": "S011"
+                  }
+                ],
+                "signal_id": "repair_rate_above_peers"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "customer_id": "CUST002",
+        "export": {
+          "follows_view": "Customer",
+          "site_breakdown_kpi_ids": [
+            "garments_per_wearer",
+            "scan_coverage",
+            "allocated_garments_with_no_scan_activity",
+            "repair_rate",
+            "replacements_postponed_estimated",
+            "recycled_or_reused_share"
+          ]
+        },
+        "priority_ids": [
+          "garment_utilisation",
+          "circularity"
+        ],
+        "views": {
+          "Customer": {
+            "optimisation_potential": {
+              "fired_count": 6,
+              "signal_count": 3,
+              "top_signal_group_signal_id": "garment_allocation_above_peers"
+            },
+            "priority_blocks": [
+              {
+                "kpi_ids": [
+                  "garments_per_wearer",
+                  "scan_coverage",
+                  "allocated_garments_with_no_scan_activity"
+                ],
+                "position": 1,
+                "priority_id": "garment_utilisation",
+                "signal_group_signal_id": "garment_allocation_above_peers",
+                "skipped_kpis": []
+              },
+              {
+                "kpi_ids": [
+                  "repair_rate",
+                  "replacements_postponed_estimated",
+                  "recycled_or_reused_share"
+                ],
+                "position": 2,
+                "priority_id": "circularity",
+                "signal_group_signal_id": null,
+                "skipped_kpis": []
+              }
+            ],
+            "proposed_next_steps": [
+              {
+                "lever": "Check wearer counts and spares, then right-size the allocation.",
+                "lever_owner": "Joint",
+                "position": 1,
+                "results": [
+                  {
+                    "product_id": "P1002",
+                    "site_id": "S027"
+                  },
+                  {
+                    "product_id": "P1002",
+                    "site_id": "S029"
+                  }
+                ],
+                "signal_id": "garment_allocation_above_peers",
+                "status": "proposed",
+                "status_text": "Proposed, to be agreed in the meeting."
+              },
+              {
+                "lever": "Check whether the garments are spares, not needed or missing scans.",
+                "lever_owner": "Joint",
+                "position": 2,
+                "results": [
+                  {
+                    "product_id": null,
+                    "site_id": "S025"
+                  },
+                  {
+                    "product_id": null,
+                    "site_id": "S029"
+                  }
+                ],
+                "signal_id": "allocated_garments_with_no_scan_activity_above_peers",
+                "status": "proposed",
+                "status_text": "Proposed, to be agreed in the meeting."
+              },
+              {
+                "lever": "Review the Site's garment change routine.",
+                "lever_owner": "Customer",
+                "position": 3,
+                "results": [
+                  {
+                    "product_id": "P1002",
+                    "site_id": "S030"
+                  },
+                  {
+                    "product_id": "P1006",
+                    "site_id": "S030"
+                  }
+                ],
+                "signal_id": "washes_per_garment_above_peers",
+                "status": "proposed",
+                "status_text": "Proposed, to be agreed in the meeting."
+              }
+            ],
+            "signal_groups": [
+              {
+                "fired_count": 2,
+                "largest_gap": 0.518269,
+                "lever": "Check wearer counts and spares, then right-size the allocation.",
+                "lever_owner": "Joint",
+                "matched_priority_id": "garment_utilisation",
+                "rank": 1,
+                "results": [
+                  {
+                    "gap": 0.518269,
+                    "product_id": "P1002",
+                    "site_id": "S027"
+                  },
+                  {
+                    "gap": 0.410261,
+                    "product_id": "P1002",
+                    "site_id": "S029"
+                  }
+                ],
+                "signal_id": "garment_allocation_above_peers"
+              },
+              {
+                "fired_count": 2,
+                "largest_gap": 0.129399,
+                "lever": "Check whether the garments are spares, not needed or missing scans.",
+                "lever_owner": "Joint",
+                "matched_priority_id": "garment_utilisation",
+                "rank": 2,
+                "results": [
+                  {
+                    "gap": 0.129399,
+                    "product_id": null,
+                    "site_id": "S025"
+                  },
+                  {
+                    "gap": 0.124111,
+                    "product_id": null,
+                    "site_id": "S029"
+                  }
+                ],
+                "signal_id": "allocated_garments_with_no_scan_activity_above_peers"
+              },
+              {
+                "fired_count": 2,
+                "largest_gap": 0.141927,
+                "lever": "Review the Site's garment change routine.",
+                "lever_owner": "Customer",
+                "matched_priority_id": null,
+                "rank": 3,
+                "results": [
+                  {
+                    "gap": 0.141927,
+                    "product_id": "P1002",
+                    "site_id": "S030"
+                  },
+                  {
+                    "gap": 0.121529,
+                    "product_id": "P1006",
+                    "site_id": "S030"
+                  }
+                ],
+                "signal_id": "washes_per_garment_above_peers"
+              }
+            ]
+          },
+          "KAM": {
+            "optimisation_potential": {
+              "fired_count": 8,
+              "signal_count": 4,
+              "top_signal_group_signal_id": "garment_allocation_above_peers"
+            },
+            "priority_blocks": [
+              {
+                "kpi_ids": [
+                  "garments_per_wearer",
+                  "scan_coverage",
+                  "allocated_garments_with_no_scan_activity"
+                ],
+                "position": 1,
+                "priority_id": "garment_utilisation",
+                "signal_group_signal_id": "garment_allocation_above_peers",
+                "skipped_kpis": []
+              },
+              {
+                "kpi_ids": [
+                  "repair_rate",
+                  "replacements_postponed_estimated",
+                  "recycled_or_reused_share"
+                ],
+                "position": 2,
+                "priority_id": "circularity",
+                "signal_group_signal_id": null,
+                "skipped_kpis": []
+              }
+            ],
+            "proposed_next_steps": [
+              {
+                "lever": "Check wearer counts and spares, then right-size the allocation.",
+                "lever_owner": "Joint",
+                "position": 1,
+                "results": [
+                  {
+                    "product_id": "P1002",
+                    "site_id": "S027"
+                  },
+                  {
+                    "product_id": "P1002",
+                    "site_id": "S029"
+                  }
+                ],
+                "signal_id": "garment_allocation_above_peers",
+                "status": "proposed",
+                "status_text": "Proposed, to be agreed in the meeting."
+              },
+              {
+                "lever": "Check whether the garments are spares, not needed or missing scans.",
+                "lever_owner": "Joint",
+                "position": 2,
+                "results": [
+                  {
+                    "product_id": null,
+                    "site_id": "S025"
+                  },
+                  {
+                    "product_id": null,
+                    "site_id": "S029"
+                  }
+                ],
+                "signal_id": "allocated_garments_with_no_scan_activity_above_peers",
+                "status": "proposed",
+                "status_text": "Proposed, to be agreed in the meeting."
+              },
+              {
+                "lever": "Review the Site's service requests with the Customer.",
+                "lever_owner": "Joint",
+                "position": 3,
+                "results": [
+                  {
+                    "product_id": null,
+                    "site_id": "S026"
+                  },
+                  {
+                    "product_id": null,
+                    "site_id": "S029"
+                  }
+                ],
+                "signal_id": "service_request_rate_above_peers",
+                "status": "proposed",
+                "status_text": "Proposed, to be agreed in the meeting."
+              }
+            ],
+            "signal_groups": [
+              {
+                "fired_count": 2,
+                "largest_gap": 0.518269,
+                "lever": "Check wearer counts and spares, then right-size the allocation.",
+                "lever_owner": "Joint",
+                "matched_priority_id": "garment_utilisation",
+                "rank": 1,
+                "results": [
+                  {
+                    "gap": 0.518269,
+                    "product_id": "P1002",
+                    "site_id": "S027"
+                  },
+                  {
+                    "gap": 0.410261,
+                    "product_id": "P1002",
+                    "site_id": "S029"
+                  }
+                ],
+                "signal_id": "garment_allocation_above_peers"
+              },
+              {
+                "fired_count": 2,
+                "largest_gap": 0.129399,
+                "lever": "Check whether the garments are spares, not needed or missing scans.",
+                "lever_owner": "Joint",
+                "matched_priority_id": "garment_utilisation",
+                "rank": 2,
+                "results": [
+                  {
+                    "gap": 0.129399,
+                    "product_id": null,
+                    "site_id": "S025"
+                  },
+                  {
+                    "gap": 0.124111,
+                    "product_id": null,
+                    "site_id": "S029"
+                  }
+                ],
+                "signal_id": "allocated_garments_with_no_scan_activity_above_peers"
+              },
+              {
+                "fired_count": 2,
+                "largest_gap": 3.172583,
+                "lever": "Review the Site's service requests with the Customer.",
+                "lever_owner": "Joint",
+                "matched_priority_id": null,
+                "rank": 3,
+                "results": [
+                  {
+                    "gap": 3.172583,
+                    "product_id": null,
+                    "site_id": "S026"
+                  },
+                  {
+                    "gap": 1.146043,
+                    "product_id": null,
+                    "site_id": "S029"
+                  }
+                ],
+                "signal_id": "service_request_rate_above_peers"
+              },
+              {
+                "fired_count": 2,
+                "largest_gap": 0.141927,
+                "lever": "Review the Site's garment change routine.",
+                "lever_owner": "Customer",
+                "matched_priority_id": null,
+                "rank": 4,
+                "results": [
+                  {
+                    "gap": 0.141927,
+                    "product_id": "P1002",
+                    "site_id": "S030"
+                  },
+                  {
+                    "gap": 0.121529,
+                    "product_id": "P1006",
+                    "site_id": "S030"
+                  }
+                ],
+                "signal_id": "washes_per_garment_above_peers"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "customer_id": "CUST003",
+        "export": {
+          "follows_view": "Customer",
+          "site_breakdown_kpi_ids": [
+            "scan_coverage",
+            "allocated_garments_with_no_scan_activity",
+            "turnaround_hours_median",
+            "late_service_cycles",
+            "service_request_free_site_months"
+          ]
+        },
+        "priority_ids": [
+          "traceability",
+          "service_reliability"
+        ],
+        "views": {
+          "Customer": {
+            "optimisation_potential": {
+              "fired_count": 3,
+              "signal_count": 2,
+              "top_signal_group_signal_id": "allocated_garments_with_no_scan_activity_above_peers"
+            },
+            "priority_blocks": [
+              {
+                "kpi_ids": [
+                  "scan_coverage",
+                  "allocated_garments_with_no_scan_activity"
+                ],
+                "position": 1,
+                "priority_id": "traceability",
+                "signal_group_signal_id": "allocated_garments_with_no_scan_activity_above_peers",
+                "skipped_kpis": [
+                  {
+                    "kpi_id": "turnaround_by_stage",
+                    "reason": "kam_only"
+                  }
+                ]
+              },
+              {
+                "kpi_ids": [
+                  "turnaround_hours_median",
+                  "late_service_cycles",
+                  "service_request_free_site_months"
+                ],
+                "position": 2,
+                "priority_id": "service_reliability",
+                "signal_group_signal_id": null,
+                "skipped_kpis": []
+              }
+            ],
+            "proposed_next_steps": [
+              {
+                "lever": "Check whether the garments are spares, not needed or missing scans.",
+                "lever_owner": "Joint",
+                "position": 1,
+                "results": [
+                  {
+                    "product_id": null,
+                    "site_id": "S034"
+                  }
+                ],
+                "signal_id": "allocated_garments_with_no_scan_activity_above_peers",
+                "status": "proposed",
+                "status_text": "Proposed, to be agreed in the meeting."
+              },
+              {
+                "lever": "Review the Site's garment change routine.",
+                "lever_owner": "Customer",
+                "position": 2,
+                "results": [
+                  {
+                    "product_id": "P1002",
+                    "site_id": "S032"
+                  },
+                  {
+                    "product_id": "P1005",
+                    "site_id": "S034"
+                  }
+                ],
+                "signal_id": "washes_per_garment_above_peers",
+                "status": "proposed",
+                "status_text": "Proposed, to be agreed in the meeting."
+              }
+            ],
+            "signal_groups": [
+              {
+                "fired_count": 1,
+                "largest_gap": 0.146093,
+                "lever": "Check whether the garments are spares, not needed or missing scans.",
+                "lever_owner": "Joint",
+                "matched_priority_id": "traceability",
+                "rank": 1,
+                "results": [
+                  {
+                    "gap": 0.146093,
+                    "product_id": null,
+                    "site_id": "S034"
+                  }
+                ],
+                "signal_id": "allocated_garments_with_no_scan_activity_above_peers"
+              },
+              {
+                "fired_count": 2,
+                "largest_gap": 0.162205,
+                "lever": "Review the Site's garment change routine.",
+                "lever_owner": "Customer",
+                "matched_priority_id": null,
+                "rank": 2,
+                "results": [
+                  {
+                    "gap": 0.162205,
+                    "product_id": "P1002",
+                    "site_id": "S032"
+                  },
+                  {
+                    "gap": 0.135896,
+                    "product_id": "P1005",
+                    "site_id": "S034"
+                  }
+                ],
+                "signal_id": "washes_per_garment_above_peers"
+              }
+            ]
+          },
+          "KAM": {
+            "optimisation_potential": {
+              "fired_count": 3,
+              "signal_count": 2,
+              "top_signal_group_signal_id": "allocated_garments_with_no_scan_activity_above_peers"
+            },
+            "priority_blocks": [
+              {
+                "kpi_ids": [
+                  "scan_coverage",
+                  "allocated_garments_with_no_scan_activity",
+                  "turnaround_by_stage"
+                ],
+                "position": 1,
+                "priority_id": "traceability",
+                "signal_group_signal_id": "allocated_garments_with_no_scan_activity_above_peers",
+                "skipped_kpis": []
+              },
+              {
+                "kpi_ids": [
+                  "turnaround_hours_median",
+                  "late_service_cycles",
+                  "service_request_free_site_months"
+                ],
+                "position": 2,
+                "priority_id": "service_reliability",
+                "signal_group_signal_id": null,
+                "skipped_kpis": []
+              }
+            ],
+            "proposed_next_steps": [
+              {
+                "lever": "Check whether the garments are spares, not needed or missing scans.",
+                "lever_owner": "Joint",
+                "position": 1,
+                "results": [
+                  {
+                    "product_id": null,
+                    "site_id": "S034"
+                  }
+                ],
+                "signal_id": "allocated_garments_with_no_scan_activity_above_peers",
+                "status": "proposed",
+                "status_text": "Proposed, to be agreed in the meeting."
+              },
+              {
+                "lever": "Review the Site's garment change routine.",
+                "lever_owner": "Customer",
+                "position": 2,
+                "results": [
+                  {
+                    "product_id": "P1002",
+                    "site_id": "S032"
+                  },
+                  {
+                    "product_id": "P1005",
+                    "site_id": "S034"
+                  }
+                ],
+                "signal_id": "washes_per_garment_above_peers",
+                "status": "proposed",
+                "status_text": "Proposed, to be agreed in the meeting."
+              }
+            ],
+            "signal_groups": [
+              {
+                "fired_count": 1,
+                "largest_gap": 0.146093,
+                "lever": "Check whether the garments are spares, not needed or missing scans.",
+                "lever_owner": "Joint",
+                "matched_priority_id": "traceability",
+                "rank": 1,
+                "results": [
+                  {
+                    "gap": 0.146093,
+                    "product_id": null,
+                    "site_id": "S034"
+                  }
+                ],
+                "signal_id": "allocated_garments_with_no_scan_activity_above_peers"
+              },
+              {
+                "fired_count": 2,
+                "largest_gap": 0.162205,
+                "lever": "Review the Site's garment change routine.",
+                "lever_owner": "Customer",
+                "matched_priority_id": null,
+                "rank": 2,
+                "results": [
+                  {
+                    "gap": 0.162205,
+                    "product_id": "P1002",
+                    "site_id": "S032"
+                  },
+                  {
+                    "gap": 0.135896,
+                    "product_id": "P1005",
+                    "site_id": "S034"
+                  }
+                ],
+                "signal_id": "washes_per_garment_above_peers"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "first_screen": {
+      "common_tiles": [
+        {
+          "brief_candidate": "Delivery sites",
+          "id": "site_count",
+          "kpi_ids": [],
+          "name": "Site count",
+          "position": 1,
+          "refs": [
+            {
+              "data_key": "sites",
+              "file": "master-data"
+            }
+          ],
+          "text": "The Customer's Sites, an Account context figure."
+        },
+        {
+          "brief_candidate": "Active users/wearers",
+          "id": "active_wearers",
+          "kpi_ids": [
+            "active_wearers"
+          ],
+          "name": "Active wearers",
+          "position": 2,
+          "refs": [
+            {
+              "catalogue_ids": [
+                "active_wearers"
+              ],
+              "file": "service-kpis"
+            }
+          ],
+          "text": "Monthly average over the period."
+        },
+        {
+          "brief_candidate": "Garments in circulation",
+          "id": "garments_in_circulation",
+          "kpi_ids": [
+            "garments_in_circulation"
+          ],
+          "name": "Garments in circulation",
+          "position": 3,
+          "refs": [
+            {
+              "catalogue_ids": [
+                "garments_in_circulation"
+              ],
+              "file": "service-kpis"
+            }
+          ],
+          "text": "Monthly average over the period."
+        },
+        {
+          "brief_candidate": "Service activity",
+          "id": "washed_kg",
+          "kpi_ids": [
+            "washed_kg"
+          ],
+          "name": "Washed kg",
+          "position": 4,
+          "refs": [
+            {
+              "catalogue_ids": [
+                "washed_kg"
+              ],
+              "file": "footprint-handprint-kpis"
+            }
+          ],
+          "text": "Washed kg over the period."
+        },
+        {
+          "brief_candidate": "Repair activity",
+          "id": "repairs",
+          "kpi_ids": [
+            "repairs"
+          ],
+          "name": "Repairs",
+          "position": 5,
+          "refs": [
+            {
+              "catalogue_ids": [
+                "repairs"
+              ],
+              "file": "operational-circularity-kpis"
+            }
+          ],
+          "text": "Completed repairs over the period."
+        },
+        {
+          "brief_candidate": "Service-request performance",
+          "id": "on_time_service_cycle_share",
+          "kpi_ids": [
+            "on_time_service_cycle_share"
+          ],
+          "name": "On-time service cycle share",
+          "position": 6,
+          "refs": [
+            {
+              "catalogue_ids": [
+                "on_time_service_cycle_share"
+              ],
+              "file": "service-kpis"
+            }
+          ],
+          "text": "Share of sampled cycles on time."
+        },
+        {
+          "brief_candidate": "Service-request performance",
+          "id": "service_requests_per_100_wearers",
+          "kpi_ids": [
+            "service_requests_per_100_wearers"
+          ],
+          "name": "Service requests per 100 wearers",
+          "position": 7,
+          "refs": [
+            {
+              "catalogue_ids": [
+                "service_requests_per_100_wearers"
+              ],
+              "file": "service-kpis"
+            }
+          ],
+          "text": "Per month over the period."
+        },
+        {
+          "brief_candidate": "Emissions and water impact",
+          "caveats": [
+            {
+              "caveat": "Baseline factors are illustrative. Savings may be overstated.",
+              "kpi_id": "emissions_saved"
+            },
+            {
+              "caveat": "The B_LOCAL process factor is near Scope 1+2+3 levels, while the actuals are near Scope 1+2. Emissions saved may be overstated.",
+              "kpi_id": "emissions_saved"
+            }
+          ],
+          "id": "emissions_saved_and_water_saved",
+          "kpi_ids": [
+            "emissions_saved",
+            "water_saved"
+          ],
+          "name": "Emissions saved and Water saved",
+          "position": 8,
+          "refs": [
+            {
+              "catalogue_ids": [
+                "emissions_saved",
+                "water_saved"
+              ],
+              "file": "footprint-handprint-kpis"
+            },
+            {
+              "data_key": "baselines",
+              "file": "master-data"
+            },
+            {
+              "data_key": "default_baseline_id",
+              "file": "master-data"
+            }
+          ],
+          "text": "Each value names its baseline and carries the \"may be overstated\" caveat where it applies."
+        },
+        {
+          "brief_candidate": "Optimisation potential",
+          "id": "optimisation_potential",
+          "kpi_ids": [],
+          "name": "Optimisation potential",
+          "position": 9,
+          "refs": [
+            {
+              "data_key": "evaluations",
+              "file": "opportunity-signals"
+            }
+          ],
+          "text": "The count of fired signal results in the view, with the top-ranked signal group named."
+        }
+      ],
+      "kam_additions": [
+        {
+          "id": "account_health",
+          "name": "Account health",
+          "refs": [
+            {
+              "catalogue_ids": [
+                "account_health"
+              ],
+              "file": "account-health"
+            }
+          ],
+          "text": "The account health rating."
+        },
+        {
+          "id": "dashboard_emphasis",
+          "name": "Dashboard emphasis",
+          "refs": [
+            {
+              "data_key": "dashboard_emphasis",
+              "file": "customer-priorities"
+            }
+          ],
+          "text": "The workbook's dashboard_emphasis text for the Customer's industry."
+        }
+      ],
+      "priority_blocks": {
+        "headline_kpis": [
+          {
+            "kpi_ids": [
+              "water_use_allocated",
+              "washes_per_garment"
+            ],
+            "notes": [],
+            "priority_id": "water",
+            "refs": [
+              {
+                "catalogue_ids": [
+                  "water_use_allocated"
+                ],
+                "file": "footprint-handprint-kpis"
+              },
+              {
+                "catalogue_ids": [
+                  "washes_per_garment"
+                ],
+                "file": "service-kpis"
+              }
+            ]
+          },
+          {
+            "kpi_ids": [
+              "emissions_allocated",
+              "energy_saved",
+              "avoided_product_co2e_estimated"
+            ],
+            "notes": [
+              "Avoided product CO2e (estimated) is shown apart from Emissions saved and never added to it."
+            ],
+            "priority_id": "emissions",
+            "refs": [
+              {
+                "catalogue_ids": [
+                  "emissions_allocated"
+                ],
+                "file": "footprint-handprint-kpis"
+              },
+              {
+                "catalogue_ids": [
+                  "energy_saved"
+                ],
+                "file": "footprint-handprint-kpis"
+              },
+              {
+                "catalogue_ids": [
+                  "avoided_product_co2e_estimated"
+                ],
+                "file": "operational-circularity-kpis"
+              }
+            ]
+          },
+          {
+            "kpi_ids": [
+              "repair_rate",
+              "replacements_postponed_estimated",
+              "recycled_or_reused_share"
+            ],
+            "notes": [],
+            "priority_id": "circularity",
+            "refs": [
+              {
+                "catalogue_ids": [
+                  "repair_rate"
+                ],
+                "file": "operational-circularity-kpis"
+              },
+              {
+                "catalogue_ids": [
+                  "replacements_postponed_estimated"
+                ],
+                "file": "operational-circularity-kpis"
+              },
+              {
+                "catalogue_ids": [
+                  "recycled_or_reused_share"
+                ],
+                "file": "operational-circularity-kpis"
+              }
+            ]
+          },
+          {
+            "kpi_ids": [
+              "turnaround_hours_median",
+              "late_service_cycles",
+              "service_request_free_site_months"
+            ],
+            "notes": [
+              "Late service cycles are shown with the sampled cycles behind them."
+            ],
+            "priority_id": "service_reliability",
+            "refs": [
+              {
+                "catalogue_ids": [
+                  "turnaround_hours_median"
+                ],
+                "file": "service-kpis"
+              },
+              {
+                "catalogue_ids": [
+                  "late_service_cycles"
+                ],
+                "file": "service-kpis"
+              },
+              {
+                "catalogue_ids": [
+                  "service_request_free_site_months"
+                ],
+                "file": "service-kpis"
+              }
+            ]
+          },
+          {
+            "kpi_ids": [
+              "garments_per_wearer",
+              "scan_coverage",
+              "allocated_garments_with_no_scan_activity"
+            ],
+            "notes": [],
+            "priority_id": "garment_utilisation",
+            "refs": [
+              {
+                "catalogue_ids": [
+                  "garments_per_wearer"
+                ],
+                "file": "service-kpis"
+              },
+              {
+                "catalogue_ids": [
+                  "scan_coverage"
+                ],
+                "file": "service-kpis"
+              },
+              {
+                "catalogue_ids": [
+                  "allocated_garments_with_no_scan_activity"
+                ],
+                "file": "service-kpis"
+              }
+            ]
+          },
+          {
+            "kpi_ids": [
+              "scan_coverage",
+              "allocated_garments_with_no_scan_activity",
+              "turnaround_by_stage"
+            ],
+            "notes": [
+              "Turnaround by stage is KAM view only."
+            ],
+            "priority_id": "traceability",
+            "refs": [
+              {
+                "catalogue_ids": [
+                  "scan_coverage"
+                ],
+                "file": "service-kpis"
+              },
+              {
+                "catalogue_ids": [
+                  "allocated_garments_with_no_scan_activity"
+                ],
+                "file": "service-kpis"
+              },
+              {
+                "catalogue_ids": [
+                  "turnaround_by_stage"
+                ],
+                "file": "service-kpis"
+              }
+            ]
+          },
+          {
+            "kpi_ids": [
+              "improvement_on_time_service_cycles",
+              "improvement_service_requests",
+              "improvement_scan_coverage"
+            ],
+            "notes": [
+              "The 3 period comparisons at Customer grain."
+            ],
+            "priority_id": "improvement",
+            "refs": [
+              {
+                "catalogue_ids": [
+                  "improvement_on_time_service_cycles"
+                ],
+                "file": "period-comparisons"
+              },
+              {
+                "catalogue_ids": [
+                  "improvement_service_requests"
+                ],
+                "file": "period-comparisons"
+              },
+              {
+                "catalogue_ids": [
+                  "improvement_scan_coverage"
+                ],
+                "file": "period-comparisons"
+              }
+            ]
+          }
+        ],
+        "max_blocks": 3,
+        "rules": [
+          "One block for each of the Customer's priorities, up to 3, in priority order.",
+          "A block skips headline KPIs already on the common row.",
+          "In the Customer view a block skips KAM-only KPIs.",
+          "A block shows the top fired signal group that matches its priority, if one exists.",
+          "When the user changes the priorities, the blocks change with them."
+        ]
+      },
+      "signal_group_rules": [
+        "Fired signal results are grouped by signal. A group shows 1 lever, its lever owner and the Sites (and products) it fired on.",
+        "Groups rank by the position of their highest matching Customer priority, then by their largest relative gap.",
+        "Groups that match no priority come last.",
+        "The Customer view and the export leave out signal 4.",
+        "The signal tool still returns one result per Site."
+      ]
+    },
+    "period": "2025",
+    "review": {
+      "follows_view": "Customer",
+      "parts": [
+        {
+          "catalogue_refs": [
+            {
+              "catalogue_ids": [
+                "on_time_service_cycle_share",
+                "late_service_cycles",
+                "turnaround_hours_median",
+                "turnaround_hours_90th_percentile",
+                "service_requests",
+                "service_requests_per_100_wearers",
+                "service_request_free_site_months",
+                "active_wearers",
+                "garments_per_wearer",
+                "scan_coverage",
+                "allocated_garments_with_no_scan_activity",
+                "washes_per_garment",
+                "garments_in_circulation"
+              ],
+              "file": "service-kpis"
+            },
+            {
+              "catalogue_ids": [
+                "water",
+                "emissions",
+                "circularity",
+                "service_reliability",
+                "garment_utilisation",
+                "traceability",
+                "improvement"
+              ],
+              "file": "customer-priorities"
+            }
+          ],
+          "evidence_areas": [
+            "Account context",
+            "Service Performance",
+            "Service Adoption"
+          ],
+          "id": "look_back",
+          "name": "Look back",
+          "refs": [
+            {
+              "data_key": "customers",
+              "file": "master-data"
+            }
+          ],
+          "split_group": "evidence_and_value",
+          "text": "Account context, Service Performance and Service Adoption."
+        },
+        {
+          "catalogue_refs": [
+            {
+              "catalogue_ids": [
+                "repairs",
+                "repair_rate",
+                "replacements_postponed_estimated",
+                "avoided_product_co2e_estimated",
+                "textile_waste_allocated",
+                "textile_waste_by_treatment_route",
+                "recycled_or_reused_share",
+                "textile_waste_diverted_from_mixed_waste_estimated"
+              ],
+              "file": "operational-circularity-kpis"
+            },
+            {
+              "catalogue_ids": [
+                "washed_kg",
+                "water_use_allocated",
+                "energy_use_allocated",
+                "emissions_allocated",
+                "water_saved",
+                "energy_saved",
+                "emissions_saved"
+              ],
+              "file": "footprint-handprint-kpis"
+            }
+          ],
+          "evidence_areas": [
+            "Operational Value",
+            "Sustainability Value",
+            "Financial Value"
+          ],
+          "id": "show_value",
+          "name": "Show value",
+          "refs": [
+            {
+              "data_key": "context_lines.group_emissions_intensity",
+              "file": "public-reference"
+            }
+          ],
+          "split_group": "evidence_and_value",
+          "text": "Operational Value, Sustainability Value with the PUBLIC_REFERENCE context line, and the Financial Value note: deferred, because the data holds no Customer cost or price."
+        },
+        {
+          "catalogue_refs": [],
+          "evidence_areas": [
+            "Data transparency",
+            "Customer Experience"
+          ],
+          "id": "build_trust",
+          "name": "Build trust",
+          "refs": [
+            {
+              "data_key": "customer_experience_gap",
+              "file": "account-health"
+            }
+          ],
+          "split_group": "evidence_and_value",
+          "text": "Data transparency, Customer version, including the Customer Experience data gap."
+        },
+        {
+          "catalogue_refs": [
+            {
+              "catalogue_ids": [
+                "improvement_on_time_service_cycles",
+                "improvement_service_requests",
+                "improvement_scan_coverage"
+              ],
+              "file": "period-comparisons"
+            },
+            {
+              "catalogue_ids": [
+                "garment_allocation_above_peers",
+                "allocated_garments_with_no_scan_activity_above_peers",
+                "washes_per_garment_above_peers",
+                "late_service_cycles_above_peers",
+                "repair_rate_above_peers"
+              ],
+              "file": "opportunity-signals"
+            }
+          ],
+          "evidence_areas": [
+            "Improvement"
+          ],
+          "id": "look_forward",
+          "name": "Look forward",
+          "refs": [
+            {
+              "catalogue_ids": [
+                "improvement_on_time_service_cycles",
+                "improvement_service_requests",
+                "improvement_scan_coverage"
+              ],
+              "file": "period-comparisons"
+            }
+          ],
+          "split_group": "future_planning",
+          "text": "Improvement at Customer grain, and every fired signal group in rank order."
+        },
+        {
+          "catalogue_refs": [],
+          "evidence_areas": [],
+          "id": "agree_actions",
+          "name": "Agree actions",
+          "refs": [],
+          "split_group": "future_planning",
+          "text": "Up to 3 proposed next steps."
+        }
+      ],
+      "proposed_next_step_rules": [
+        "The top 3 signal groups, or fewer if fewer fire, each become 1 proposed next step.",
+        "Each has the signal's lever owner and no date.",
+        "Proposed, to be agreed in the meeting."
+      ],
+      "rules": [
+        "The export follows the Customer view's content rules: no account health, no KAM-only items and the Customer version of Data transparency.",
+        "Look back and Show value hold every Customer-view KPI at Customer grain. The KPIs in the Customer's priority blocks also get a Site breakdown.",
+        "65% and 35% are a page-count target for the session that builds the export. Slide counts and layout are out of scope."
+      ],
+      "split": [
+        {
+          "page_share": 0.65,
+          "part_ids": [
+            "look_back",
+            "show_value",
+            "build_trust"
+          ],
+          "split_group": "evidence_and_value"
+        },
+        {
+          "page_share": 0.35,
+          "part_ids": [
+            "look_forward",
+            "agree_actions"
+          ],
+          "split_group": "future_planning"
+        }
+      ]
+    },
+    "views": {
+      "data_transparency": {
+        "customer": {
+          "items": [
+            {
+              "id": "baseline_used",
+              "name": "Baseline used",
+              "refs": [
+                {
+                  "data_key": "baselines",
+                  "file": "master-data",
+                  "id_field": "baseline_id",
+                  "ids": [
+                    "B_LOCAL",
+                    "B_HOME",
+                    "B_INHOUSE"
+                  ]
+                },
+                {
+                  "data_key": "baselines.default_baseline_id",
+                  "file": "footprint-handprint-kpis"
+                }
+              ],
+              "text": "The washing alternative every handprint value is compared against: outsourced local laundry (B_LOCAL) by default, or the one the user chose."
+            },
+            {
+              "id": "assumption_list",
+              "name": "Assumption list",
+              "refs": [
+                {
+                  "data_key": "assumptions",
+                  "file": "master-data",
+                  "id_field": "assumption_id",
+                  "ids": [
+                    "A001",
+                    "A002",
+                    "A003",
+                    "A004",
+                    "A005"
+                  ]
+                }
+              ],
+              "text": "The assumptions A001 to A005 with their labels, and the TEAM_ASSUMPTION label on every threshold and factor the team set."
+            },
+            {
+              "entries": [
+                {
+                  "data_status": "SYNTHETIC",
+                  "text": "Synthetic data from the workbook, not real Customer data."
+                },
+                {
+                  "data_status": "SYNTHETIC_ESTIMATE",
+                  "text": "An estimate calculated from synthetic data and an assumption."
+                },
+                {
+                  "data_status": "SYNTHETIC_STRUCTURALLY_REPRESENTATIVE",
+                  "text": "Synthetic values with a realistic structure, not approved figures."
+                },
+                {
+                  "data_status": "ALLOCATED_ESTIMATE_SYNTHETIC",
+                  "text": "The Customer's share of a laundry total, allocated by washed kg, not measured at the Site."
+                },
+                {
+                  "data_status": "PUBLIC_REFERENCE",
+                  "text": "A published figure shown as context. It never stands in for a Customer's own value."
+                },
+                {
+                  "data_status": "TEAM_ASSUMPTION",
+                  "text": "A threshold or factor the team set where no source gives one. It can be changed."
+                }
+              ],
+              "id": "data_status_legend",
+              "name": "Data status legend",
+              "refs": [],
+              "text": "What each data status label means."
+            },
+            {
+              "entries": [
+                {
+                  "id": "customer_experience",
+                  "name": "Customer Experience",
+                  "refs": [
+                    {
+                      "data_key": "customer_experience_gap",
+                      "file": "account-health"
+                    }
+                  ],
+                  "text": "The workbook holds no CSAT or NPS survey results."
+                },
+                {
+                  "id": "contract_slas",
+                  "name": "Contract SLAs",
+                  "refs": [
+                    {
+                      "data_key": "gaps",
+                      "file": "public-reference",
+                      "id_field": "id",
+                      "ids": [
+                        "on_time_service_cycle_target"
+                      ]
+                    }
+                  ],
+                  "text": "No contract service level is in the data. On-time thresholds are team assumptions."
+                },
+                {
+                  "id": "cost",
+                  "name": "Cost",
+                  "refs": [
+                    {
+                      "data_key": "cost_note",
+                      "file": "customer-priorities"
+                    }
+                  ],
+                  "text": "The data holds no Customer cost or price, so Financial Value is deferred."
+                },
+                {
+                  "id": "hygiene",
+                  "name": "Hygiene",
+                  "refs": [
+                    {
+                      "data_key": "term_map",
+                      "file": "customer-priorities",
+                      "id_field": "term",
+                      "ids": [
+                        "Hygiene"
+                      ]
+                    }
+                  ],
+                  "text": "The workbook holds no hygiene data."
+                },
+                {
+                  "id": "safety",
+                  "name": "Safety",
+                  "refs": [
+                    {
+                      "data_key": "term_map",
+                      "file": "customer-priorities",
+                      "id_field": "term",
+                      "ids": [
+                        "Safety"
+                      ]
+                    }
+                  ],
+                  "text": "The workbook holds no safety data."
+                },
+                {
+                  "id": "compliance",
+                  "name": "Compliance",
+                  "refs": [
+                    {
+                      "data_key": "term_map",
+                      "file": "customer-priorities",
+                      "id_field": "term",
+                      "ids": [
+                        "Compliance"
+                      ]
+                    }
+                  ],
+                  "text": "The workbook holds no compliance data."
+                }
+              ],
+              "id": "data_gaps",
+              "name": "Data gaps",
+              "refs": [
+                {
+                  "data_key": "customer_experience_gap",
+                  "file": "account-health"
+                },
+                {
+                  "data_key": "gaps",
+                  "file": "public-reference",
+                  "id_field": "id",
+                  "ids": [
+                    "on_time_service_cycle_target"
+                  ]
+                },
+                {
+                  "data_key": "cost_note",
+                  "file": "customer-priorities"
+                },
+                {
+                  "data_key": "term_map",
+                  "file": "customer-priorities",
+                  "id_field": "term",
+                  "ids": [
+                    "Hygiene"
+                  ]
+                },
+                {
+                  "data_key": "term_map",
+                  "file": "customer-priorities",
+                  "id_field": "term",
+                  "ids": [
+                    "Safety"
+                  ]
+                },
+                {
+                  "data_key": "term_map",
+                  "file": "customer-priorities",
+                  "id_field": "term",
+                  "ids": [
+                    "Compliance"
+                  ]
+                }
+              ],
+              "text": "What the data does not hold, so no figure is shown for it."
+            }
+          ]
+        },
+        "kam": {
+          "items": [
+            {
+              "id": "baseline_used",
+              "name": "Baseline used",
+              "refs": [
+                {
+                  "data_key": "baselines",
+                  "file": "master-data",
+                  "id_field": "baseline_id",
+                  "ids": [
+                    "B_LOCAL",
+                    "B_HOME",
+                    "B_INHOUSE"
+                  ]
+                },
+                {
+                  "data_key": "baselines.default_baseline_id",
+                  "file": "footprint-handprint-kpis"
+                }
+              ],
+              "text": "The washing alternative every handprint value is compared against: outsourced local laundry (B_LOCAL) by default, or the one the user chose."
+            },
+            {
+              "id": "assumption_list",
+              "name": "Assumption list",
+              "refs": [
+                {
+                  "data_key": "assumptions",
+                  "file": "master-data",
+                  "id_field": "assumption_id",
+                  "ids": [
+                    "A001",
+                    "A002",
+                    "A003",
+                    "A004",
+                    "A005"
+                  ]
+                }
+              ],
+              "text": "The assumptions A001 to A005 with their labels, and the TEAM_ASSUMPTION label on every threshold and factor the team set."
+            },
+            {
+              "entries": [
+                {
+                  "data_status": "SYNTHETIC",
+                  "text": "Synthetic data from the workbook, not real Customer data."
+                },
+                {
+                  "data_status": "SYNTHETIC_ESTIMATE",
+                  "text": "An estimate calculated from synthetic data and an assumption."
+                },
+                {
+                  "data_status": "SYNTHETIC_STRUCTURALLY_REPRESENTATIVE",
+                  "text": "Synthetic values with a realistic structure, not approved figures."
+                },
+                {
+                  "data_status": "ALLOCATED_ESTIMATE_SYNTHETIC",
+                  "text": "The Customer's share of a laundry total, allocated by washed kg, not measured at the Site."
+                },
+                {
+                  "data_status": "PUBLIC_REFERENCE",
+                  "text": "A published figure shown as context. It never stands in for a Customer's own value."
+                },
+                {
+                  "data_status": "TEAM_ASSUMPTION",
+                  "text": "A threshold or factor the team set where no source gives one. It can be changed."
+                }
+              ],
+              "id": "data_status_legend",
+              "name": "Data status legend",
+              "refs": [],
+              "text": "What each data status label means."
+            },
+            {
+              "entries": [
+                {
+                  "id": "customer_experience",
+                  "name": "Customer Experience",
+                  "refs": [
+                    {
+                      "data_key": "customer_experience_gap",
+                      "file": "account-health"
+                    }
+                  ],
+                  "text": "The workbook holds no CSAT or NPS survey results."
+                },
+                {
+                  "id": "contract_slas",
+                  "name": "Contract SLAs",
+                  "refs": [
+                    {
+                      "data_key": "gaps",
+                      "file": "public-reference",
+                      "id_field": "id",
+                      "ids": [
+                        "on_time_service_cycle_target"
+                      ]
+                    }
+                  ],
+                  "text": "No contract service level is in the data. On-time thresholds are team assumptions."
+                },
+                {
+                  "id": "cost",
+                  "name": "Cost",
+                  "refs": [
+                    {
+                      "data_key": "cost_note",
+                      "file": "customer-priorities"
+                    }
+                  ],
+                  "text": "The data holds no Customer cost or price, so Financial Value is deferred."
+                },
+                {
+                  "id": "hygiene",
+                  "name": "Hygiene",
+                  "refs": [
+                    {
+                      "data_key": "term_map",
+                      "file": "customer-priorities",
+                      "id_field": "term",
+                      "ids": [
+                        "Hygiene"
+                      ]
+                    }
+                  ],
+                  "text": "The workbook holds no hygiene data."
+                },
+                {
+                  "id": "safety",
+                  "name": "Safety",
+                  "refs": [
+                    {
+                      "data_key": "term_map",
+                      "file": "customer-priorities",
+                      "id_field": "term",
+                      "ids": [
+                        "Safety"
+                      ]
+                    }
+                  ],
+                  "text": "The workbook holds no safety data."
+                },
+                {
+                  "id": "compliance",
+                  "name": "Compliance",
+                  "refs": [
+                    {
+                      "data_key": "term_map",
+                      "file": "customer-priorities",
+                      "id_field": "term",
+                      "ids": [
+                        "Compliance"
+                      ]
+                    }
+                  ],
+                  "text": "The workbook holds no compliance data."
+                }
+              ],
+              "id": "data_gaps",
+              "name": "Data gaps",
+              "refs": [
+                {
+                  "data_key": "customer_experience_gap",
+                  "file": "account-health"
+                },
+                {
+                  "data_key": "gaps",
+                  "file": "public-reference",
+                  "id_field": "id",
+                  "ids": [
+                    "on_time_service_cycle_target"
+                  ]
+                },
+                {
+                  "data_key": "cost_note",
+                  "file": "customer-priorities"
+                },
+                {
+                  "data_key": "term_map",
+                  "file": "customer-priorities",
+                  "id_field": "term",
+                  "ids": [
+                    "Hygiene"
+                  ]
+                },
+                {
+                  "data_key": "term_map",
+                  "file": "customer-priorities",
+                  "id_field": "term",
+                  "ids": [
+                    "Safety"
+                  ]
+                },
+                {
+                  "data_key": "term_map",
+                  "file": "customer-priorities",
+                  "id_field": "term",
+                  "ids": [
+                    "Compliance"
+                  ]
+                }
+              ],
+              "text": "What the data does not hold, so no figure is shown for it."
+            },
+            {
+              "id": "laundry_water_and_energy_factors",
+              "name": "Laundry water and energy factors",
+              "refs": [
+                {
+                  "data_key": "transparency.laundry_month_factors",
+                  "file": "footprint-handprint-kpis"
+                }
+              ],
+              "text": "Water and energy per washed kg, by laundry and month."
+            },
+            {
+              "id": "laundry_waste_factors",
+              "name": "Laundry waste factors",
+              "refs": [
+                {
+                  "data_key": "laundry_waste_factors",
+                  "file": "operational-circularity-kpis"
+                }
+              ],
+              "text": "Textile waste per washed kg, by laundry."
+            },
+            {
+              "id": "process_co2e_per_kwh",
+              "name": "Process CO2e per kWh",
+              "refs": [
+                {
+                  "data_key": "transparency.laundry_process_co2e_per_kwh",
+                  "file": "footprint-handprint-kpis"
+                }
+              ],
+              "text": "Process CO2e per kWh by laundry, set by the country grid."
+            },
+            {
+              "id": "baseline_factors_and_dataset_actuals_against_public_figures",
+              "name": "Baseline factors and dataset actuals against public figures",
+              "refs": [
+                {
+                  "data_key": "transparency.public_figure_ids",
+                  "file": "footprint-handprint-kpis"
+                },
+                {
+                  "data_key": "baselines.low_cases",
+                  "file": "footprint-handprint-kpis"
+                }
+              ],
+              "text": "The baseline factors and the dataset's laundry actuals set against public figures, with the low case."
+            },
+            {
+              "id": "group_emissions_intensity_notes",
+              "name": "Group emissions intensity notes",
+              "refs": [
+                {
+                  "data_key": "context_lines.group_emissions_intensity.kam_notes",
+                  "file": "public-reference"
+                }
+              ],
+              "text": "The 13% note and the Johnson Service Group note on the group emissions intensity context line."
+            },
+            {
+              "id": "january_2026_cycles",
+              "name": "January 2026 cycles",
+              "refs": [
+                {
+                  "data_key": "data_transparency_notes",
+                  "file": "service-kpis",
+                  "id_field": "id",
+                  "ids": [
+                    "cycles_delivered_in_2026_01"
+                  ]
+                }
+              ],
+              "text": "Sampled service cycles delivered in January 2026 fall outside every 2025 period."
+            },
+            {
+              "entries": [
+                {
+                  "catalogue_id": "account_health",
+                  "file": "account-health",
+                  "rationale": "No public benchmark exists. Set at about 2 times the 2025 synthetic spread. Replace with the contract SLA in production."
+                },
+                {
+                  "catalogue_id": "account_health_on_time_service_cycle_share",
+                  "file": "account-health",
+                  "rationale": "No public benchmark exists. Set at about 2 times the 2025 synthetic spread. Replace with the contract SLA in production."
+                },
+                {
+                  "catalogue_id": "account_health_service_requests_per_100_wearers_per_month",
+                  "file": "account-health",
+                  "rationale": "No public benchmark exists. Set at about 2 times the 2025 synthetic spread. Replace with the contract SLA in production."
+                },
+                {
+                  "catalogue_id": "account_health_scan_coverage",
+                  "file": "account-health",
+                  "rationale": "No public benchmark exists. Set at about 2 times the 2025 synthetic spread. Replace with the contract SLA in production."
+                },
+                {
+                  "catalogue_id": "improvement_on_time_service_cycles",
+                  "file": "period-comparisons",
+                  "rationale": "No public benchmark exists. Set so that 2025 noise between half-years is not reported as change."
+                },
+                {
+                  "catalogue_id": "improvement_service_requests",
+                  "file": "period-comparisons",
+                  "rationale": "No public benchmark exists. Set so that 2025 noise between half-years is not reported as change."
+                },
+                {
+                  "catalogue_id": "improvement_scan_coverage",
+                  "file": "period-comparisons",
+                  "rationale": "No public benchmark exists. Set so that 2025 noise between half-years is not reported as change."
+                },
+                {
+                  "catalogue_id": "garment_allocation_above_peers",
+                  "file": "opportunity-signals",
+                  "rationale": "Roughly the top 10 to 20% of the 2025 synthetic spread. No public benchmark exists."
+                },
+                {
+                  "catalogue_id": "allocated_garments_with_no_scan_activity_above_peers",
+                  "file": "opportunity-signals",
+                  "rationale": "Roughly the top 10 to 20% of the 2025 synthetic spread. No public benchmark exists."
+                },
+                {
+                  "catalogue_id": "washes_per_garment_above_peers",
+                  "file": "opportunity-signals",
+                  "rationale": "Roughly the top 10 to 20% of the 2025 synthetic spread. No public benchmark exists."
+                },
+                {
+                  "catalogue_id": "service_request_rate_above_peers",
+                  "file": "opportunity-signals",
+                  "rationale": "Roughly the top 10 to 20% of the 2025 synthetic spread. No public benchmark exists."
+                },
+                {
+                  "catalogue_id": "late_service_cycles_above_peers",
+                  "file": "opportunity-signals",
+                  "rationale": "Roughly the top 10 to 20% of the 2025 synthetic spread. No public benchmark exists."
+                },
+                {
+                  "catalogue_id": "repair_rate_above_peers",
+                  "file": "opportunity-signals",
+                  "rationale": "Roughly the top 10 to 20% of the 2025 synthetic spread. No public benchmark exists."
+                }
+              ],
+              "id": "thresholds_and_guards",
+              "name": "Thresholds and guards",
+              "refs": [
+                {
+                  "data_key": "defaults",
+                  "file": "account-health"
+                },
+                {
+                  "data_key": "defaults",
+                  "file": "period-comparisons"
+                },
+                {
+                  "data_key": "defaults",
+                  "file": "opportunity-signals"
+                }
+              ],
+              "text": "Every threshold and guard with its rationale, all TEAM_ASSUMPTION values."
+            }
+          ]
+        }
+      },
+      "default_text": "Every item not listed in kam_only shows in both views, as its own ticket set it.",
+      "default_view": "Both",
+      "kam_only": [
+        {
+          "id": "account_health",
+          "name": "Account health",
+          "refs": [
+            {
+              "catalogue_ids": [
+                "account_health",
+                "account_health_on_time_service_cycle_share",
+                "account_health_service_requests_per_100_wearers_per_month",
+                "account_health_scan_coverage"
+              ],
+              "file": "account-health"
+            }
+          ],
+          "text": "Decided in the account health thresholds ticket."
+        },
+        {
+          "id": "turnaround_by_stage",
+          "name": "Turnaround by stage",
+          "refs": [
+            {
+              "catalogue_ids": [
+                "turnaround_by_stage"
+              ],
+              "file": "service-kpis"
+            }
+          ],
+          "text": "Decided in the service performance and adoption KPIs ticket."
+        },
+        {
+          "id": "dashboard_emphasis",
+          "name": "Dashboard emphasis",
+          "refs": [
+            {
+              "data_key": "dashboard_emphasis",
+              "file": "customer-priorities"
+            }
+          ],
+          "text": "Decided in the industry KPIs ticket."
+        },
+        {
+          "id": "improvement_site_grain",
+          "name": "Improvement Site grain",
+          "refs": [
+            {
+              "catalogue_ids": [
+                "improvement_on_time_service_cycles",
+                "improvement_service_requests",
+                "improvement_scan_coverage"
+              ],
+              "file": "period-comparisons"
+            }
+          ],
+          "text": "Site results are within what chance gives. The Customer view shows Customer grain only, which reads \"no clear change\" on all 3 comparisons in 2025."
+        },
+        {
+          "id": "service_request_rate_above_peers",
+          "name": "Service request rate above peers",
+          "refs": [
+            {
+              "catalogue_ids": [
+                "service_request_rate_above_peers"
+              ],
+              "file": "opportunity-signals"
+            }
+          ],
+          "text": "Opportunity signal 4 mostly flags small Sites in this data, which is weak evidence to show a Customer."
+        },
+        {
+          "id": "signal_results_that_did_not_fire_or_were_not_evaluated",
+          "name": "Signal results that did not fire or were not evaluated",
+          "refs": [
+            {
+              "data_key": "evaluations",
+              "file": "opportunity-signals"
+            }
+          ],
+          "text": "The Customer view shows fired results only, each with its lever and lever owner."
+        },
+        {
+          "id": "full_data_transparency",
+          "name": "Full Data transparency",
+          "refs": [],
+          "text": "The Customer view shows the Customer version of Data transparency."
+        }
+      ],
+      "prompt_answers_text": "The view applies to prompt answers too. In the Customer view no KAM-only result is returned."
+    }
+  },
+  "meta": {
+    "name": "views-and-review",
+    "source_file": "Lindstrom_SinceAI_Customer_Value_Synthetic_Data_Pack.xlsx",
+    "source_sha256": "b50603f7112956bbd49d81f6e83d1e3879be8329e2076c1b7aee9d861e08e217"
+  }
+}
