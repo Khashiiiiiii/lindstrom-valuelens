@@ -1,10 +1,12 @@
 // The Overview's SVG charts (#27, #28): the tile sparkline, the monthly trend chart, the on-time gauge, the waste
 // route donut and turnaround by stage as stacked bars. They draw runKpi values the page data holds and compute no
-// figure (ADR 0001). They are plain SVG, with no chart library.
+// figure (ADR 0001). They are plain SVG, with no chart library. Each SVG takes the drawKey of the values it draws,
+// so it draws in when those values change and not on a language switch or a new highlight (#33).
 
 import type { HealthThresholds, Month } from "../../lib/data.ts";
 import type { Lang } from "../../lib/i18n.ts";
 import { dataLabel, formatNumber, monthName, t } from "../../lib/i18n.ts";
+import { drawKey } from "../draw-key.ts";
 
 /** A value as chart text: a share as a percentage, else a number with at most 2 decimals. */
 function chartNumber(lang: Lang, value: number, unit: string): string {
@@ -42,7 +44,7 @@ export function Sparkline({ values }: { values: (number | null)[] }) {
   const y = (v: number) => 28 - ((v - min) / (max - min || 1)) * 24;
   const line = linePath(values.map((v, i) => (v === null ? null : [x(i), y(v)])));
   return (
-    <svg className="spark" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true">
+    <svg key={drawKey(values)} className="spark draw-fade" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true">
       <path d={line} />
     </svg>
   );
@@ -73,7 +75,7 @@ export function TrendChart({ lang, months, highlighted, values, unit }: TrendCha
   const band = first === -1 || (first === 0 && last === months.length - 1) ? null : { x: x(first) - 14, w: x(last) - x(first) + 28 };
   const grid = [0, 1, 2, 3].map((k) => min + ((max - min) * k) / 3);
   return (
-    <svg className="trend" viewBox={`0 0 ${W} ${H}`} role="img">
+    <svg key={drawKey(values, unit)} className="trend" viewBox={`0 0 ${W} ${H}`} role="img">
       {grid.map((v) => (
         <g key={v}>
           <line x1={L} x2={W - R} y1={y(v)} y2={y(v)} className="grid" />
@@ -83,10 +85,10 @@ export function TrendChart({ lang, months, highlighted, values, unit }: TrendCha
         </g>
       ))}
       {band && <rect x={band.x} y={T} width={band.w} height={H - T - B} rx={8} className="band" />}
-      <path d={linePath(values.map((v, i) => (v === null ? null : [x(i), y(v)])))} className="line" />
+      <path d={linePath(values.map((v, i) => (v === null ? null : [x(i), y(v)])))} pathLength={1} className="line draw-line" />
       {values.map((v, i) =>
         v === null ? null : (
-          <circle key={months[i]} cx={x(i)} cy={y(v)} r={on[i] ? 4 : 3} className={on[i] ? "pt on" : "pt"}>
+          <circle key={months[i]} cx={x(i)} cy={y(v)} r={on[i] ? 4 : 3} className={on[i] ? "pt on draw-fade" : "pt draw-fade"}>
             <title>
               {`${monthName(lang, months[i])} ${months[i].slice(0, 4)}: ${chartNumber(lang, v, unit)}${unit === "share" ? "" : ` ${dataLabel(lang, unit, v)}`}`}
             </title>
@@ -118,9 +120,9 @@ export function Gauge({ lang, value, thresholds }: { lang: Lang; value: number; 
   };
   return (
     <div className="gauge">
-      <svg viewBox="0 0 220 130" role="img">
+      <svg key={drawKey(value)} viewBox="0 0 220 130" role="img">
         <path d={arc} className="track" pathLength={100} />
-        <path d={arc} className="val" pathLength={100} strokeDasharray={`${(value * 100).toFixed(2)} 100`} />
+        <path d={arc} pathLength={100} strokeDasharray={`${(value * 100).toFixed(2)} 100`} className="val draw-sweep" />
         {thresholds && tick(thresholds.amber_threshold, "amber")}
         {thresholds && tick(thresholds.green_threshold, "green")}
         <text x={110} y={100} textAnchor="middle" className="big">
@@ -147,7 +149,7 @@ export function Donut({ segments, total, unit }: { segments: { key: string; labe
   let offset = 0;
   return (
     <div className="donutwrap">
-      <svg className="donut" viewBox="0 0 160 160" role="img">
+      <svg key={drawKey(segments.map((s) => [s.key, s.fraction]))} className="donut" viewBox="0 0 160 160" role="img">
         <g transform="rotate(-90 80 80)">
           {segments.map((s, i) => {
             const length = s.fraction * 100;
@@ -161,7 +163,7 @@ export function Donut({ segments, total, unit }: { segments: { key: string; labe
                 stroke={SERIES_COLOURS[i % SERIES_COLOURS.length]}
                 strokeDasharray={`${Math.max(length - 0.6, 0.1).toFixed(2)} 100`}
                 strokeDashoffset={-offset}
-                className="seg"
+                className="seg draw-sweep"
               >
                 <title>{`${s.label}: ${s.kg} ${unit}`}</title>
               </circle>
@@ -202,7 +204,7 @@ export function StackedBars({ lang, legend, bars }: { lang: Lang; legend: string
   const y = (v: number) => T + (1 - v / max) * (H - T - B);
   return (
     <>
-      <svg className="stacked" viewBox={`0 0 ${W} ${H}`} role="img">
+      <svg key={drawKey(bars.map((b) => b.hours))} className="stacked" viewBox={`0 0 ${W} ${H}`} role="img">
         {[0, 0.5, 1].map((k) => (
           <g key={k}>
             <line x1={L} x2={W - R} y1={y(max * k)} y2={y(max * k)} className="grid" />
@@ -221,7 +223,7 @@ export function StackedBars({ lang, legend, bars }: { lang: Lang; legend: string
                 const height = y(stacked) - top;
                 stacked += h;
                 return (
-                  <rect key={k} x={x} y={top} width={width} height={Math.max(height - 1, 0)} rx={k === bar.hours.length - 1 ? 4 : 0} fill={SERIES_COLOURS[k]}>
+                  <rect key={k} x={x} y={top} width={width} height={Math.max(height - 1, 0)} rx={k === bar.hours.length - 1 ? 4 : 0} fill={SERIES_COLOURS[k]} className="draw-grow">
                     <title>{`${bar.month}: ${legend[k]} ${formatNumber(lang, h)} ${dataLabel(lang, "hours", h)}`}</title>
                   </rect>
                 );

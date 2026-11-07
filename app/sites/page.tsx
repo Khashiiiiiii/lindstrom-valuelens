@@ -8,6 +8,7 @@ import { useState } from "react";
 
 import { t } from "../../lib/i18n.ts";
 import type { SitesPage } from "../../lib/pages/sites.ts";
+import { drawKey } from "../draw-key.ts";
 import { useDashboard } from "../shell.tsx";
 import { usePageData } from "../use-page-data.ts";
 import type { SiteChart } from "./site-cards.ts";
@@ -90,10 +91,18 @@ export default function Sites() {
   );
 }
 
-/** One bar per Site for the chosen KPI, longest first. A Site with no number has no bar. */
+/**
+ * One bar per Site for the chosen KPI, longest first. A Site with no number has no bar. The bars grow in when the KPI
+ * or its values change (#33).
+ */
 function SiteBars({ chart, selected, onOpen }: { chart: SiteChart; selected: string | null; onOpen: (site_id: string) => void }) {
   return (
-    <div className="hbars" role="list" aria-label={chart.name}>
+    <div
+      key={drawKey(chart.kpi_id, chart.bars.map((b) => [b.site_id, b.fraction]))}
+      className="hbars"
+      role="list"
+      aria-label={chart.name}
+    >
       {chart.bars.map((bar) => (
         <button
           key={bar.site_id}
@@ -103,7 +112,7 @@ function SiteBars({ chart, selected, onOpen }: { chart: SiteChart; selected: str
           onClick={() => onOpen(bar.site_id)}
         >
           <span className="lbl">{bar.name}</span>
-          <span className="track">{bar.fraction !== null && <span className="fill" style={{ width: `${bar.fraction * 100}%` }} />}</span>
+          <span className="track">{bar.fraction !== null && <span className="fill draw-growx" style={{ width: `${bar.fraction * 100}%` }} />}</span>
           <span className="v">{bar.text}</span>
         </button>
       ))}

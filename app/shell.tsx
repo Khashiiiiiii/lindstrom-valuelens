@@ -2,6 +2,7 @@
 
 // The app shell (#26): the left menu, the sticky top bar, the page title with the period and view controls, and
 // the client state every page reads. The page state is in page-state.ts. The language persists in localStorage.
+// The theme toggle, profile menu and saved look (#33) are in look-controls.tsx.
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -15,6 +16,7 @@ import type { Metadata } from "../lib/pages/metadata.ts";
 import type { OpportunitiesPage } from "../lib/pages/opportunities.ts";
 import type { PageRequest } from "../lib/pages/request.ts";
 import { ExportDeck } from "./export-deck.tsx";
+import { ProfileMenu, ThemeToggle, useLook } from "./look-controls.tsx";
 import type { PageId } from "./menu.ts";
 import { menuItems, translationNote } from "./menu.ts";
 import type { PageAction, PageState } from "./page-state.ts";
@@ -67,6 +69,7 @@ export function errorMessage(e: unknown): string {
 /** The left menu, top bar, page title and controls around every page, and the client state the pages read. */
 export function Shell({ children }: { children: ReactNode }) {
   const [lang, setLang] = useLang();
+  const [look, setLook] = useLook();
   const [state, dispatch] = useReducer(pageState, null);
   const [meta, setMeta] = useState<Metadata | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -106,7 +109,8 @@ export function Shell({ children }: { children: ReactNode }) {
       <nav className="nav">
         <div className="brand" title={t(lang, "ValueLens by Lindström")}>
           <span className="logoclip">
-            <img src="/lindstrom-logo.png" alt="Lindström" />
+            <img className="logo-light" src="/lindstrom-logo.png" alt="Lindström" />
+            <img className="logo-dark" src="/lindstrom-logo-white.png" alt="Lindström" />
           </span>
           <span className="label product">ValueLens</span>
         </div>
@@ -168,6 +172,8 @@ export function Shell({ children }: { children: ReactNode }) {
               </button>
             ))}
           </span>
+          <ThemeToggle lang={lang} look={look} setLook={setLook} />
+          <ProfileMenu lang={lang} setLang={setLang} look={look} setLook={setLook} />
         </header>
         <main className="main">
           <div className="head">

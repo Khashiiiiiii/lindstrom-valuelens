@@ -6,13 +6,19 @@ import type { ReactNode } from "react";
 
 import { Assistant } from "./assistant/assistant.tsx";
 import "./globals.css";
+import { lookScript } from "./look.ts";
 import { Shell } from "./shell.tsx";
 
 export const metadata: Metadata = { title: "ValueLens by Lindström" };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
+  // The head script sets the saved theme and colours on <html> before the first paint (#33). The server cannot know
+  // them, so <html> may differ from the server render, and suppressHydrationWarning allows that.
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: lookScript() }} />
+      </head>
       <body>
         <Shell>
           {children}
