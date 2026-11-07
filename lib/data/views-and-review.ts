@@ -157,7 +157,8 @@ const PROPOSED_TEXT = "Proposed, to be agreed in the meeting.";
 
 /**
  * The top 3 signal groups for the priorities, or fewer if fewer fire, each as 1 proposed next step with the
- * signal's lever owner and no date. Throws on an unknown priority.
+ * signal's lever owner and no date. With a Site, the top 3 of that Site's signal groups. Throws on an unknown
+ * priority, and on a Site of another Customer.
  */
 export function proposedNextSteps(query: SignalGroupQuery): ProposedNextStep[] {
   return signalGroups(query)
@@ -230,9 +231,9 @@ function priorityBlocks(order: CustomerPriorityId[], view: KpiQuery["view"], gro
  * The first screen: the 9 common tiles as runKpi answers for the period, the Optimisation potential count and top
  * signal group, and up to 3 priority blocks with their answers. The KAM view adds account health and the
  * Customer's industry dashboard_emphasis. With a Site, every answer uses the Site scope and the Site count is 1.
- * With a Site, Optimisation potential counts only the fired results at that Site. The signal groups keep the
- * Customer's ranking, but only the groups with a result at that Site. Throws on an unknown Customer, Site, period
- * or priority, and on a Site of another Customer.
+ * With a Site, Optimisation potential counts only the fired results at that Site, and the top signal group and the
+ * blocks' groups come from that Site's signal groups. Throws on an unknown Customer, Site, period or priority, and on
+ * a Site of another Customer.
  */
 export function firstScreen({ customer_id, site_id, view, period, priorities }: FirstScreenQuery): FirstScreenResult {
   const priority_ids = resolvePriorities(customer_id, priorities);
@@ -240,9 +241,7 @@ export function firstScreen({ customer_id, site_id, view, period, priorities }: 
   resolveScope(scope);
   const query: KpiQuery = { scope, period, view };
   const answers = (kpi_ids: string[]) => kpi_ids.map((id) => runKpi(id, query));
-  // Keep the groups with a result at the Site, in the Customer's ranking. fired_count below counts only those results.
-  const atSite = (r: { site_id: string }) => site_id === undefined || r.site_id === site_id;
-  const groups = signalGroups({ customer_id, view, priorities: priority_ids }).filter((g) => g.results.some(atSite));
+  const groups = signalGroups({ customer_id, site_id, view, priorities: priority_ids });
   const master = getMasterData().data;
   return {
     customer_id,
@@ -252,7 +251,7 @@ export function firstScreen({ customer_id, site_id, view, period, priorities }: 
     tiles: getViewsAndReview().data.first_screen.common_tiles.map((t) => ({ ...t, answers: answers(t.kpi_ids) })),
     site_count: site_id === undefined ? master.sites.filter((s) => s.customer_id === customer_id).length : 1,
     optimisation_potential: {
-      fired_count: groups.reduce((total, g) => total + g.results.filter(atSite).length, 0),
+      fired_count: groups.reduce((total, g) => total + g.fired_count, 0),
       signal_count: groups.length,
       top_signal_group_signal_id: groups[0]?.signal_id ?? null,
     },

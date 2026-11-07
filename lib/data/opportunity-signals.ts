@@ -179,6 +179,8 @@ export function signalResults({ customer_id, site_id, view }: SignalQuery): Sign
 
 export interface SignalGroupQuery {
   customer_id: string;
+  /** A Site of the Customer. The groups then hold and rank by only the results at that Site. */
+  site_id?: string;
   view: KpiQuery["view"];
   /** Customer priority names or ids, in order. Without it, the Customer's default priorities. */
   priorities?: string[];
@@ -192,12 +194,14 @@ function compareText(a: string, b: string): number {
 /**
  * A Customer's fired results in the view, grouped by signal, each group with 1 lever and its owner. Groups rank by
  * the position of their highest matching priority in `priorities`, then by largest relative gap (ADR 0008). Groups
- * that match no priority come last. Results in a group are by gap, largest first. Throws on an unknown priority.
+ * that match no priority come last. Results in a group are by gap, largest first. With a Site, the groups hold only
+ * the results at that Site and rank by the Site's gaps, so the ranks run from 1 at every Site. Throws on an unknown
+ * priority, and on a Site of another Customer.
  */
-export function signalGroups({ customer_id, view, priorities }: SignalGroupQuery): SignalGroup[] {
+export function signalGroups({ customer_id, site_id, view, priorities }: SignalGroupQuery): SignalGroup[] {
   const order = resolvePriorities(customer_id, priorities);
   const position = (id: CustomerPriorityId | null) => (id === null ? order.length : order.indexOf(id));
-  const fired = signalResults({ customer_id, view }).filter((r) => r.fired);
+  const fired = signalResults({ customer_id, site_id, view }).filter((r) => r.fired);
   const groups = getOpportunitySignals()
     .catalogue.map((signal) => {
       const results = fired

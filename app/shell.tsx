@@ -12,6 +12,7 @@ import type { Period } from "../lib/data.ts";
 import type { Lang } from "../lib/i18n.ts";
 import { monthName, t } from "../lib/i18n.ts";
 import type { Metadata } from "../lib/pages/metadata.ts";
+import type { OpportunitiesPage } from "../lib/pages/opportunities.ts";
 import type { PageRequest } from "../lib/pages/request.ts";
 import type { PageId } from "./menu.ts";
 import { menuItems, translationNote } from "./menu.ts";
@@ -93,7 +94,7 @@ export function Shell({ children }: { children: ReactNode }) {
     // The metadata depends on the Customer and view only, not on the period or priorities.
   }, [customer_id, view]);
 
-  const items = menuItems(lang);
+  const items = menuItems(lang, useFiredCount(state));
   const current = items.find((i) => pathname === i.href || pathname.startsWith(`${i.href}/`)) ?? items[0];
   const customer = meta?.customers.find((c) => c.customer_id === state?.customer_id) ?? null;
   const site = meta?.sites.find((s) => s.site_id === state?.site_id) ?? null;
@@ -132,6 +133,7 @@ export function Shell({ children }: { children: ReactNode }) {
           <Link key={item.id} href={item.href} title={item.label} className={`item${item.id === current.id ? " on" : ""}`}>
             <Icon page={item.id} />
             <span className="label">{item.label}</span>
+            {item.count && <span className="count">{item.count}</span>}
           </Link>
         ))}
         <div className="navfoot label">
@@ -254,6 +256,28 @@ function PeriodAndView({
       </span>
     </>
   );
+}
+
+/**
+ * The fired-signal count for the menu, from the Opportunities page data. It follows the Customer, view and Site
+ * filter, the same scope as the Optimisation potential count. A count for another Customer, view or Site never shows,
+ * so the KAM view's count never shows in the Customer view.
+ */
+function useFiredCount(state: PageState | null): number | null {
+  const [reply, setReply] = useState<{ key: string; count: number } | null>(null);
+  const key = state ? JSON.stringify([state.customer_id, state.view, state.site_id]) : null;
+  useEffect(() => {
+    if (state === null || key === null) return;
+    const controller = new AbortController();
+    postPage<OpportunitiesPage>("/api/opportunities", pageRequest(state), controller.signal)
+      .then((page) => setReply({ key, count: page.fired_count }))
+      .catch(() => {
+        // The menu shows no count when the request fails. The Opportunities page shows the error.
+      });
+    return () => controller.abort();
+    // The count does not depend on the period or the priorities.
+  }, [key]);
+  return reply !== null && reply.key === key ? reply.count : null;
 }
 
 /** The language, read from localStorage after the first render and saved there on every change. */

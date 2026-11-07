@@ -1,7 +1,7 @@
 // The left menu's pages and the shell's translated texts (#26).
 
 import type { DictionaryKey, Lang } from "../lib/i18n.ts";
-import { AI_TRANSLATION_NOTE, t } from "../lib/i18n.ts";
+import { AI_TRANSLATION_NOTE, formatNumber, t } from "../lib/i18n.ts";
 
 export type PageId = "overview" | "sites" | "opportunities" | "priorities" | "data";
 
@@ -13,9 +13,27 @@ const PAGES: { id: PageId; href: string; label: DictionaryKey; title: Dictionary
   { id: "data", href: "/data", label: "Data and assumptions", title: "Data and assumptions" },
 ];
 
-/** The menu items in menu order, with the menu label and the page title in the language. */
-export function menuItems(lang: Lang): { id: PageId; href: string; label: string; title: string }[] {
-  return PAGES.map((p) => ({ id: p.id, href: p.href, label: t(lang, p.label), title: t(lang, p.title) }));
+export interface MenuItem {
+  id: PageId;
+  href: string;
+  label: string;
+  title: string;
+  /** The count next to the label: the fired-signal count on Opportunities, else null. */
+  count: string | null;
+}
+
+/**
+ * The menu items in menu order, with the menu label and the page title in the language. firedCount is the
+ * Opportunities page data's fired count, or null until it loads. A count of 0 does not show.
+ */
+export function menuItems(lang: Lang, firedCount: number | null = null): MenuItem[] {
+  return PAGES.map((p) => ({
+    id: p.id,
+    href: p.href,
+    label: t(lang, p.label),
+    title: t(lang, p.title),
+    count: p.id === "opportunities" && firedCount ? formatNumber(lang, firedCount) : null,
+  }));
 }
 
 /** The "AI translation" note in SV and FI. English needs none. */

@@ -70,6 +70,34 @@ test("signalGroups re-rank when the priorities change, and unmatched groups come
   assert.throws(() => signalGroups({ customer_id: "CUST001", view: "Customer", priorities: ["Hygiene"] }));
 });
 
+test("signalGroups and proposedNextSteps with a Site hold only the results at that Site, ranked by its gaps", () => {
+  // NorthStar Västerås (S018) has 2 fired results in opportunity-signals.json. Signal 4 is KAM view only (ADR 0011).
+  const groups = signalGroups({ customer_id: "CUST001", site_id: "S018", view: "KAM" });
+  assert.deepEqual(
+    groups.map((g) => [g.rank, g.signal_id, g.fired_count, g.largest_gap, g.results]),
+    [
+      [1, "service_request_rate_above_peers", 1, 0.687669, [{ site_id: "S018", product_id: null, gap: 0.687669 }]],
+      [2, "allocated_garments_with_no_scan_activity_above_peers", 1, 0.214569, [{ site_id: "S018", product_id: null, gap: 0.214569 }]],
+    ],
+  );
+  // With no priorities, S034's scan coverage gap of 15% ranks above its washes per garment gap of 14%. In the
+  // Customer's ranking, washes per garment comes first, from S032's gap of 16%.
+  assert.deepEqual(
+    signalGroups({ customer_id: "CUST003", site_id: "S034", view: "Customer", priorities: [] }).map((g) => [g.signal_id, g.largest_gap]),
+    [
+      ["allocated_garments_with_no_scan_activity_above_peers", 0.146093],
+      ["washes_per_garment_above_peers", 0.135896],
+    ],
+  );
+  const steps = proposedNextSteps({ customer_id: "CUST001", site_id: "S018", view: "Customer" });
+  assert.deepEqual(
+    steps.map((s) => [s.position, s.signal_id, s.results]),
+    [[1, "allocated_garments_with_no_scan_activity_above_peers", [{ site_id: "S018", product_id: null }]]],
+  );
+  assert.deepEqual(signalGroups({ customer_id: "CUST001", site_id: "S001", view: "KAM" }), []);
+  assert.throws(() => signalGroups({ customer_id: "CUST002", site_id: "S018", view: "KAM" }), /belongs to CUST001/);
+});
+
 test("proposedNextSteps with default priorities equals the stored steps for every Customer and view", () => {
   for (const stored of DEFAULTS) {
     for (const view of VIEWS) {

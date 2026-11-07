@@ -74,9 +74,9 @@ export function overviewPage(request: PageRequest): OverviewPage {
     return [{ tile_id: tile.id, comparison, periods }];
   });
   const blockSignalIds = new Set(screen.priority_blocks.map((b) => b.signal_group_signal_id));
-  const block_signal_groups = signalGroups({ customer_id, view, priorities: screen.priority_ids })
-    .filter((g) => blockSignalIds.has(g.signal_id))
-    .map((g) => ({ ...g, results: g.results.filter((r) => site_id === undefined || r.site_id === site_id) }));
+  const block_signal_groups = signalGroups({ customer_id, site_id, view, priorities: screen.priority_ids }).filter((g) =>
+    blockSignalIds.has(g.signal_id),
+  );
   return {
     ...screen,
     change_badges,
