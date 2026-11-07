@@ -66,45 +66,27 @@ def write_json(path: Path, payload: Any) -> None:
     path.write_text(text + "\n", encoding="utf-8", newline="\n")
 
 
-# Builders: one per output file. Each returns {"catalogue": [...], "data": {...}}.
+# Shared helpers for every builder
 
 
-def split_topics(value: str | None) -> list[str]:
-    """Split a "|"-separated topic cell into its topics, in sheet order."""
-    if not value:
-        return []
-    return [t.strip() for t in str(value).split("|") if t.strip()]
+# Months
+
+MONTHLY_SHEETS = ("Service_Activity", "Repairs", "Laundry_Resources", "Waste_Circularity", "Customer_Impacts")
 
 
-# Product presets: named product sets that every ticket taking a product
-# parameter shares. They are parameter values, not KPIs (ADR 0006).
-PRODUCT_PRESETS: tuple[Record, ...] = (
-    {"preset_id": "food_industry_garments", "name": "Food industry garments", "product_ids": ["P1004"]},
-    {"preset_id": "safety_garments", "name": "Safety garments", "product_ids": ["P1003", "P1006"]},
-    {"preset_id": "healthcare_garments", "name": "Healthcare garments", "product_ids": ["P1005"]},
-)
+def month_key(value: Any) -> str:
+    """A month cell as a "YYYY-MM" string. Accepts "2025-01" text or a date."""
+    if hasattr(value, "strftime"):
+        return value.strftime("%Y-%m")
+    text = str(value).strip()
+    if len(text) < 7 or text[4] != "-":
+        raise ValueError(f"not a YYYY-MM month: {value!r}")
+    return text[:7]
 
 
-def product_presets(product_ids: set[str]) -> list[Record]:
-    """The presets, checked against the workbook's products."""
-    presets = []
-    for preset in PRODUCT_PRESETS:
-        unknown = [p for p in preset["product_ids"] if p not in product_ids]
-        if unknown:
-            raise ValueError(f"preset {preset['preset_id']} names unknown products {unknown}")
-        presets.append({**preset, "product_ids": list(preset["product_ids"])})
-    return presets
-
-
-def site_type_groups(sites: list[Record]) -> list[Record]:
-    """Sites per Customer per site_type, ordered by Customer, then site_type."""
-    groups: dict[tuple[str, str], list[str]] = {}
-    for site in sites:
-        groups.setdefault((site["customer_id"], site["site_type"]), []).append(site["site_id"])
-    return [
-        {"customer_id": customer_id, "site_type": site_type, "site_count": len(ids), "site_ids": sorted(ids)}
-        for (customer_id, site_type), ids in sorted(groups.items())
-    ]
+def data_months(wb: Workbook) -> list[str]:
+    """Every month that the monthly fact sheets hold, in order."""
+    return sorted({month_key(row["month"]) for sheet in MONTHLY_SHEETS for row in wb.records(sheet)})
 
 
 # Period rule (ADR 0002): fact rows store additive components (sums, counts) at
@@ -175,22 +157,45 @@ def period_average(monthly: dict[tuple[str, str], float], entity_id: str, months
     return sum(monthly.get((entity_id, m), 0) for m in months) / len(months)
 
 
-MONTHLY_SHEETS = ("Service_Activity", "Repairs", "Laundry_Resources", "Waste_Circularity", "Customer_Impacts")
+# Product presets: named product sets that every ticket taking a product
+# parameter shares. They are parameter values, not KPIs (ADR 0006).
+PRODUCT_PRESETS: tuple[Record, ...] = (
+    {"preset_id": "food_industry_garments", "name": "Food industry garments", "product_ids": ["P1004"]},
+    {"preset_id": "safety_garments", "name": "Safety garments", "product_ids": ["P1003", "P1006"]},
+    {"preset_id": "healthcare_garments", "name": "Healthcare garments", "product_ids": ["P1005"]},
+)
 
 
-def month_key(value: Any) -> str:
-    """A month cell as a "YYYY-MM" string. Accepts "2025-01" text or a date."""
-    if hasattr(value, "strftime"):
-        return value.strftime("%Y-%m")
-    text = str(value).strip()
-    if len(text) < 7 or text[4] != "-":
-        raise ValueError(f"not a YYYY-MM month: {value!r}")
-    return text[:7]
+def product_presets(product_ids: set[str]) -> list[Record]:
+    """The presets, checked against the workbook's products."""
+    presets = []
+    for preset in PRODUCT_PRESETS:
+        unknown = [p for p in preset["product_ids"] if p not in product_ids]
+        if unknown:
+            raise ValueError(f"preset {preset['preset_id']} names unknown products {unknown}")
+        presets.append({**preset, "product_ids": list(preset["product_ids"])})
+    return presets
 
 
-def data_months(wb: Workbook) -> list[str]:
-    """Every month that the monthly fact sheets hold, in order."""
-    return sorted({month_key(row["month"]) for sheet in MONTHLY_SHEETS for row in wb.records(sheet)})
+# Builders: one per output file. Each returns {"catalogue": [...], "data": {...}}.
+
+
+def split_topics(value: str | None) -> list[str]:
+    """Split a "|"-separated topic cell into its topics, in sheet order."""
+    if not value:
+        return []
+    return [t.strip() for t in str(value).split("|") if t.strip()]
+
+
+def site_type_groups(sites: list[Record]) -> list[Record]:
+    """Sites per Customer per site_type, ordered by Customer, then site_type."""
+    groups: dict[tuple[str, str], list[str]] = {}
+    for site in sites:
+        groups.setdefault((site["customer_id"], site["site_type"]), []).append(site["site_id"])
+    return [
+        {"customer_id": customer_id, "site_type": site_type, "site_count": len(ids), "site_ids": sorted(ids)}
+        for (customer_id, site_type), ids in sorted(groups.items())
+    ]
 
 
 def build_master_data(wb: Workbook) -> Record:
