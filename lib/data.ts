@@ -168,10 +168,11 @@ export type {
   KpiQuery,
   KpiResult,
   Period,
+  ResolvedScope,
   Scope,
   Withheld,
 } from "./data/query.ts";
-export { applyView, periodMonths } from "./data/query.ts";
+export { applyView, periodMonths, resolveScope } from "./data/query.ts";
 
 export type { KpiListing } from "./data/calculations.ts";
 export { listKpis, runKpi } from "./data/calculations.ts";

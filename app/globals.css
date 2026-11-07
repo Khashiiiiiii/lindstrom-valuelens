@@ -1,0 +1,76 @@
+/* The dashboard look (#26): Lindström navy #003F72 and red #E00034, pill inputs and buttons, 14 px card corners.
+   Dark mode, the collapsed menu look and motion come in #33. */
+:root {
+  --bg: #f5f6fa; --panel: #fff; --panel2: #fafbfd; --hover: #f3f4f8; --seg: #eceef4; --line: #e7e9f0; --line2: #c9ccd8;
+  --text: #161b26; --text2: #3a4150; --muted: #6b7280;
+  --navy: #003f72; --red: #e00034;
+  --accent: var(--navy); --accent-h: #002c52; --accent-soft: #e6eef6; --accent-line: #a9c2dc; --ring: rgba(0, 63, 114, .18);
+  --est-bg: #fff1d6; --est-fg: #7a5100;
+  --r: 14px; --r-sm: 10px; --nav: 248px;
+  --shadow: 0 1px 2px rgba(16, 24, 40, .04), 0 1px 3px rgba(16, 24, 40, .06);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--text); font-size: 14px;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* Pills for inputs and buttons */
+button, select, input {
+  font: inherit; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: var(--text);
+  padding: 7px 14px; cursor: pointer;
+}
+button:hover:not(:disabled), select:hover:not(:disabled) { border-color: var(--line2); background: var(--hover); }
+button:focus-visible, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--ring); }
+select { appearance: none; padding-right: 30px; background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%); background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%; background-size: 5px 5px; background-repeat: no-repeat; }
+select.on { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.seg { display: inline-flex; background: var(--seg); border-radius: 999px; padding: 3px; gap: 2px; }
+.seg button { border: none; background: transparent; padding: 5px 14px; color: var(--muted); }
+.seg button:hover:not(:disabled) { background: transparent; color: var(--text); }
+.seg button.on { background: var(--accent); color: #fff; box-shadow: var(--shadow); }
+
+.muted { color: var(--muted); }
+.grow { flex: 1; }
+.card { border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); padding: 16px; background: var(--panel); }
+.warn { background: var(--est-bg); color: var(--est-fg); border-color: transparent; }
+.badge { display: inline-block; border-radius: 999px; padding: 2px 8px; background: var(--seg); color: var(--text2); font-size: 11px; }
+.caveat { color: var(--est-fg); font-size: 12px; margin-top: 4px; }
+
+/* Layout: left menu and the right column */
+.wrap { display: grid; grid-template-columns: var(--nav) 1fr; min-height: 100vh; }
+.wrap.collapsed { grid-template-columns: 76px 1fr; }
+.nav { position: sticky; top: 0; height: 100vh; background: var(--panel); border-right: 1px solid var(--line); padding: 18px 14px; display: flex; flex-direction: column; gap: 4px; overflow: hidden; }
+.brand { display: flex; flex-direction: column; gap: 4px; padding: 4px 8px 16px; white-space: nowrap; }
+.logoclip { display: block; width: 150px; overflow: hidden; }
+.logoclip img { height: 30px; display: block; }
+.product { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--navy); padding-left: 2px; }
+.customer-select select { width: 100%; margin-bottom: 14px; }
+.navlabel { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; padding: 12px 10px 4px; white-space: nowrap; min-height: 31px; }
+.item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--r-sm); color: var(--text2); text-decoration: none; white-space: nowrap; }
+.item:hover { background: var(--hover); }
+.item.on { background: var(--accent-soft); color: var(--accent); font-weight: 600; box-shadow: inset 3px 0 0 var(--red); }
+.item svg { width: 18px; height: 18px; flex: none; }
+.navfoot { margin-top: auto; font-size: 11px; color: var(--muted); padding: 8px 10px; white-space: nowrap; }
+.collapsed .logoclip { width: 27px; }
+.collapsed .nav .label, .collapsed .customer-select { display: none; }
+
+.right { min-width: 0; display: flex; flex-direction: column; }
+.top { position: sticky; top: 0; z-index: 40; display: flex; align-items: center; gap: 12px; padding: 10px 32px; background: color-mix(in srgb, var(--panel) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+.crumb { color: var(--muted); font-size: 13px; } .crumb b { color: var(--text); font-weight: 600; }
+.iconbtn { width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; color: var(--text2); }
+.iconbtn svg { width: 18px; height: 18px; }
+.main { padding: 22px 32px 120px; min-width: 0; }
+.head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+.head h1 { font-size: 22px; margin: 0 12px 0 0; letter-spacing: -.01em; color: var(--navy); }
+.note { font-size: 12px; color: var(--muted); background: var(--panel2); border: 1px dashed var(--line2); border-radius: var(--r-sm); padding: 6px 12px; margin-bottom: 14px; display: inline-block; }
+
+/* Overview tiles */
+.h2 { font-size: 15px; margin: 8px 0 10px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; align-items: start; }
+.tile { display: flex; flex-direction: column; gap: 8px; }
+.tilename { font-size: 13px; font-weight: 500; }
+.figlabel { font-size: 12px; color: var(--text2); }
+.value { font-size: 26px; font-weight: 650; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+.unit { color: var(--muted); }
+.tilemeta { font-size: 12px; margin-top: 2px; }
+.tilenote { font-size: 12px; }

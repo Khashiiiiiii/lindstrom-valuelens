@@ -50,6 +50,11 @@ export const DICTIONARY = {
   "Lindström-style": { sv: "Lindström-stil", fi: "Lindström-tyyli" },
   "Key Account Manager": { sv: "Key Account Manager", fi: "Avainasiakaspäällikkö" },
   "Sign out": { sv: "Logga ut", fi: "Kirjaudu ulos" },
+  "This page comes in a later build.": {
+    sv: "Den här sidan kommer i en senare version.",
+    fi: "Tämä sivu tulee myöhemmässä versiossa.",
+  },
+  "Loading...": { sv: "Läser in...", fi: "Ladataan..." },
   [AI_TRANSLATION_NOTE]: {
     sv: "AI-översättning. Förbehåll och assistentens svar är på engelska.",
     fi: "Tekoälykäännös. Varaumat ja avustajan vastaukset ovat englanniksi.",

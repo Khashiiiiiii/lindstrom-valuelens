@@ -88,12 +88,14 @@ test("dataLabel shows a data id with no entry as readable English, never the raw
 /** The console warnings that the calls in `run` give in development. */
 async function devWarnings(ctx: TestContext, run: () => void): Promise<string[]> {
   const warn = ctx.mock.method(console, "warn", () => {});
-  const before = process.env.NODE_ENV;
-  process.env.NODE_ENV = "development";
+  // Next's types make NODE_ENV read-only. The test sets it the way a dev server does.
+  const env: Record<string, string | undefined> = process.env;
+  const before = env.NODE_ENV;
+  env.NODE_ENV = "development";
   try {
     run();
   } finally {
-    process.env.NODE_ENV = before;
+    env.NODE_ENV = before;
   }
   await new Promise((resolve) => setImmediate(resolve));
   return warn.mock.calls.map((call) => String(call.arguments[0]));
