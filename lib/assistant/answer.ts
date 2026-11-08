@@ -39,7 +39,7 @@ export async function answerPrompt(request: AssistantRequest, { chat, signal }: 
         answer,
         sources: state.sources,
         signal_groups: namedSignalGroups(answer, state),
-        priority_change: null,
+        priority_change: state.priority_change,
         unmatched_numbers: unmatchedNumbers(answer, state.sources, state.extra_numbers),
       };
     }

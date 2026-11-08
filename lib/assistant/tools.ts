@@ -1,12 +1,21 @@
-// The read tools of an Assistant answer, built per request from listKpis(view), so the Customer view never offers a
-// KAM-only id (ADR 0011). The server checks every argument itself, since Ollama has no strict schemas, and a failed
+// The tools of an Assistant answer (the read tools and set_priorities), built per request from listKpis(view), so the
+// Customer view never offers a KAM-only id (ADR 0011). The server checks every argument itself, since Ollama has no strict schemas, and a failed
 // check throws a ToolError the runner hands back to the model. Ported from the prototype (Spec: AI assistant #39).
 
-import type { BaselineId, KpiAnswer, KpiQuery, KpiResult, Period } from "../data.ts";
-import { firstScreen, getMasterData, getOpportunitySignals, listKpis, proposedNextSteps, runKpi, signalGroups } from "../data.ts";
+import type { BaselineId, CustomerPriorityId, KpiAnswer, KpiQuery, KpiResult, Period } from "../data.ts";
+import {
+  firstScreen,
+  getCustomerPriorities,
+  getMasterData,
+  getOpportunitySignals,
+  listKpis,
+  proposedNextSteps,
+  runKpi,
+  signalGroups,
+} from "../data.ts";
 import type { CheckState } from "./checks.ts";
 import { signalNumbers, siteShortName } from "./checks.ts";
-import type { AssistantRequest } from "./contract.ts";
+import type { AssistantRequest, PriorityChange } from "./contract.ts";
 import { customerOf, priorityName } from "./context.ts";
 import type { ChatTool } from "./ollama.ts";
 
@@ -18,8 +27,14 @@ export class ToolError extends Error {
   }
 }
 
-/** What the tools collected over one answer, which the answer checks read. sources are deduped by kpi_id, scope, period and baseline. */
-export type ToolState = CheckState;
+/**
+ * What the tools collected over one answer. The answer checks read the CheckState part; sources are deduped by kpi_id,
+ * scope, period and baseline. The runner returns priority_change as it is.
+ */
+export interface ToolState extends CheckState {
+  /** The full new priority order after a set_priorities call, else null. */
+  priority_change: PriorityChange | null;
+}
 
 export interface Tools {
   definitions: ChatTool[];
@@ -41,7 +56,14 @@ export function buildTools(req: AssistantRequest): Tools {
   const year = master.months[0].slice(0, 4);
   const periods = [year, `${year}-H1`, `${year}-H2`, ...master.months];
   const baselines = master.baselines.map((b) => b.baseline_id);
+  const catalogue = getCustomerPriorities().catalogue;
+  const priorityNames = catalogue.map((e) => e.name);
+  /** The priority id for a display name (any case) or an id, else undefined. */
+  const priorityId = (name: string) => catalogue.find((e) => e.name.toLowerCase() === name.trim().toLowerCase() || e.id === name.trim())?.id;
+  /** The priority order the calculations get. set_priorities changes it for the later calls of the same answer. */
+  let priorities: CustomerPriorityId[] = req.priorities;
   const state: ToolState = {
+    priority_change: null,
     sources: [],
     signal_groups: [],
     // The context block gives the model the Site count.
@@ -116,7 +138,7 @@ export function buildTools(req: AssistantRequest): Tools {
   };
 
   const signalPayload = () => {
-    const query = { customer_id: req.customer_id, view: req.view, priorities: req.priorities };
+    const query = { customer_id: req.customer_id, view: req.view, priorities };
     const groups = signalGroups(query);
     state.signal_groups = groups;
     state.extra_numbers.push(...signalNumbers(groups));
@@ -149,7 +171,7 @@ export function buildTools(req: AssistantRequest): Tools {
 
   const handlers: Record<string, (args: Record<string, unknown>) => unknown> = {
     get_overview(args) {
-      const fs = firstScreen({ customer_id: req.customer_id, view: req.view, period: period(args.period), priorities: req.priorities });
+      const fs = firstScreen({ customer_id: req.customer_id, view: req.view, period: period(args.period), priorities });
       const answers = [...fs.tiles.flatMap((t) => t.answers), ...fs.priority_blocks.flatMap((b) => b.answers)];
       if (fs.kam_additions) answers.push(fs.kam_additions.account_health);
       addSources(answers);
@@ -171,7 +193,7 @@ export function buildTools(req: AssistantRequest): Tools {
       };
     },
     get_kpis(args) {
-      const ids: unknown[] = Array.isArray(args.kpi_ids) ? args.kpi_ids : typeof args.kpi_ids === "string" ? [args.kpi_ids] : [];
+      const ids = listArg(args.kpi_ids);
       if (ids.length === 0) throw new ToolError("kpi_ids must be a non-empty list of KPI ids.");
       const bad = ids.filter((id) => typeof id !== "string" || !kpiIds.includes(id));
       if (bad.length) throw new ToolError(`Unknown KPI ids in this view: ${bad.join(", ")}. Use ids from the tool description.`);
@@ -189,6 +211,19 @@ export function buildTools(req: AssistantRequest): Tools {
     },
     get_signal_groups() {
       return signalPayload();
+    },
+    set_priorities(args) {
+      const asked = listArg(args.priorities);
+      if (asked.length === 0) throw new ToolError(`priorities must be a non-empty list of: ${priorityNames.join(", ")}.`);
+      const bad = asked.filter((p) => typeof p !== "string" || !priorityId(p));
+      if (bad.length) throw new ToolError(`Unknown Customer priorities: ${bad.map((p) => JSON.stringify(p)).join(", ")}. Use ${priorityNames.join(", ")}.`);
+      const first = [...new Set((asked as string[]).map((p) => priorityId(p)!))];
+      // The current order, then the priorities it leaves out in catalogue order, so the new order always holds all 7.
+      const rest = [...priorities, ...catalogue.map((e) => e.id).filter((id) => !priorities.includes(id))].filter((id) => !first.includes(id));
+      priorities = [...first, ...rest];
+      state.priority_change = { priorities };
+      // Setting priorities fetches no figures, so the refreshed overview comes with it and the answer uses its figures.
+      return { priorities: priorities.map(priorityName), overview: handlers.get_overview({}) };
     },
   };
 
@@ -226,6 +261,12 @@ export function buildTools(req: AssistantRequest): Tools {
       `The fired opportunity signals for ${year}, grouped by signal and ranked by the Customer priorities, then by largest gap. Each group gives its lever, lever owner and the Sites it fired on with their gaps. Also gives the top 3 proposed next steps.`,
       {},
     ),
+    fn(
+      "set_priorities",
+      "Moves these Customer priorities to the top of the dashboard, in this order. The others follow in their current order. Returns the new order and the refreshed overview with its figures.",
+      { priorities: { type: "array", items: { type: "string", enum: priorityNames } } },
+      ["priorities"],
+    ),
   ];
 
   return {
@@ -243,6 +284,11 @@ export function buildTools(req: AssistantRequest): Tools {
       }
     },
   };
+}
+
+/** A list argument; a lone string is a list of one, since the model sometimes sends one. */
+function listArg(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : typeof value === "string" ? [value] : [];
 }
 
 /** "all", "all sites", "customer" or the Customer's id mean the whole Customer. */

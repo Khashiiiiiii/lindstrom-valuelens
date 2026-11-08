@@ -115,7 +115,7 @@ test("the 3 round limit ends in one request with no tools, and tool calls in it 
   const chat = scripted(calls(...kpis(1)), calls(...kpis(1)), calls(...kpis(1)), calls(...kpis(1)));
   await assert.rejects(run(KAM, chat), { code: "model_error" });
   assert.equal(chat.requests.length, 4);
-  assert.ok(chat.requests.slice(0, 3).every((r) => r.tools?.length === 3));
+  assert.ok(chat.requests.slice(0, 3).every((r) => r.tools?.length === 4));
   assert.equal(chat.requests[3].tools, undefined);
   assert.equal(chat.requests[3].messages.at(-1)!.content, "No more tool calls. Write the answer now.");
   assert.equal(toolResults(chat).length, 3);
@@ -209,4 +209,43 @@ test("get_overview gives the first screen's answers as sources and the fired sig
   assert.match(groups.gap_meaning, /median/);
   assert.equal(groups.groups[0].results[0].site_name.startsWith("NorthStar "), true);
   assert.ok(!JSON.stringify([overview, groups]).includes('"assumptions"'));
+});
+
+test("set_priorities puts the named priorities first, the rest after in their order, and returns the refreshed overview", async () => {
+  const chat = scripted(calls(["set_priorities", { priorities: ["Water", "Emissions"] }]), text("Water and Emissions now come first."));
+  const res = await run(KAM, chat);
+  const order = ["water", "emissions", "service_reliability", "circularity", "garment_utilisation", "traceability", "improvement"];
+  assert.deepEqual(res.priority_change, { priorities: order });
+  const [result] = toolResults(chat).map((r) => JSON.parse(r));
+  assert.deepEqual(result.priorities, ["Water", "Emissions", "Service reliability", "Circularity", "Garment utilisation", "Traceability", "Improvement"]);
+  assert.deepEqual(result.overview.priorities, result.priorities.slice(0, result.overview.priorities.length));
+  assert.ok(res.sources.length > 0);
+});
+
+test("a get_overview or get_signal_groups call after set_priorities uses the new order", async () => {
+  // With the request's order Washes per garment ranks first; Circularity first puts Repair rate first.
+  const chat = scripted(
+    calls(["set_priorities", { priorities: ["circularity", "Emissions"] }]),
+    calls(["get_overview", {}], ["get_signal_groups", {}]),
+    text("Circularity and Emissions now come first."),
+  );
+  const res = await run(KAM, chat);
+  const order = ["circularity", "emissions", "water", "service_reliability", "garment_utilisation", "traceability", "improvement"];
+  assert.deepEqual(res.priority_change, { priorities: order });
+  const [, overview, groups] = toolResults(chat).map((r) => JSON.parse(r));
+  assert.deepEqual(overview.priorities.slice(0, 2), ["Circularity", "Emissions"]);
+  assert.equal(overview.opportunity_signals.groups[0].signal_id, "repair_rate_above_peers");
+  assert.equal(groups.groups[0].signal_id, "repair_rate_above_peers");
+});
+
+test("an unknown priority name comes back as a tool error and priority_change stays null", async () => {
+  const chat = scripted(
+    calls(["set_priorities", { priorities: ["Water", "Hygiene"] }], ["set_priorities", {}]),
+    text("The data does not hold hygiene."),
+  );
+  const res = await run(KAM, chat);
+  const [unknown, empty] = toolResults(chat);
+  assert.match(unknown, /^Error: Unknown Customer priorities: "Hygiene"/);
+  assert.match(empty, /^Error: priorities must be/);
+  assert.equal(res.priority_change, null);
 });

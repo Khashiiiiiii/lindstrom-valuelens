@@ -58,6 +58,7 @@ ${contextBlock(req)}
 
 How to work
 - Get every figure from the tools. You may call several tools at once. You have at most ${MAX_ROUNDS} rounds of tool calls.
+- Call set_priorities only when the prompt asks to focus on or put first some topics. It returns the refreshed overview: answer with its figures and say that the priorities changed.
 - Unless the prompt names a Site, answer for the whole Customer: leave site_id out.
 - Keep the answer under 180 words, unless the prompt asks for a number of points. Then write exactly that many numbered points and nothing else but the Caveats line.
 - Give each Site's gap on its own. Never write a range such as "15-31%".
