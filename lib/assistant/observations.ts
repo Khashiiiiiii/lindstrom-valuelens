@@ -52,6 +52,8 @@ export async function generateObservations(request: ObservationsRequest, { chat,
   const reply = await chat({ messages, format: OBSERVATIONS_SCHEMA }, signal);
   const first = parseDrafts(reply.message.content ?? "");
   if (!first) throw new AssistantFailureError("model_error", "The model's observations are not valid JSON.");
+  // The dashboard shows 1 to 3 observations or an error with "Try again", never an empty list.
+  if (first.length === 0) throw new AssistantFailureError("model_error", "The model returned no observation.");
   const drafts = await retryOnce(first, reply.message.content ?? "", messages, tools.state, { chat, signal });
   return { observations: drafts.slice(0, MAX_OBSERVATIONS).map((d) => tag(d, tools.state, kpiIds)) };
 }

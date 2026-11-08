@@ -133,3 +133,11 @@ test("in the Customer view no observation's sources holds a KAM-only result that
   const input = chat.requests[0].messages[1].content;
   for (const id of kamOnly) assert.ok(!input.includes(`"kpi_id":"${id}","name"`), `${id} reached the model`);
 });
+
+test("a reply with no observation, or only empty texts, gives model_error", async () => {
+  for (const reply of [json([]), json([{ text: "  ", kpi_ids: [], signal_ids: [] }])]) {
+    const chat = scripted(reply);
+    await assert.rejects(run(KAM, chat), { code: "model_error" }, reply.message.content);
+    assert.equal(chat.requests.length, 1);
+  }
+});
