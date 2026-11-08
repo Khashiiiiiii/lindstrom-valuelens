@@ -146,6 +146,55 @@ test("an error from chat passes through as it is", async () => {
   await assert.rejects(run(KAM, failing), { code: "model_unavailable" });
 });
 
+test("a text with an unknown number gets exactly one retry, and a number still wrong after it is in unmatched_numbers", async () => {
+  const chat = scripted(
+    calls(["get_kpis", { kpi_ids: ["washed_kg"] }]),
+    text("All Sites washed 600,000 kg in 2025."),
+    text("All Sites washed 502,074.7 kg in 2025, about 510,000 kg."),
+  );
+  const res = await run(KAM, chat);
+  assert.equal(chat.requests.length, 3);
+  const retry = chat.requests[2];
+  assert.equal(retry.tools, undefined);
+  assert.deepEqual(retry.messages.at(-2), { role: "assistant", content: "All Sites washed 600,000 kg in 2025." });
+  assert.match(retry.messages.at(-1)!.content, /600,000/);
+  assert.match(retry.messages.at(-1)!.content, /Write the whole answer again/);
+  assert.equal(res.answer, "All Sites washed 502,074.7 kg in 2025, about 510,000 kg.");
+  assert.deepEqual(res.unmatched_numbers, ["510,000"]);
+});
+
+test("a text with no problems gets no retry", async () => {
+  const chat = scripted(calls(["get_kpis", { kpi_ids: ["washed_kg"] }]), text("All Sites washed 502,074.7 kg in 2025."));
+  const res = await run(KAM, chat);
+  assert.equal(chat.requests.length, 2);
+  assert.deepEqual(res.unmatched_numbers, []);
+});
+
+test("an empty retry keeps the first text", async () => {
+  const chat = scripted(text("The Customer has 99 Sites."), text("<think>Again.</think>  "));
+  const res = await run(KAM, chat);
+  assert.equal(chat.requests.length, 2);
+  assert.equal(res.answer, "The Customer has 99 Sites.");
+  assert.deepEqual(res.unmatched_numbers, ["99"]);
+});
+
+test("the Site count is known without a tool call", async () => {
+  const res = await run(KAM, scripted(text("The Customer has 24 Sites.")));
+  assert.deepEqual(res.unmatched_numbers, []);
+});
+
+test("an answer naming Sites of a fired signal group returns that group in signal_groups", async () => {
+  const chat = scripted(
+    calls(["get_signal_groups", {}]),
+    text("Garment allocation above peers is flagged for discussion at Malmö and Kraków (owner: Joint)."),
+  );
+  const res = await run(KAM, chat);
+  assert.equal(chat.requests.length, 2);
+  const fired = signalGroups({ customer_id: "CUST001", view: "KAM", priorities: KAM.priorities });
+  const expected = fired.filter((g) => ["garment_allocation_above_peers", "washes_per_garment_above_peers"].includes(g.signal_id));
+  assert.deepEqual(res.signal_groups, expected);
+});
+
 test("get_overview gives the first screen's answers as sources and the fired signal groups to the model", async () => {
   const chat = scripted(calls(["get_overview", {}], ["get_signal_groups", {}]), text("Here is the overview."));
   const res = await run(CUSTOMER, chat);
