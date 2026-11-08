@@ -8,7 +8,7 @@
     "start": "next start",
     "preprocess": ".venv/bin/python scripts/preprocess.py",
     "typecheck": "tsc --noEmit",
-    "test": "node --test 'lib/**/*.test.ts' 'app/**/*.test.ts'"
+    "test": "node --test \"lib/**/*.test.ts\" \"app/**/*.test.ts\""
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
