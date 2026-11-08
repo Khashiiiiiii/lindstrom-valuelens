@@ -20,6 +20,7 @@ There is no sign-in. The app runs as one fixed demo KAM (`lib/demo-kam.ts`), and
 - **Node.js 24+.** Tests and the eval run TypeScript directly with `node`.
 - **Python 3 with `openpyxl`.** Only needed to regenerate `data/processed/`.
 - **Ollama.** Only needed for the AI assistant. You can use the stub instead (see below).
+- **Docker.** Only needed to build the container image locally ([Docker](#docker)).
 
 ## Quick start
 
@@ -60,9 +61,28 @@ ASSISTANT_STUB=1 npm run dev                # PowerShell: $env:ASSISTANT_STUB="1
 
 `OLLAMA_URL` sets where the app calls Ollama (default `http://127.0.0.1:11434`). `OLLAMA_HEADERS` is a JSON object of extra headers sent with each call, such as a tunnel's shared secret.
 
+## Docker
+
+The `Dockerfile` builds a Next.js standalone server on Node 24 (an image of about 330 MB). The server listens on port 8080. It also copies in `data/processed/` and `public/`, which the app reads from disk at runtime. The image runs as any UID in group 0, which is how OpenShift starts containers. Ollama is not in the image.
+
+```sh
+docker build -t valuelens .
+docker run --rm -p 8080:8080 -u 123456:0 -e ASSISTANT_STUB=1 valuelens     # http://localhost:8080
+```
+
+| Variable | Effect |
+| --- | --- |
+| `ASSISTANT_STUB=1` | Canned assistant replies, no model needed |
+| `OLLAMA_URL` | Where the model is, e.g. a tunnel URL |
+| `OLLAMA_HEADERS` | JSON headers sent with each model call, e.g. `{"X-Gate-Key":"..."}` |
+
 ## Deploy (OpenShift Developer Sandbox)
 
-The Sandbox has no GPU. So the image holds only the app, and the model keeps running on your own GPU machine, reached through a tunnel that is guarded by a shared secret.
+The Sandbox has no GPU and a fixed quota that cannot be raised. So the image holds only the app, and the model keeps running on your own GPU machine, reached through a tunnel that is guarded by a shared secret:
+
+```
+browser → Sandbox route → app pod → https://<random>.trycloudflare.com → ollama-gate (checks X-Gate-Key) → Ollama on your GPU
+```
 
 **1. On the GPU machine** (three terminals, all running for the whole demo):
 
@@ -72,23 +92,29 @@ GATE_KEY=<long random secret> node scripts/ollama-gate.mjs     # 401 unless X-Ga
 cloudflared tunnel --url http://127.0.0.1:11435                # prints https://<random>.trycloudflare.com
 ```
 
-**2. On the Sandbox** (`oc login` with the token from the console's *Copy login command*):
+In PowerShell, set the variables first: `$env:OLLAMA_FLASH_ATTENTION="1"; $env:OLLAMA_KV_CACHE_TYPE="q8_0"; ollama serve` and `$env:GATE_KEY="<secret>"; node scripts/ollama-gate.mjs`. Check that `ollama ps` shows `100% GPU`.
+
+**2. On the Sandbox.** Install `oc` (`choco install openshift-cli`, or from the console's *?* → *Command line tools*), then log in with the console's *Copy login command*. OpenShift builds the `Dockerfile` straight from the public GitHub repository:
 
 ```sh
 oc new-app https://github.com/Khashiiiiiii/lindstrom-valuelens.git --strategy=docker --name=valuelens
 oc logs -f bc/valuelens        # if the build is OOMKilled: oc patch bc/valuelens -p '{"spec":{"resources":{"limits":{"memory":"2Gi"}}}}' && oc start-build valuelens
-oc create secret generic valuelens-ollama \
-  --from-literal=OLLAMA_URL=https://<random>.trycloudflare.com \
-  --from-literal=OLLAMA_HEADERS='{"X-Gate-Key":"<same secret>"}'
+oc create secret generic valuelens-ollama   --from-literal=OLLAMA_URL=https://<random>.trycloudflare.com   --from-literal=OLLAMA_HEADERS='{"X-Gate-Key":"<same secret>"}'
 oc set env deployment/valuelens --from=secret/valuelens-ollama
 oc set resources deployment/valuelens --requests=cpu=200m,memory=256Mi --limits=cpu=1,memory=1Gi
 oc create route edge valuelens --service=valuelens --port=8080-tcp
 oc get route valuelens         # the public https URL
 ```
 
-If the repository is private, add a source secret to `oc new-app` with `--source-secret`. Without the model, run `oc set env deployment/valuelens ASSISTANT_STUB=1` instead of the secret. The quick tunnel URL changes every time cloudflared restarts. When it does, update the secret and run `oc rollout restart deployment/valuelens`. The Sandbox scales idle deployments down after about 12 hours, so `oc scale deployment/valuelens --replicas=1` brings it back.
+**After a push**, rebuild with `oc start-build valuelens --follow`. The deployment rolls out the new image by itself.
 
-To try the image locally: `docker build -t valuelens . && docker run -p 8080:8080 -u 123456:0 -e ASSISTANT_STUB=1 valuelens`.
+**Troubleshooting**
+
+- *The assistant says the model is unreachable.* The tunnel or gate is down, or the secret does not match. Test it from your machine with `curl -H "X-Gate-Key: <secret>" https://<random>.trycloudflare.com/api/version`.
+- *The tunnel URL changed.* This happens every time cloudflared restarts. Update `OLLAMA_URL` in the secret, then run `oc rollout restart deployment/valuelens`.
+- *The app is gone after a quiet spell.* The Sandbox scales idle deployments down after about 12 hours. Run `oc scale deployment/valuelens --replicas=1`.
+- *Running without the model.* Run `oc set env deployment/valuelens ASSISTANT_STUB=1`.
+- *Finished with it.* Run `oc delete all -l app=valuelens` and `oc delete secret valuelens-ollama`.
 
 ## Scripts
 
