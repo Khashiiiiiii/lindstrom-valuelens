@@ -28,7 +28,9 @@ export function namedSignalGroups(text: string, state: CheckState): SignalGroup[
   return state.signal_groups.filter((g) => g.results.some((r) => mentions(text, short(r.site_id))));
 }
 
-const BANNED_WORDS = /\b(issues?|problems?|inefficien\w*|overuse|poor|failing|proves?)\b/gi;
+/** Rule 7: words that call a signal a problem, which only flags a Site for discussion. Not global, so .test is safe. */
+export const BANNED_WORD = /\b(issues?|problems?|inefficien\w*|overuse|poor|failing|proves?)\b/i;
+const BANNED_WORDS = new RegExp(BANNED_WORD.source, "gi");
 
 /** What is wrong with an answer, each as a line the model can act on. Empty when the answer passes. */
 export function answerProblems(text: string, state: CheckState): string[] {

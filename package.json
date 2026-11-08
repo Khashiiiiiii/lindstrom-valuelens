@@ -9,7 +9,7 @@
     "preprocess": ".venv/bin/python scripts/preprocess.py",
     "typecheck": "tsc --noEmit",
     "test": "node --test \"lib/**/*.test.ts\" \"app/**/*.test.ts\"",
-    "benchmark": "node lib/assistant/benchmark.ts"
+    "eval": "node lib/assistant/prompt-eval.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
