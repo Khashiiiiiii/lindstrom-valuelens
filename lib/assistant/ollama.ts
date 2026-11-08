@@ -1,5 +1,5 @@
 // The model client: a thin `chat` over Ollama /api/chat with local Qwen3 4B (Spec: AI assistant #39). The runners
-// take a `Chat`, so tests pass a scripted fake instead.
+// take a `Chat`, so tests pass a scripted fake instead. The GPU guard (#44) reads /api/ps after a model call.
 
 import { AssistantFailureError } from "./errors.ts";
 
@@ -85,4 +85,34 @@ export function ollamaChat(baseUrl: string = OLLAMA_URL): Chat {
 function causeOf(e: unknown): string {
   const cause = (e as { cause?: { code?: string; message?: string } }).cause;
   return cause?.code ?? cause?.message ?? (e as Error).message;
+}
+
+/** Checks where the model runs after a model call. Never throws. */
+export type GpuCheck = () => Promise<void>;
+
+const PS_TIMEOUT_MS = 2000;
+
+/**
+ * A GpuCheck against a running Ollama: reads /api/ps and logs a warning when part of MODEL is on the CPU
+ * (size_vram below size), which makes answers several times slower. A model that is not loaded, or an /api/ps that
+ * fails, logs nothing, since the model call already reports an Ollama that is down.
+ */
+export function ollamaGpuCheck(baseUrl: string = OLLAMA_URL): GpuCheck {
+  return async () => {
+    let models: unknown;
+    try {
+      const res = await fetch(`${baseUrl}/api/ps`, { signal: AbortSignal.timeout(PS_TIMEOUT_MS) });
+      models = ((await res.json()) as { models?: unknown } | null)?.models;
+    } catch {
+      return;
+    }
+    if (!Array.isArray(models)) return;
+    const loaded = models.find((m) => m?.name === MODEL || m?.model === MODEL) as { size?: unknown; size_vram?: unknown } | undefined;
+    if (typeof loaded?.size !== "number" || typeof loaded.size_vram !== "number" || loaded.size_vram >= loaded.size) return;
+    const share = Math.floor((loaded.size_vram / loaded.size) * 100);
+    console.warn(
+      `assistant: ${MODEL} is only ${share}% on the GPU, the rest is on the CPU, so answers are slow. ` +
+        `Restart Ollama with OLLAMA_FLASH_ATTENTION=1 and OLLAMA_KV_CACHE_TYPE=q8_0 and check that "ollama ps" shows 100% GPU.`,
+    );
+  };
 }

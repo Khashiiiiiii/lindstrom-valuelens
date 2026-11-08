@@ -1,6 +1,7 @@
 // The POST /api/assistant (#40) and POST /api/observations (#43) handlers. Each parses the body with the page request
 // parsing, sets one AbortController for the whole reply and returns one JSON body. Nothing is stored between
-// requests. With ASSISTANT_STUB=1 they serve the #34 stubs instead, so the dashboard can be built without Ollama.
+// requests. After each model call they check that the model is fully on the GPU (#44). With ASSISTANT_STUB=1 they
+// serve the #34 stubs instead, so the dashboard can be built without Ollama.
 
 import { resolvePriorities } from "../data.ts";
 import type { PageRequest } from "../pages/request.ts";
@@ -9,8 +10,8 @@ import type { AnswerDeps } from "./answer.ts";
 import { answerPrompt } from "./answer.ts";
 import type { AssistantError, AssistantRequest, ObservationsRequest } from "./contract.ts";
 import { AssistantFailureError, ERROR_STATUS } from "./errors.ts";
-import type { Chat } from "./ollama.ts";
-import { ollamaChat } from "./ollama.ts";
+import type { Chat, GpuCheck } from "./ollama.ts";
+import { ollamaChat, ollamaGpuCheck } from "./ollama.ts";
 import { generateObservations } from "./observations.ts";
 import type { StubReply } from "./stub.ts";
 import { stubAnswer, stubObservations, stubRoute } from "./stub.ts";
@@ -24,6 +25,8 @@ const OBSERVATIONS_STUB_DELAY_MS = 5000;
 export interface AssistantRouteOptions {
   chat?: Chat;
   timeoutMs?: number;
+  /** Runs after every model call. Defaults to ollamaGpuCheck() with the default chat, and to none with a fake chat. */
+  gpuCheck?: GpuCheck;
 }
 
 /** The POST /api/assistant handler. The stub or the model is picked per request from ASSISTANT_STUB. */
@@ -45,19 +48,27 @@ interface ModelRoute<Req, Reply> {
   limitMs: number;
 }
 
-function modelRoute<Req, Reply>(route: ModelRoute<Req, Reply>, { chat = ollamaChat(), timeoutMs = route.limitMs }: AssistantRouteOptions) {
+function modelRoute<Req, Reply>(route: ModelRoute<Req, Reply>, options: AssistantRouteOptions) {
+  const { chat = ollamaChat(), timeoutMs = route.limitMs } = options;
+  // A fake chat has no Ollama behind it, so it gets no default check.
+  const gpuCheck = options.gpuCheck ?? (options.chat ? null : ollamaGpuCheck());
   const stub = stubRoute(route.stub, route.stubDelayMs);
   return async (request: Request): Promise<Response> => {
     if (process.env.ASSISTANT_STUB === "1") return stub(request);
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
+    let calledModel = false;
     try {
       const parsed = route.parse(await request.json().catch(() => null));
+      calledModel = true;
       return Response.json(await route.run(parsed, { chat, signal: controller.signal }));
     } catch (e) {
       return errorResponse(e, controller.signal, route.limitMs);
     } finally {
       clearTimeout(timer);
+      // After the model call, also a failed one: a timeout is the likeliest sign of a model partly on the CPU. Not
+      // awaited, so the reply never waits for /api/ps.
+      if (calledModel && gpuCheck) void gpuCheck().catch(() => {});
     }
   };
 }

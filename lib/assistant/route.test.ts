@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
+import { createServer } from "node:http";
+import type { AddressInfo } from "node:net";
 import { test } from "node:test";
 
 import type { AssistantAnswer, AssistantError, ObservationsReply } from "./contract.ts";
 import { AssistantFailureError } from "./errors.ts";
-import type { Chat } from "./ollama.ts";
-import { ollamaChat } from "./ollama.ts";
+import type { Chat, GpuCheck } from "./ollama.ts";
+import { MODEL, ollamaChat, ollamaGpuCheck } from "./ollama.ts";
 import type { AssistantRouteOptions } from "./route.ts";
 import { assistantRoute, observationsRoute } from "./route.ts";
 
@@ -164,4 +166,73 @@ test("observations: ASSISTANT_STUB=1 serves the stub and never calls chat", asyn
       else process.env[key] = value;
     }
   }
+});
+
+// ---------------------------------------------------------------- GPU guard
+
+/** A fake Ollama that answers only GET /api/ps with `ps`, or a closed port when ps is null. */
+async function fakeOllama(ps: unknown): Promise<{ url: string; close: () => void }> {
+  if (ps === null) return { url: "http://127.0.0.1:9", close: () => {} };
+  const server = createServer((req, res) => {
+    if (req.url === "/api/ps") res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify(ps));
+    else res.writeHead(404).end();
+  });
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  return { url: `http://127.0.0.1:${(server.address() as AddressInfo).port}`, close: () => server.close() };
+}
+
+/**
+ * Sends one request with the real GPU check against a fake Ollama answering `ps`, and waits for the check, which the
+ * route does not await. Returns the response.
+ */
+async function withGpuCheck(ps: unknown, send: (gpuCheck: GpuCheck) => Promise<Response>): Promise<Response> {
+  const ollama = await fakeOllama(ps);
+  const check = ollamaGpuCheck(ollama.url);
+  let checked: Promise<void> = Promise.resolve();
+  try {
+    const res = await send(() => (checked = check()));
+    await checked;
+    return res;
+  } finally {
+    ollama.close();
+  }
+}
+
+const psWith = (size: number, size_vram: number) => ({ models: [{ name: MODEL, model: MODEL, size, size_vram }] });
+const PARTLY_ON_CPU = psWith(8_000_000_000, 6_000_000_000);
+
+test("a model partly on the CPU logs one warning and the request still succeeds", async (t) => {
+  const warn = t.mock.method(console, "warn", () => {});
+  const res = await withGpuCheck(PARTLY_ON_CPU, (gpuCheck) => postAssistant(post(BODY), { chat: answering, gpuCheck }));
+  assert.equal(res.status, 200);
+  assert.equal(((await res.json()) as AssistantAnswer).answer, "The data does not hold cost.");
+  assert.equal(warn.mock.callCount(), 1);
+  assert.match(String(warn.mock.calls[0].arguments[0]), /75% on the GPU/);
+});
+
+test("observations: a model partly on the CPU logs one warning and the request still succeeds", async (t) => {
+  const warn = t.mock.method(console, "warn", () => {});
+  const res = await withGpuCheck(PARTLY_ON_CPU, (gpuCheck) => postObservations(OBS_BODY, { chat: observing, gpuCheck }));
+  assert.equal(res.status, 200);
+  assert.equal(warn.mock.callCount(), 1);
+});
+
+test("a model fully on the GPU or not loaded, or an /api/ps that fails, logs no warning and never fails the request", async (t) => {
+  const warn = t.mock.method(console, "warn", () => {});
+  const replies = [psWith(8_000_000_000, 8_000_000_000), { models: [] }, { models: [{ name: "other:1b", size: 2, size_vram: 1 }] }, "not an object", null];
+  for (const ps of replies) {
+    const res = await withGpuCheck(ps, (gpuCheck) => postAssistant(post(BODY), { chat: answering, gpuCheck }));
+    assert.equal(res.status, 200, JSON.stringify(ps));
+  }
+  assert.equal(warn.mock.callCount(), 0);
+});
+
+test("the GPU check also runs after a failed model call, but not for a bad request", async () => {
+  let checks = 0;
+  const gpuCheck = async () => void checks++;
+  const empty: Chat = async () => ({ message: { role: "assistant", content: "" } });
+  assert.deepEqual(await errorOf(await postAssistant(post(BODY), { chat: empty, gpuCheck })), [502, "model_error"]);
+  assert.equal(checks, 1);
+  assert.deepEqual(await errorOf(await postAssistant(post("{not json"), { chat: answering, gpuCheck })), [400, "bad_request"]);
+  assert.equal(checks, 1);
 });
