@@ -2,8 +2,10 @@
 // KAM-only id (ADR 0011). The server checks every argument itself, since Ollama has no strict schemas, and a failed
 // check throws a ToolError the runner hands back to the model. Ported from the prototype (Spec: AI assistant #39).
 
-import type { BaselineId, KpiAnswer, KpiQuery, KpiResult, Period, SignalGroup } from "../data.ts";
+import type { BaselineId, KpiAnswer, KpiQuery, KpiResult, Period } from "../data.ts";
 import { firstScreen, getMasterData, getOpportunitySignals, listKpis, proposedNextSteps, runKpi, signalGroups } from "../data.ts";
+import type { CheckState } from "./checks.ts";
+import { signalNumbers, siteShortName } from "./checks.ts";
 import type { AssistantRequest } from "./contract.ts";
 import { customerOf, priorityName } from "./context.ts";
 import type { ChatTool } from "./ollama.ts";
@@ -16,13 +18,8 @@ export class ToolError extends Error {
   }
 }
 
-/** What the tools collected over one answer. */
-export interface ToolState {
-  /** Full KpiAnswers, deduped by kpi_id, scope, period and baseline. */
-  sources: KpiAnswer[];
-  /** The fired signal groups the model was last given. */
-  signal_groups: SignalGroup[];
-}
+/** What the tools collected over one answer, which the answer checks read. sources are deduped by kpi_id, scope, period and baseline. */
+export type ToolState = CheckState;
 
 export interface Tools {
   definitions: ChatTool[];
@@ -37,14 +34,20 @@ const GAP_MEANING = "A gap is how far the Site is above the median of the Custom
 /** The tools for one request. */
 export function buildTools(req: AssistantRequest): Tools {
   const master = getMasterData().data;
-  const { sites } = customerOf(req.customer_id);
+  const { customer, sites } = customerOf(req.customer_id);
   const siteName = (id: string) => sites.find((s) => s.site_id === id)?.site_name ?? id;
   const listing = listKpis(req.view);
   const kpiIds = listing.map((k) => k.id);
   const year = master.months[0].slice(0, 4);
   const periods = [year, `${year}-H1`, `${year}-H2`, ...master.months];
   const baselines = master.baselines.map((b) => b.baseline_id);
-  const state: ToolState = { sources: [], signal_groups: [] };
+  const state: ToolState = {
+    sources: [],
+    signal_groups: [],
+    // The context block gives the model the Site count.
+    extra_numbers: [sites.length],
+    sites: sites.map((s) => ({ site_id: s.site_id, short_name: siteShortName(s.site_name, customer.customer_name) })),
+  };
 
   // ---------------------------------------------------------------- argument checks
 
@@ -116,6 +119,7 @@ export function buildTools(req: AssistantRequest): Tools {
     const query = { customer_id: req.customer_id, view: req.view, priorities: req.priorities };
     const groups = signalGroups(query);
     state.signal_groups = groups;
+    state.extra_numbers.push(...signalNumbers(groups));
     const catalogue = getOpportunitySignals().catalogue;
     return {
       period: year,
@@ -149,6 +153,7 @@ export function buildTools(req: AssistantRequest): Tools {
       const answers = [...fs.tiles.flatMap((t) => t.answers), ...fs.priority_blocks.flatMap((b) => b.answers)];
       if (fs.kam_additions) answers.push(fs.kam_additions.account_health);
       addSources(answers);
+      state.extra_numbers.push(fs.site_count, fs.optimisation_potential.fired_count, fs.optimisation_potential.signal_count);
       const signals = signalPayload();
       return {
         period: fs.period,
