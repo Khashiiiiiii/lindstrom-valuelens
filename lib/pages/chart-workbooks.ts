@@ -3,13 +3,14 @@
 // This step rewrites each embedded workbook as a plain one-sheet workbook built from the chart's cached values, in
 // the cells the chart's formulas name. Each workbook stays editable in PowerPoint and in Keynote.
 //
-// It also drops each cached point with no value, which pptxgenjs writes for a null value, so that month is a gap.
-// Last, it drops the folder entries from the zip, because files with them have failed to open through cloud services.
+// A cached point with no value, which pptxgenjs writes for a null value, is dropped, so that month is a gap. The zip
+// is written again without its folder entries. The pptx validator warns that files with them have failed to open or
+// co-edit through a cloud service.
 
 import JSZip from "jszip";
 
 /** The deck file with each chart's workbook rebuilt from the chart's cached values, and no folder entries. */
-export async function keynoteCharts(file: Uint8Array): Promise<Uint8Array<ArrayBuffer>> {
+export async function rebuildChartWorkbooks(file: Uint8Array): Promise<Uint8Array<ArrayBuffer>> {
   const source = await JSZip.loadAsync(file);
   const replaced = new Map<string, string | Uint8Array>();
   for (const name of Object.keys(source.files).filter((n) => /^ppt\/charts\/chart\d+\.xml$/.test(n))) {

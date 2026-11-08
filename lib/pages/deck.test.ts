@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import JSZip from "jszip";
 
-import { listKpis } from "../data.ts";
+import { listKpis, runKpi } from "../data.ts";
 
 import type { DeckRequest } from "./deck.ts";
 import { deckFile } from "./deck.ts";
@@ -117,7 +117,7 @@ function points(block: string): string[] {
   return [...block.matchAll(/<c:pt idx="\d+">\s*<c:v>([^<]*)<\/c:v>/g)].map((m) => m[1]);
 }
 
-test("the deck has native charts of washed kg, on-time share, emissions saved and the waste routes, with every cached value set", async () => {
+test("the deck has native charts of washed kg, on-time share, emissions saved and the treatment routes, with every cached value set", async () => {
   const found = await charts(await deckFile(NORTHSTAR));
   assert.equal(found.length, 4);
   const titles = found.map((c) => decodeXml(c.xml.match(/<c:title>[\s\S]*?<a:t>([^<]*)<\/a:t>/)![1])).sort();
@@ -130,9 +130,10 @@ test("the deck has native charts of washed kg, on-time share, emissions saved an
   for (const chart of found) {
     for (const s of chart.series) {
       assert.ok(s.name, `${chart.name} names its series`);
-      assert.equal(s.values.length, s.ptCount, `${chart.name} caches every point`);
-      assert.equal(s.labels.length, s.values.length, `${chart.name} labels every point`);
+      assert.equal(s.labels.length, s.ptCount, `${chart.name} labels every point`);
       for (const v of s.values) assert.ok(v !== "" && Number.isFinite(Number(v)), `${chart.name} caches "${v}" as a number`);
+      // NorthStar has a value in every month and every route, so no chart has a gap.
+      assert.equal(s.values.length, s.ptCount, `${chart.name} caches every point`);
     }
   }
   const monthly = found.filter((c) => c.series[0].labels.length === 12);
@@ -141,7 +142,7 @@ test("the deck has native charts of washed kg, on-time share, emissions saved an
 });
 
 /**
- * The cells of a workbook's first sheet by reference, such as "B2". Only numbers and inline strings are read: a
+ * The cells of a workbook's first sheet by reference, such as "B2". Only numbers and inline strings are read. A
  * shared string reads as its index, so a workbook that uses them does not match its chart.
  */
 async function sheetCells(workbook: Uint8Array): Promise<Map<string, string>> {
@@ -179,7 +180,17 @@ test("every chart's embedded workbook holds the chart's cached values as plain c
   }
 });
 
-test("the file has no folder entries, which cloud services fail to open", async () => {
+test("the file has no folder entries, which the pptx validator warns can fail to open through a cloud service", async () => {
   const zip = await JSZip.loadAsync(await deckFile(NORTHSTAR));
   assert.deepEqual(Object.values(zip.files).filter((f) => f.dir).map((f) => f.name), []);
+});
+
+test("the treatment route chart labels each slice with the route's kg from runKpi, not a share the chart computes", async () => {
+  const waste = runKpi("textile_waste_by_treatment_route", { scope: { customer_id: "CUST001" }, period: "2025", view: "Customer" });
+  assert.ok(!("withheld" in waste) && waste.breakdown);
+  const doughnut = (await charts(await deckFile(NORTHSTAR))).find((c) => c.xml.includes("<c:doughnutChart>"))!;
+  assert.deepEqual(doughnut.series[0].values.map(Number), waste.breakdown.map((b) => b.value));
+  const labels = doughnut.xml.match(/<c:dLbls>([\s\S]*?)<\/c:dLbls>/)![1];
+  assert.match(labels, /<c:showVal val="1"\/>/);
+  assert.match(labels, /<c:showPercent val="0"\/>/);
 });

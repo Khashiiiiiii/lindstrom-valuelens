@@ -28,7 +28,7 @@ import { DEMO_KAM } from "../demo-kam.ts";
 import type { DictionaryKey, Lang } from "../i18n.ts";
 import { AI_TRANSLATION_NOTE, dataLabel, formatNumber, formatValue, monthName, t } from "../i18n.ts";
 import type { PageRequest } from "./request.ts";
-import { keynoteCharts } from "./keynote-charts.ts";
+import { rebuildChartWorkbooks } from "./chart-workbooks.ts";
 import { BadRequest, parsePageRequest } from "./request.ts";
 
 /** A page request with the app language. The deck ignores its view and Site. */
@@ -65,6 +65,8 @@ const PALE = "A9C8E6";
 const WHITE = "FFFFFF";
 const FONT = "Arial";
 const LOGO_RATIO = 2117 / 429;
+/** The box of a month chart under a row of figure cards. */
+const MONTH_CHART = { x: 0.6, y: 3.6, w: 12.15, h: 2.6 };
 
 type Slide = pptxgen.Slide;
 type Box = { x: number; y: number; w: number; h: number };
@@ -144,18 +146,13 @@ export async function deckFile(request: DeckRequest): Promise<Uint8Array<ArrayBu
   ];
   for (const r of kpis(["active_wearers", "garments_in_circulation", "washed_kg"])) glance.push({ label: dataLabel(lang, r.name), ...formatValue(lang, r) });
   glance.forEach((g, i) => stat(s, g, { x: 0.6 + i * 3.1, y: 1.75, w: 2.85, h: 1.6 }));
-  monthChart(s, lang, "bar", t(lang, "Washed kg per month"), master.months, monthly("washed_kg"), { x: 0.6, y: 3.6, w: 12.15, h: 2.6 });
+  monthChart(s, lang, "bar", t(lang, "Washed kg per month"), master.months, monthly("washed_kg"), MONTH_CHART);
   caption(s, t(lang, "Full year 2025, by month."), { x: 0.6, y: 6.3, w: 12.15, h: 0.3 });
 
   // 4. Look back: service performance
   s = deck.content(t(lang, "Look back"), t(lang, "Service performance"));
   kpis(["on_time_service_cycle_share", "turnaround_hours_median", "service_requests_per_100_wearers"]).forEach((r, i) => stat(s, { label: dataLabel(lang, r.name), ...formatValue(lang, r) }, { x: 0.6 + i * 4.1, y: 1.75, w: 3.85, h: 1.6 }));
-  monthChart(s, lang, "line", t(lang, "On-time service cycle share per month"), master.months, monthly("on_time_service_cycle_share"), {
-    x: 0.6,
-    y: 3.6,
-    w: 12.15,
-    h: 2.6,
-  });
+  monthChart(s, lang, "line", t(lang, "On-time service cycle share per month"), master.months, monthly("on_time_service_cycle_share"), MONTH_CHART);
   caption(s, t(lang, "Full year 2025, by month."), { x: 0.6, y: 6.3, w: 12.15, h: 0.3 });
 
   // 5. Show value: sustainability, with the baseline caveat and the deferred Financial Value note
@@ -164,7 +161,10 @@ export async function deckFile(request: DeckRequest): Promise<Uint8Array<ArrayBu
     const baseline = r.detail?.kind === "handprint" ? `, ${dataLabel(lang, r.detail.baseline_label)}` : "";
     stat(s, { label: `${dataLabel(lang, r.name)}${baseline}`, ...formatValue(lang, r) }, { x: 0.6 + i * 4.1, y: 1.75, w: 3.85, h: 1.6 });
   });
-  monthChart(s, lang, "bar", t(lang, "Emissions saved per month, kg CO2e"), master.months, monthly("emissions_saved"), { x: 0.6, y: 3.6, w: 12.15, h: 2.1 });
+  monthChart(s, lang, "bar", t(lang, "Emissions saved per month, kg CO2e"), master.months, monthly("emissions_saved"), {
+    ...MONTH_CHART,
+    h: 2.1,
+  });
   const tileCaveats = getViewsAndReview().data.first_screen.common_tiles.flatMap((tile) => tile.caveats ?? []);
   const context = getPublicReference().data.context_lines.group_emissions_intensity;
   const notes = [
@@ -177,28 +177,35 @@ export async function deckFile(request: DeckRequest): Promise<Uint8Array<ArrayBu
   // 6. Show value: circularity and the waste routes
   s = deck.content(t(lang, "Show value"), t(lang, "Circularity and textile waste"));
   const waste = kpi("textile_waste_by_treatment_route");
-  // A split with no kg has no slices to draw, as on the Overview.
-  if (waste?.breakdown && waste.value) {
-    const routes = waste.breakdown;
-    s.addChart("doughnut", [{ name: dataLabel(lang, waste.name), labels: routes.map((b) => dataLabel(lang, b.key)), values: routes.map((b) => b.value) }], {
-      ...chartText(dataLabel(lang, waste.name)),
-      x: 0.6,
-      y: 1.75,
-      w: 6.2,
-      h: 4.4,
-      holeSize: 55,
-      chartColors: [NAVY, RED, PALE, MUTED, LINE],
-      dataBorder: { pt: 1.5, color: WHITE },
-      showPercent: true,
-      showValue: false,
-      dataLabelColor: WHITE,
-      dataLabelFontSize: 11,
-      showLegend: true,
-      legendPos: "r",
-      legendFontFace: FONT,
-      legendFontSize: 12,
-      legendColor: INK,
-    });
+  // Each slice is labelled with its route's kg from the breakdown, never a share the chart computes (ADR 0001). A
+  // split with no kg has no slices to draw, as on the Overview, so the slide keeps only the name and the total.
+  if (waste?.breakdown) {
+    const name = dataLabel(lang, waste.name);
+    if (waste.value) {
+      const routes = waste.breakdown;
+      s.addChart("doughnut", [{ name, labels: routes.map((b) => dataLabel(lang, b.key)), values: routes.map((b) => b.value) }], {
+        ...chartBase(name),
+        x: 0.6,
+        y: 1.75,
+        w: 6.2,
+        h: 4.4,
+        holeSize: 55,
+        chartColors: [NAVY, RED, PALE, MUTED, LINE],
+        dataBorder: { pt: 1.5, color: WHITE },
+        showValue: true,
+        showPercent: false,
+        dataLabelFormatCode: "#,##0",
+        dataLabelColor: WHITE,
+        dataLabelFontSize: 11,
+        showLegend: true,
+        legendPos: "r",
+        legendFontFace: FONT,
+        legendFontSize: 12,
+        legendColor: INK,
+      });
+    } else {
+      heading(s, name, { x: 0.6, y: 1.75, w: 6.2, h: 0.4 });
+    }
     const total = formatValue(lang, waste);
     caption(s, `${capitalized(dataLabel(lang, "total"))}: ${total.value} ${total.unit}`, { x: 0.6, y: 6.25, w: 6.2, h: 0.3 });
   }
@@ -378,7 +385,7 @@ export async function deckFile(request: DeckRequest): Promise<Uint8Array<ArrayBu
   text(s, `${DEMO_KAM.name}\n${DEMO_KAM.email}`, { x: 0.6, y: 5.1, w: 6, h: 0.7 }, { fontSize: 14, color: WHITE });
 
   // Keynote cannot read the workbook pptxgenjs embeds behind each chart, so each one is rebuilt.
-  return keynoteCharts((await pres.write({ outputType: "uint8array" })) as Uint8Array);
+  return rebuildChartWorkbooks((await pres.write({ outputType: "uint8array" })) as Uint8Array);
 }
 
 /** The period as the deck names it: "2025", "H1 2025", "H2 2025" or a month such as "March 2025" in the language. */
@@ -526,15 +533,15 @@ function monthChart(
 ): void {
   const first = results[0];
   const values = results.map((r) => r?.value ?? null);
-  const shown = values.filter((v): v is number => v !== null);
-  if (!first || shown.length === 0) return;
+  const present = values.filter((v): v is number => v !== null);
+  if (!first || present.length === 0) return;
   const share = first.unit === "share";
   s.addChart(
     kind,
-    // pptxgenjs writes a null value as an empty point, which keynoteCharts drops so the month is a gap.
+    // pptxgenjs writes a null value as an empty point, which rebuildChartWorkbooks drops so the month is a gap.
     [{ name: title, labels: months.map((m) => monthName(lang, m, "short").replace(".", "")), values: values as number[] }],
     {
-      ...chartText(title),
+      ...chartBase(title),
       ...box,
       chartColors: [NAVY],
       valAxisLabelFormatCode: share ? "0%" : "#,##0",
@@ -542,22 +549,15 @@ function monthChart(
       catGridLine: { style: "none" },
       catAxisLineShow: false,
       valAxisLineShow: false,
-      ...(kind === "bar"
-        ? { barDir: "col", barGapWidthPct: 55 }
-        : // A share axis starts a point below the lowest month, so the line does not sit flat at the top.
-          {
-            lineSize: 2.5,
-            lineDataSymbol: "circle",
-            lineDataSymbolSize: 7,
-            valAxisMinVal: Math.max(0, Math.floor(Math.min(...shown) * 100 - 1) / 100),
-            valAxisMaxVal: 1,
-          }),
+      ...(kind === "bar" ? { barDir: "col", barGapWidthPct: 55 } : { lineSize: 2.5, lineDataSymbol: "circle", lineDataSymbolSize: 7 }),
+      // A share axis ends at 100% and starts a point below the lowest month, so a line near the top is not flat.
+      ...(share ? { valAxisMinVal: Math.max(0, Math.floor(Math.min(...present) * 100 - 1) / 100), valAxisMaxVal: 1 } : {}),
     },
   );
 }
 
-/** The title, axis and label text every chart shares: the deck font, ink titles and muted axes, no legend. */
-function chartText(title: string): pptxgen.IChartOpts {
+/** The options every chart shares: the title, which is also the alt text, the deck font, muted axes and no legend. */
+function chartBase(title: string): pptxgen.IChartOpts {
   return {
     showTitle: true,
     title,
