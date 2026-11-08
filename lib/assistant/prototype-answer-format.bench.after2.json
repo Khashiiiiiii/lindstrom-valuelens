@@ -1,0 +1,2388 @@
+[
+ {
+  "run": 1,
+  "prompt": 1,
+  "answer": "NorthStar Foods Group achieved significant value creation in 2025, with water saved at 1,406,482.75 l vs outsourced local laundry, emissions saved at 255,073.83 kg CO2e vs outsourced local laundry, and energy saved at 171,644.64 kWh vs outsourced local laundry. The on-time service cycle share was 98.33%, and service requests per 100 wearers were 0.44. The account health rating was green, indicating strong performance across key metrics. Several Sites were flagged for discussion, including NorthStar Pori, NorthStar Gdańsk, and NorthStar Kraków, for their high washes per garment and service request rates. The Customer's priorities of Water, Service reliability, and Emissions were well addressed, with notable improvements in sustainability and operational efficiency. Caveats: Baseline factors are illustrative. Savings may be overstated.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_overview({\"period\":\"2025\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 14,
+   "tokens": {
+    "prompt": 9311,
+    "output": 232,
+    "largestPrompt": 6668
+   }
+  }
+ },
+ {
+  "run": 1,
+  "prompt": 2,
+  "answer": "Water saved: 1,406,482.75 l vs outsourced local laundry.  \nEmissions saved: 255,073.83 kg CO2e vs outsourced local laundry.  \n\nNorthStar Pori: washes_per_garment_above_peers, gap: 15.22%.  \nNorthStar Gdańsk: washes_per_garment_above_peers, gap: 12.98%.  \nNorthStar Kraków: washes_per_garment_above_peers, gap: 12.14%.  \nNorthStar Lahti: washes_per_garment_above_peers, gap: 11.02%.  \n\nCaveats: Baseline factors are illustrative. Savings may be overstated. Every value names its baseline, for example \"vs outsourced local laundry\".",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: set_priorities({\"priorities\":[\"Water\",\"Emissions\",\"Service reliability\"]})"
+  ],
+  "unmatched": [],
+  "priority_change": {
+   "priorities": [
+    "Water",
+    "Emissions",
+    "Service reliability",
+    "Circularity",
+    "Garment utilisation",
+    "Traceability",
+    "Improvement"
+   ]
+  },
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 7,
+   "tokens": {
+    "prompt": 9360,
+    "output": 213,
+    "largestPrompt": 6721
+   }
+  }
+ },
+ {
+  "run": 1,
+  "prompt": 3,
+  "answer": "The sites with the greatest textile-allocation optimization potential are:\n- NorthStar Pori, gap: 15.22% above peers\n- NorthStar Gdańsk, gap: 12.98% above peers\n- NorthStar Kraków, gap: 12.14% above peers\n- NorthStar Lahti, gap: 11.02% above peers\n\nCaveats: The gaps are calculated as a share of the median of the Customer's other Sites.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_signal_groups({\"period\":\"2025\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 4,
+   "tokens": {
+    "prompt": 6830,
+    "output": 129,
+    "largestPrompt": 4192
+   }
+  }
+ },
+ {
+  "run": 1,
+  "prompt": 4,
+  "answer": "To improve performance next year, focus on the following:\n\n- **Water**: NorthStar Pori, Gdańsk, Kraków, and Lahti have higher washes per garment than peers, flagged for discussion. Review garment change routines. Water saved: 1,406,482.75 l vs outsourced local laundry.\n- **Service reliability**: NorthStar Pori has late service cycles above peers. Investigate late cycles by stage. On-time service cycle share: 98.33% vs outsourced local laundry.\n- **Emissions**: NorthStar Pori has high late service cycles. Improve turnaround times. Emissions saved: 255,073.83 kg CO2e vs outsourced local laundry.\n- **Garment utilisation**: NorthStar Malmö, Kraków, Vaasa, Lappeenranta, and Gothenburg have higher garment allocation than peers. Check wearer counts and right-size allocations. Garment allocation above peers: 43.60% for Malmö, 40.58% for Kraków, 37.66% for Vaasa, 36.95% for Lappeenranta, 31.51% for Gothenburg.\n- **Energy**: Energy saved is estimated vs outsourced local laundry. Dataset energy (0.70 kWh/kg) is below Lindström's published 0.99 kWh/kg, so energy saved may be overstated. Energy saved: 171,644.64 kWh vs outsourced local laundry.\n\nCaveats: Baseline factors are illustrative. Savings may be overstated. Dataset energy is below published values.",
+  "retried": [
+   "Name the baseline (\"vs outsourced local laundry\") after each saved figure in: \"Dataset energy (0.70 kWh/kg) is below Lindström's published \"."
+  ],
+  "remaining_problems": [
+   "Name the baseline (\"vs outsourced local laundry\") after each saved figure in: \"Dataset energy (0.70 kWh/kg) is below Lindström's published \"."
+  ],
+  "log": [
+   "round 1: get_overview({\"period\":\"2025\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 16,
+   "tokens": {
+    "prompt": 13265,
+    "output": 583,
+    "largestPrompt": 5976
+   }
+  }
+ },
+ {
+  "run": 1,
+  "prompt": 5,
+  "answer": "Water saved: 1,406,482.75 l vs outsourced local laundry  \nEnergy saved: 171,644.64 kWh vs outsourced local laundry  \nEmissions saved: 255,073.83 kg CO2e vs outsourced local laundry  \n\nCaveats: Baseline factors are illustrative. Savings may be overstated. The B_LOCAL process factor is near Scope 1+2+3 levels, while the actuals are near Scope 1+2. Emissions saved may be overstated. A TEAM_ASSUMPTION low case of 0.30 kgCO2e/kg for the B_LOCAL process factor gives a lower figure.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_kpis({\"period\":\"2025\",\"site_id\":\"all\",\"unit\":\"total\",\"baseline_id\":\"B_LOCAL\",\"kpi_ids\":[\"water_saved\",\"energy_saved\",\"emissions_saved\"]})",
+   "round 1: get_kpis({\"unit\":\"total\",\"baseline_id\":\"B_LOCAL\",\"kpi_ids\":[\"water_saved\",\"energy_saved\",\"emissions_saved\"],\"period\":\"2025\",\"site_id\":\"all\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 2,
+   "seconds": 7,
+   "tokens": {
+    "prompt": 6262,
+    "output": 278,
+    "largestPrompt": 3739
+   }
+  }
+ },
+ {
+  "run": 1,
+  "prompt": 6,
+  "answer": "1. Water savings: 1,406,482.75 l saved vs outsourced local laundry.  \n2. Emissions saved: 255,073.83 kg CO2e saved vs outsourced local laundry.  \n3. Service reliability: On-time service cycle share is 98.33%, with 190 late service cycles.  \n4. Garment allocation: NorthStar Malmö, Kraków, Vaasa, Lappeenranta, and Gothenburg have 30% or more above median garment allocation.  \n5. Service request rate: NorthStar Gdańsk has 2.25 times the median service requests per 100 wearers.  \n\nCaveats: Emissions and water savings may be overstated. Data is synthetic.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_overview({\"period\":\"2025\"})",
+   "round 1: get_signal_groups({})",
+   "round 1: set_priorities({\"priorities\":[\"Water\",\"Emissions\",\"Service reliability\",\"Circularity\",\"Garment utilisation\"]})"
+  ],
+  "unmatched": [],
+  "priority_change": {
+   "priorities": [
+    "Water",
+    "Emissions",
+    "Service reliability",
+    "Circularity",
+    "Garment utilisation",
+    "Traceability",
+    "Improvement"
+   ]
+  },
+  "meta": {
+   "rounds": 2,
+   "calls": 3,
+   "seconds": 10,
+   "tokens": {
+    "prompt": 14921,
+    "output": 254,
+    "largestPrompt": 12284
+   }
+  }
+ },
+ {
+  "run": 1,
+  "prompt": 7,
+  "answer": "The data does not hold euros.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 1,
+   "calls": 0,
+   "seconds": 1,
+   "tokens": {
+    "prompt": 2526,
+    "output": 8,
+    "largestPrompt": 2526
+   }
+  }
+ },
+ {
+  "run": 1,
+  "observations": "KAM",
+  "items": [
+   {
+    "text": "Water saved: 1,406,482.75 l vs outsourced local laundry.",
+    "kpi_ids": [
+     "water_saved"
+    ],
+    "signal_ids": [],
+    "unmatched": []
+   },
+   {
+    "text": "NorthStar Pori is flagged for discussion due to 15.22% more washes per garment than peers.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "washes_per_garment_above_peers"
+    ],
+    "unmatched": []
+   },
+   {
+    "text": "Service request rate for NorthStar Gdańsk is 224.68% above peers.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "service_request_rate_above_peers"
+    ],
+    "unmatched": []
+   }
+  ],
+  "meta": {
+   "seconds": 5,
+   "prompt_tokens": 5058
+  }
+ },
+ {
+  "run": 1,
+  "observations": "Customer",
+  "items": [
+   {
+    "text": "Water saved is 1,406,482.75 l vs outsourced local laundry.",
+    "kpi_ids": [
+     "water_saved"
+    ],
+    "signal_ids": [],
+    "unmatched": []
+   },
+   {
+    "text": "NorthStar Pori is flagged for discussion due to 15.22% more washes per garment than peers.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "washes_per_garment_above_peers"
+    ],
+    "unmatched": []
+   },
+   {
+    "text": "NorthStar Pori has 63.35% more late service cycles than peers, flagged for discussion.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "late_service_cycles_above_peers"
+    ],
+    "unmatched": []
+   }
+  ],
+  "meta": {
+   "seconds": 5,
+   "prompt_tokens": 4480
+  }
+ },
+ {
+  "run": 2,
+  "prompt": 1,
+  "answer": "NorthStar Foods Group achieved significant value creation in 2025. Water saved was 1,406,482.75 liters vs outsourced local laundry. Emissions saved were 255,073.83 kg CO2e vs outsourced local laundry. Energy saved were 171,644.64 kWh vs outsourced local laundry. On-time service cycle share was 98.33%, and service requests per 100 wearers were 0.44 per month. The account health rating was green, indicating strong performance across key metrics. Caveats: Baseline factors are illustrative. Savings may be overstated. Data is synthetic.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_overview({\"period\":\"2025\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 6,
+   "tokens": {
+    "prompt": 9311,
+    "output": 175,
+    "largestPrompt": 6668
+   }
+  }
+ },
+ {
+  "run": 2,
+  "prompt": 2,
+  "answer": "Water saved: 1,406,482.75 l vs outsourced local laundry.  \nEmissions saved: 255,073.83 kg CO2e vs outsourced local laundry.  \n\nNorthStar Pori: washes_per_garment_above_peers, gap: 15.22%.  \nNorthStar Gdańsk: washes_per_garment_above_peers, gap: 12.98%.  \nNorthStar Kraków: washes_per_garment_above_peers, gap: 12.14%.  \nNorthStar Lahti: washes_per_garment_above_peers, gap: 11.02%.  \n\nCaveats: Baseline factors are illustrative. Savings may be overstated. Every value names its baseline, for example \"vs outsourced local laundry\".",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: set_priorities({\"priorities\":[\"Water\",\"Emissions\",\"Service reliability\"]})"
+  ],
+  "unmatched": [],
+  "priority_change": {
+   "priorities": [
+    "Water",
+    "Emissions",
+    "Service reliability",
+    "Circularity",
+    "Garment utilisation",
+    "Traceability",
+    "Improvement"
+   ]
+  },
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 7,
+   "tokens": {
+    "prompt": 9360,
+    "output": 213,
+    "largestPrompt": 6721
+   }
+  }
+ },
+ {
+  "run": 2,
+  "prompt": 3,
+  "answer": "The sites with the greatest textile-allocation optimization potential are:\n- NorthStar Pori, gap: 15.22%\n- NorthStar Gdańsk, gap: 12.98%\n- NorthStar Kraków, gap: 12.14%\n- NorthStar Lahti, gap: 11.02%\n\nThese sites have gaps in garment allocation above the median of the Customer's other Sites, indicating potential for optimization. The lever is to check wearer counts and spares, then right-size the allocation. The owner is Joint.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_signal_groups({\"period\":\"2025\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 4,
+   "tokens": {
+    "prompt": 6830,
+    "output": 140,
+    "largestPrompt": 4192
+   }
+  }
+ },
+ {
+  "run": 2,
+  "prompt": 4,
+  "answer": "To improve performance next year, focus on the following:\n\n- **Water**: NorthStar Pori, Gdańsk, Kraków, and Lahti have higher washes per garment than peers, flagged for discussion. Review garment change routines.\n- **Service reliability**: NorthStar Pori has late service cycles 63% above peers. Investigate late cycles by stage.\n- **Emissions**: NorthStar Pori has higher repair rates than peers. Check fit, working conditions, and handling for garments.\n- **Garment utilisation**: NorthStar Malmö, Kraków, Vaasa, Lappeenranta, and Gothenburg have higher garment allocations than peers. Check wearer counts and spares, then right-size the allocation.\n\nCaveats: Data is synthetic. Savings may be overstated.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_overview({\"period\":\"2025\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 6,
+   "tokens": {
+    "prompt": 8500,
+    "output": 187,
+    "largestPrompt": 5976
+   }
+  }
+ },
+ {
+  "run": 2,
+  "prompt": 5,
+  "answer": "Water saved: 1,406,482.75 l vs outsourced local laundry  \nEnergy saved: 171,644.64 kWh vs outsourced local laundry  \nEmissions saved: 255,073.83 kg CO2e vs outsourced local laundry  \n\nCaveats: Baseline factors are illustrative. Savings may be overstated. The B_LOCAL process factor is near Scope 1+2+3 levels, while the actuals are near Scope 1+2. Emissions saved may be overstated. A TEAM_ASSUMPTION low case of 0.30 kgCO2e/kg for the B_LOCAL process factor gives a lower figure. Shown next to Avoided product CO2e (estimated) and never added to it (ADR 0007).",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_kpis({\"baseline_id\":\"B_LOCAL\",\"kpi_ids\":[\"water_saved\",\"energy_saved\",\"emissions_saved\"],\"period\":\"2025\",\"site_id\":\"all\",\"unit\":\"total\"})",
+   "round 1: get_kpis({\"baseline_id\":\"B_LOCAL\",\"kpi_ids\":[\"water_saved\",\"energy_saved\",\"emissions_saved\"],\"period\":\"2025\",\"site_id\":\"all\",\"unit\":\"total\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 2,
+   "seconds": 7,
+   "tokens": {
+    "prompt": 6262,
+    "output": 304,
+    "largestPrompt": 3739
+   }
+  }
+ },
+ {
+  "run": 2,
+  "prompt": 6,
+  "answer": "1. Water saved: 2,912,706.85 l vs in-house customer laundry.  \n2. Emissions saved: 275,156.82 kg CO2e vs in-house customer laundry.  \n3. Energy saved: 206,789.86 kWh vs in-house customer laundry.  \n4. On-time service cycle share: 98.33% (based on a sample of tracked garments).  \n5. Service requests per 100 wearers: 0.44 per 100 wearers per month.  \n\nCaveats: Water, emissions, and energy saved figures are illustrative and may be overstated. On-time service cycle share is based on a sample of tracked garments.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_overview({\"period\":\"2025\"})",
+   "round 1: get_signal_groups({})",
+   "round 1: get_kpis({\"site_id\":\"all\",\"period\":\"2025\",\"baseline_id\":\"B_INHOUSE\",\"unit\":\"total\",\"kpi_ids\":[\"water_saved\",\"emissions_saved\",\"energy_saved\",\"on_time_service_cycle_share\",\"service_requests_per_100_wearers\"]})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 3,
+   "seconds": 9,
+   "tokens": {
+    "prompt": 11695,
+    "output": 292,
+    "largestPrompt": 9058
+   }
+  }
+ },
+ {
+  "run": 2,
+  "prompt": 7,
+  "answer": "The data does not hold euros.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 1,
+   "calls": 0,
+   "seconds": 1,
+   "tokens": {
+    "prompt": 2526,
+    "output": 8,
+    "largestPrompt": 2526
+   }
+  }
+ },
+ {
+  "run": 2,
+  "observations": "KAM",
+  "items": [
+   {
+    "text": "Water saved: 1,406,482.75 l vs outsourced local laundry.",
+    "kpi_ids": [
+     "water_saved"
+    ],
+    "signal_ids": [],
+    "unmatched": []
+   },
+   {
+    "text": "NorthStar Pori is flagged for discussion due to 15.22% more washes per garment than peers.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "washes_per_garment_above_peers"
+    ],
+    "unmatched": []
+   },
+   {
+    "text": "Service request rate for NorthStar Gdańsk is 224.68% above peers.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "service_request_rate_above_peers"
+    ],
+    "unmatched": []
+   }
+  ],
+  "meta": {
+   "seconds": 4,
+   "prompt_tokens": 5058
+  }
+ },
+ {
+  "run": 2,
+  "observations": "Customer",
+  "items": [
+   {
+    "text": "Water saved is 1,406,482.75 l vs outsourced local laundry.",
+    "kpi_ids": [
+     "water_saved"
+    ],
+    "signal_ids": [],
+    "unmatched": []
+   },
+   {
+    "text": "NorthStar Pori is flagged for discussion due to 15.22% more washes per garment than peers.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "washes_per_garment_above_peers"
+    ],
+    "unmatched": []
+   },
+   {
+    "text": "NorthStar Pori has 63.35% more late service cycles than peers, flagged for discussion.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "late_service_cycles_above_peers"
+    ],
+    "unmatched": []
+   }
+  ],
+  "meta": {
+   "seconds": 4,
+   "prompt_tokens": 4480
+  }
+ },
+ {
+  "run": 3,
+  "prompt": 1,
+  "answer": "NorthStar Foods Group achieved significant value in 2025, with water saved at 1,406,482.75 l vs outsourced local laundry, emissions saved at 255,073.83 kg CO2e vs outsourced local laundry, and energy saved at 171,644.64 kWh vs outsourced local laundry. The on-time service cycle share was 98.33%, and service requests per 100 wearers were 0.44 per month. The account health rating was green, indicating strong performance across key metrics. Eighteen Sites were flagged for discussion, with the top signals being washes per garment above peers and service request rate above peers. Caveats include synthetic data and baseline assumptions.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_overview({\"period\":\"2025\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 6,
+   "tokens": {
+    "prompt": 9311,
+    "output": 191,
+    "largestPrompt": 6668
+   }
+  }
+ },
+ {
+  "run": 3,
+  "prompt": 2,
+  "answer": "Water saved: 1,406,482.75 l vs outsourced local laundry. Emissions saved: 255,073.83 kg CO2e vs outsourced local laundry. Water use (allocated): 3,363,226.9 l. Emissions (allocated): 73,785.1 kg CO2e. \n\nNorthStar Pori: flagged for discussion, gap: 15.22%. NorthStar Gdańsk: flagged for discussion, gap: 12.98%. NorthStar Kraków: flagged for discussion, gap: 12.14%. NorthStar Lahti: flagged for discussion, gap: 11.02%. \n\nCaveats: Baseline factors are illustrative. Savings may be overstated. Every value names its baseline, for example \"vs outsourced local laundry\".",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: set_priorities({\"priorities\":[\"Water\",\"Emissions\",\"Service reliability\"]})"
+  ],
+  "unmatched": [],
+  "priority_change": {
+   "priorities": [
+    "Water",
+    "Emissions",
+    "Service reliability",
+    "Circularity",
+    "Garment utilisation",
+    "Traceability",
+    "Improvement"
+   ]
+  },
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 7,
+   "tokens": {
+    "prompt": 9360,
+    "output": 223,
+    "largestPrompt": 6721
+   }
+  }
+ },
+ {
+  "run": 3,
+  "prompt": 3,
+  "answer": "The sites with the greatest textile-allocation optimization potential are:\n- NorthStar Pori, gap: 15.22%\n- NorthStar Gdańsk, gap: 12.98%\n- NorthStar Kraków, gap: 12.14%\n- NorthStar Lahti, gap: 11.02%\n\nCaveats: The gaps are calculated as a share of the median of the Customer's other Sites, with a gap of 0.15 meaning 15% above.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_signal_groups({\"period\":\"2025\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 4,
+   "tokens": {
+    "prompt": 6830,
+    "output": 133,
+    "largestPrompt": 4192
+   }
+  }
+ },
+ {
+  "run": 3,
+  "prompt": 4,
+  "answer": "To improve performance next year, focus on the following:\n\n- **Water**: NorthStar Pori, Gdańsk, Kraków, and Lahti have higher washes per garment than peers, flagged for discussion. Review garment change routines.\n- **Service reliability**: NorthStar Pori has late service cycles 63% above peers. Investigate late cycles by stage.\n- **Emissions**: NorthStar Pori has higher repair rates than peers. Check fit, working conditions, and handling for garments.\n- **Garment utilisation**: NorthStar Malmö, Kraków, Vaasa, Lappeenranta, and Gothenburg have higher garment allocations than peers. Check wearer counts and spares, then right-size the allocation.\n\nCaveats: Data is synthetic, and savings may be overstated.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_overview({\"period\":\"2025\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 6,
+   "tokens": {
+    "prompt": 8500,
+    "output": 188,
+    "largestPrompt": 5976
+   }
+  }
+ },
+ {
+  "run": 3,
+  "prompt": 5,
+  "answer": "Water saved: 1,406,482.75 l vs outsourced local laundry  \nEnergy saved: 171,644.64 kWh vs outsourced local laundry  \nEmissions saved: 255,073.83 kg CO2e vs outsourced local laundry  \n\nCaveats: Baseline factors are illustrative. Savings may be overstated. The B_LOCAL process factor is near Scope 1+2+3 levels, while the actuals are near Scope 1+2. Emissions saved may be overstated. A TEAM_ASSUMPTION low case of 0.30 kgCO2e/kg for the B_LOCAL process factor gives a lower figure.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_kpis({\"baseline_id\":\"B_LOCAL\",\"kpi_ids\":[\"water_saved\",\"energy_saved\",\"emissions_saved\"],\"period\":\"2025\",\"site_id\":\"all\",\"unit\":\"total\"})",
+   "round 1: get_kpis({\"unit\":\"total\",\"baseline_id\":\"B_LOCAL\",\"kpi_ids\":[\"water_saved\",\"energy_saved\",\"emissions_saved\"],\"period\":\"2025\",\"site_id\":\"all\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 2,
+   "seconds": 7,
+   "tokens": {
+    "prompt": 6262,
+    "output": 278,
+    "largestPrompt": 3739
+   }
+  }
+ },
+ {
+  "run": 3,
+  "prompt": 6,
+  "answer": "1. Water saved: 2,912,706.85 l vs in-house customer laundry.  \n2. Emissions saved: 275,156.82 kg CO2e vs in-house customer laundry.  \n3. Energy saved: 206,789.86 kWh vs in-house customer laundry.  \n4. On-time service cycle share: 98.33% (based on a sample of tracked garments).  \n5. Service requests per 100 wearers: 0.44 per 100 wearers per month.  \n\nCaveats: Water, emissions, and energy saved figures are illustrative and may be overstated. On-time service cycle share is based on a sample of tracked garments.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_overview({\"period\":\"2025\"})",
+   "round 1: get_signal_groups({})",
+   "round 1: get_kpis({\"site_id\":\"all\",\"period\":\"2025\",\"baseline_id\":\"B_INHOUSE\",\"unit\":\"total\",\"kpi_ids\":[\"water_saved\",\"emissions_saved\",\"energy_saved\",\"on_time_service_cycle_share\",\"service_requests_per_100_wearers\"]})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 3,
+   "seconds": 9,
+   "tokens": {
+    "prompt": 11695,
+    "output": 292,
+    "largestPrompt": 9058
+   }
+  }
+ },
+ {
+  "run": 3,
+  "prompt": 7,
+  "answer": "The data does not hold euros.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 1,
+   "calls": 0,
+   "seconds": 1,
+   "tokens": {
+    "prompt": 2526,
+    "output": 8,
+    "largestPrompt": 2526
+   }
+  }
+ },
+ {
+  "run": 3,
+  "observations": "KAM",
+  "items": [
+   {
+    "text": "Water saved: 1,406,482.75 l vs outsourced local laundry.",
+    "kpi_ids": [
+     "water_saved"
+    ],
+    "signal_ids": [],
+    "unmatched": []
+   },
+   {
+    "text": "NorthStar Pori is flagged for discussion due to 15.22% more washes per garment than peers.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "washes_per_garment_above_peers"
+    ],
+    "unmatched": []
+   },
+   {
+    "text": "Service request rate for NorthStar Gdańsk is 224.68% above peers.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "service_request_rate_above_peers"
+    ],
+    "unmatched": []
+   }
+  ],
+  "meta": {
+   "seconds": 4,
+   "prompt_tokens": 5058
+  }
+ },
+ {
+  "run": 3,
+  "observations": "Customer",
+  "items": [
+   {
+    "text": "Water saved is 1,406,482.75 l vs outsourced local laundry.",
+    "kpi_ids": [
+     "water_saved"
+    ],
+    "signal_ids": [],
+    "unmatched": []
+   },
+   {
+    "text": "NorthStar Pori is flagged for discussion with a gap of 15.22% above peers in washes per garment.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "washes_per_garment_above_peers"
+    ],
+    "unmatched": []
+   },
+   {
+    "text": "Garment allocation at NorthStar Malmö is 43.6% above peers, flagged for discussion.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "garment_allocation_above_peers"
+    ],
+    "unmatched": []
+   }
+  ],
+  "meta": {
+   "seconds": 4,
+   "prompt_tokens": 4480
+  }
+ },
+ {
+  "run": 4,
+  "prompt": 1,
+  "answer": "NorthStar Foods Group achieved significant value creation in 2025, with water saved at 1,406,482.75 l vs outsourced local laundry, emissions saved at 255,073.83 kg CO2e vs outsourced local laundry, and energy saved at 171,644.64 kWh vs outsourced local laundry. The on-time service cycle share was 98.33%, and service requests per 100 wearers were 0.44. The account health rating was green, indicating strong performance across key metrics. However, some Sites flagged for discussion, including NorthStar Pori, NorthStar Gdańsk, and NorthStar Kraków for washes per garment above peers, and NorthStar Gdańsk, NorthStar Łódź, and NorthStar Lahti for service request rates above peers. Caveats: Baseline factors are illustrative. Savings may be overstated.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_overview({\"period\":\"2025\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 7,
+   "tokens": {
+    "prompt": 9311,
+    "output": 225,
+    "largestPrompt": 6668
+   }
+  }
+ },
+ {
+  "run": 4,
+  "prompt": 2,
+  "answer": "Water saved: 1,406,482.75 l vs outsourced local laundry.  \nEmissions saved: 255,073.83 kg CO2e vs outsourced local laundry.  \n\nNorthStar Pori: washes_per_garment_above_peers, gap: 15.22%.  \nNorthStar Gdańsk: washes_per_garment_above_peers, gap: 12.98%.  \nNorthStar Kraków: washes_per_garment_above_peers, gap: 12.14%.  \nNorthStar Lahti: washes_per_garment_above_peers, gap: 11.02%.  \n\nCaveats: Baseline factors are illustrative. Savings may be overstated. Every value names its baseline, for example \"vs outsourced local laundry\".",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: set_priorities({\"priorities\":[\"Water\",\"Emissions\",\"Service reliability\"]})"
+  ],
+  "unmatched": [],
+  "priority_change": {
+   "priorities": [
+    "Water",
+    "Emissions",
+    "Service reliability",
+    "Circularity",
+    "Garment utilisation",
+    "Traceability",
+    "Improvement"
+   ]
+  },
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 7,
+   "tokens": {
+    "prompt": 9360,
+    "output": 213,
+    "largestPrompt": 6721
+   }
+  }
+ },
+ {
+  "run": 4,
+  "prompt": 3,
+  "answer": "The sites with the greatest textile-allocation optimization potential are:\n- NorthStar Pori, gap: 15.22%\n- NorthStar Gdańsk, gap: 12.98%\n- NorthStar Kraków, gap: 12.14%\n- NorthStar Lahti, gap: 11.02%\n\nThese sites have gaps in garment allocation above the median of the Customer's other Sites, indicating potential for optimization. The lever is to check wearer counts and spares, then right-size the allocation. The owner is Joint.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_signal_groups({\"period\":\"2025\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 4,
+   "tokens": {
+    "prompt": 6830,
+    "output": 140,
+    "largestPrompt": 4192
+   }
+  }
+ },
+ {
+  "run": 4,
+  "prompt": 4,
+  "answer": "To improve performance next year, focus on the following:\n\n- **Water**: NorthStar Pori, Gdańsk, Kraków, and Lahti have higher washes per garment than peers, flagged for discussion. Review garment change routines.\n- **Service reliability**: NorthStar Pori has late service cycles 63% above peers. Investigate late cycles by stage.\n- **Emissions**: NorthStar Pori has higher repair rates than peers. Check fit, working conditions, and handling for garments.\n- **Garment utilisation**: NorthStar Malmö, Kraków, Vaasa, Lappeenranta, and Gothenburg have higher garment allocations than peers. Check wearer counts and spares, then right-size the allocation.\n\nCaveats: Data is synthetic; savings may be overstated.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_overview({\"period\":\"2025\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 6,
+   "tokens": {
+    "prompt": 8500,
+    "output": 187,
+    "largestPrompt": 5976
+   }
+  }
+ },
+ {
+  "run": 4,
+  "prompt": 5,
+  "answer": "Water saved: 1,406,482.75 l vs outsourced local laundry  \nEnergy saved: 171,644.64 kWh vs outsourced local laundry  \nEmissions saved: 255,073.83 kg CO2e vs outsourced local laundry  \n\nCaveats: Baseline factors are illustrative. Savings may be overstated. The B_LOCAL process factor is near Scope 1+2+3 levels, while the actuals are near Scope 1+2. Emissions saved may be overstated. A TEAM_ASSUMPTION low case of 0.30 kgCO2e/kg for the B_LOCAL process factor gives a lower figure. Shown next to Avoided product CO2e (estimated) and never added to it (ADR 0007).",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_kpis({\"period\":\"2025\",\"site_id\":\"all\",\"unit\":\"total\",\"baseline_id\":\"B_LOCAL\",\"kpi_ids\":[\"water_saved\",\"energy_saved\",\"emissions_saved\"]})",
+   "round 1: get_kpis({\"baseline_id\":\"B_LOCAL\",\"kpi_ids\":[\"water_saved\",\"energy_saved\",\"emissions_saved\"],\"period\":\"2025\",\"site_id\":\"all\",\"unit\":\"total\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 2,
+   "seconds": 8,
+   "tokens": {
+    "prompt": 6262,
+    "output": 304,
+    "largestPrompt": 3739
+   }
+  }
+ },
+ {
+  "run": 4,
+  "prompt": 6,
+  "answer": "1. Water savings: 1,406,482.75 l saved vs outsourced local laundry.  \n2. Emissions saved: 255,073.83 kg CO2e saved vs outsourced local laundry.  \n3. Service reliability: On-time service cycle share is 98.33%, with 190 late service cycles.  \n4. Garment allocation: NorthStar Malmö, Kraków, Vaasa, Lappeenranta, and Gothenburg have 30% or more above peers.  \n5. Service request rate: NorthStar Gdańsk, Łódź, Västerås, Lahti, and Poznań have 50% or more above peers.  \n\nCaveats: Emissions and water savings may be overstated. Data is synthetic.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_overview({\"period\":\"2025\"})",
+   "round 1: get_signal_groups({})",
+   "round 1: set_priorities({\"priorities\":[\"Water\",\"Emissions\",\"Service reliability\",\"Circularity\",\"Garment utilisation\"]})"
+  ],
+  "unmatched": [],
+  "priority_change": {
+   "priorities": [
+    "Water",
+    "Emissions",
+    "Service reliability",
+    "Circularity",
+    "Garment utilisation",
+    "Traceability",
+    "Improvement"
+   ]
+  },
+  "meta": {
+   "rounds": 2,
+   "calls": 3,
+   "seconds": 11,
+   "tokens": {
+    "prompt": 14921,
+    "output": 261,
+    "largestPrompt": 12284
+   }
+  }
+ },
+ {
+  "run": 4,
+  "prompt": 7,
+  "answer": "The data does not hold euros.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 1,
+   "calls": 0,
+   "seconds": 1,
+   "tokens": {
+    "prompt": 2526,
+    "output": 8,
+    "largestPrompt": 2526
+   }
+  }
+ },
+ {
+  "run": 4,
+  "observations": "KAM",
+  "items": [
+   {
+    "text": "Water saved: 1,406,482.75 l vs outsourced local laundry.",
+    "kpi_ids": [
+     "water_saved"
+    ],
+    "signal_ids": [],
+    "unmatched": []
+   },
+   {
+    "text": "NorthStar Pori is flagged for discussion due to 15.22% more washes per garment than peers.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "washes_per_garment_above_peers"
+    ],
+    "unmatched": []
+   },
+   {
+    "text": "Service request rate for NorthStar Gdańsk is 224.68% above peers.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "service_request_rate_above_peers"
+    ],
+    "unmatched": []
+   }
+  ],
+  "meta": {
+   "seconds": 4,
+   "prompt_tokens": 5058
+  }
+ },
+ {
+  "run": 4,
+  "observations": "Customer",
+  "items": [
+   {
+    "text": "Water saved is 1,406,482.75 l vs outsourced local laundry.",
+    "kpi_ids": [
+     "water_saved"
+    ],
+    "signal_ids": [],
+    "unmatched": []
+   },
+   {
+    "text": "NorthStar Pori is flagged for discussion with a gap of 15.22% above peers in washes per garment.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "washes_per_garment_above_peers"
+    ],
+    "unmatched": []
+   },
+   {
+    "text": "Garment allocation at NorthStar Malmö is 43.6% above peers, flagged for discussion.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "garment_allocation_above_peers"
+    ],
+    "unmatched": []
+   }
+  ],
+  "meta": {
+   "seconds": 4,
+   "prompt_tokens": 4480
+  }
+ },
+ {
+  "run": 5,
+  "prompt": 1,
+  "answer": "NorthStar Foods Group achieved significant value creation in 2025. Water saved was 1,406,482.75 l vs outsourced local laundry. Emissions saved were 255,073.83 kg CO2e vs outsourced local laundry. Energy saved was 171,644.64 kWh vs outsourced local laundry. On-time service cycle share was 98.33%, with 190 late service cycles. Service requests per 100 wearers were 0.44. Garments in circulation were 31,670. Active wearers were 9,647. Emissions allocated were 73,785.1 kg CO2e. Water use allocated was 3,363,226.9 l. Caveats: Data is synthetic, baselines are illustrative, and savings may be overstated.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_overview({\"period\":\"2025\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 7,
+   "tokens": {
+    "prompt": 9311,
+    "output": 227,
+    "largestPrompt": 6668
+   }
+  }
+ },
+ {
+  "run": 5,
+  "prompt": 2,
+  "answer": "Water saved: 1,406,482.75 l vs outsourced local laundry.  \nEmissions saved: 255,073.83 kg CO2e vs outsourced local laundry.  \n\nNorthStar Pori: washes_per_garment_above_peers, gap: 15.22%.  \nNorthStar Gdańsk: washes_per_garment_above_peers, gap: 12.98%.  \nNorthStar Kraków: washes_per_garment_above_peers, gap: 12.14%.  \nNorthStar Lahti: washes_per_garment_above_peers, gap: 11.02%.  \n\nCaveats: Baseline factors are illustrative. Savings may be overstated. Every value names its baseline, for example \"vs outsourced local laundry\".",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: set_priorities({\"priorities\":[\"Water\",\"Emissions\",\"Service reliability\"]})"
+  ],
+  "unmatched": [],
+  "priority_change": {
+   "priorities": [
+    "Water",
+    "Emissions",
+    "Service reliability",
+    "Circularity",
+    "Garment utilisation",
+    "Traceability",
+    "Improvement"
+   ]
+  },
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 7,
+   "tokens": {
+    "prompt": 9360,
+    "output": 213,
+    "largestPrompt": 6721
+   }
+  }
+ },
+ {
+  "run": 5,
+  "prompt": 3,
+  "answer": "The sites with the greatest textile-allocation optimization potential are:\n- NorthStar Pori (gap: 15.22% above peers)\n- NorthStar Gdańsk (gap: 12.98% above peers)\n- NorthStar Kraków (gap: 12.14% above peers)\n- NorthStar Lahti (gap: 11.02% above peers)\n\nThese sites have a higher garment allocation than the median of the Customer's other Sites, indicating potential for optimization. The lever is to check wearer counts and spares, then right-size the allocation. The owner is Joint.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_signal_groups({\"period\":\"2025\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 4,
+   "tokens": {
+    "prompt": 6830,
+    "output": 152,
+    "largestPrompt": 4192
+   }
+  }
+ },
+ {
+  "run": 5,
+  "prompt": 4,
+  "answer": "To improve performance next year, focus on the following:\n\n- **Water**: NorthStar Pori, Gdańsk, Kraków, and Lahti have higher washes per garment than peers, flagged for discussion. Review garment change routines.\n- **Service reliability**: NorthStar Pori has late service cycles 63% above peers. Investigate late cycles by stage.\n- **Emissions**: NorthStar Pori has higher repair rates than peers. Check fit, working conditions, and handling for garments.\n- **Garment utilisation**: NorthStar Malmö, Kraków, Vaasa, Lappeenranta, and Gothenburg have higher garment allocations than peers. Check wearer counts and spares, then right-size the allocation.\n\nCaveats: Data is synthetic, and savings may be overstated.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_overview({\"period\":\"2025\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 6,
+   "tokens": {
+    "prompt": 8500,
+    "output": 188,
+    "largestPrompt": 5976
+   }
+  }
+ },
+ {
+  "run": 5,
+  "prompt": 5,
+  "answer": "Water saved: 1,406,482.75 l vs outsourced local laundry  \nEnergy saved: 171,644.64 kWh vs outsourced local laundry  \nEmissions saved: 255,073.83 kg CO2e vs outsourced local laundry  \n\nCaveats: Baseline factors are illustrative. Savings may be overstated. The B_LOCAL process factor is near Scope 1+2+3 levels, while the actuals are near Scope 1+2. Emissions saved may be overstated. A TEAM_ASSUMPTION low case of 0.30 kgCO2e/kg for the B_LOCAL process factor gives a lower figure.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_kpis({\"baseline_id\":\"B_LOCAL\",\"kpi_ids\":[\"water_saved\",\"energy_saved\",\"emissions_saved\"],\"period\":\"2025\",\"site_id\":\"all\",\"unit\":\"total\"})",
+   "round 1: get_kpis({\"baseline_id\":\"B_LOCAL\",\"kpi_ids\":[\"water_saved\",\"energy_saved\",\"emissions_saved\"],\"period\":\"2025\",\"site_id\":\"all\",\"unit\":\"total\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 2,
+   "seconds": 7,
+   "tokens": {
+    "prompt": 6262,
+    "output": 278,
+    "largestPrompt": 3739
+   }
+  }
+ },
+ {
+  "run": 5,
+  "prompt": 6,
+  "answer": "1. Water savings: 1,406,482.75 l saved vs outsourced local laundry.  \n2. Emissions saved: 255,073.83 kg CO2e saved vs outsourced local laundry.  \n3. Service reliability: On-time service cycle share is 98.33%, with 190 late service cycles.  \n4. Garment allocation: NorthStar Malmö, Kraków, Vaasa, Lappeenranta, and Gothenburg have 30%+ above median garment allocation.  \n5. Service request rate: NorthStar Gdańsk has 2.25 times the median service requests per 100 wearers.  \n\nCaveats: Water and emissions saved figures are based on illustrative baseline factors. Emissions saved may be overstated.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_overview({\"period\":\"2025\"})",
+   "round 1: get_signal_groups({})",
+   "round 1: set_priorities({\"priorities\":[\"Water\",\"Emissions\",\"Service reliability\",\"Circularity\",\"Garment utilisation\"]})"
+  ],
+  "unmatched": [],
+  "priority_change": {
+   "priorities": [
+    "Water",
+    "Emissions",
+    "Service reliability",
+    "Circularity",
+    "Garment utilisation",
+    "Traceability",
+    "Improvement"
+   ]
+  },
+  "meta": {
+   "rounds": 2,
+   "calls": 3,
+   "seconds": 11,
+   "tokens": {
+    "prompt": 14921,
+    "output": 260,
+    "largestPrompt": 12284
+   }
+  }
+ },
+ {
+  "run": 5,
+  "prompt": 7,
+  "answer": "The data does not hold euros.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 1,
+   "calls": 0,
+   "seconds": 1,
+   "tokens": {
+    "prompt": 2526,
+    "output": 8,
+    "largestPrompt": 2526
+   }
+  }
+ },
+ {
+  "run": 5,
+  "observations": "KAM",
+  "items": [
+   {
+    "text": "Water saved: 1,406,482.75 l vs outsourced local laundry.",
+    "kpi_ids": [
+     "water_saved"
+    ],
+    "signal_ids": [],
+    "unmatched": []
+   },
+   {
+    "text": "NorthStar Pori is flagged for discussion due to 15.22% more washes per garment than peers.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "washes_per_garment_above_peers"
+    ],
+    "unmatched": []
+   },
+   {
+    "text": "Service request rate for NorthStar Gdańsk is 224.68% above peers.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "service_request_rate_above_peers"
+    ],
+    "unmatched": []
+   }
+  ],
+  "meta": {
+   "seconds": 4,
+   "prompt_tokens": 5058
+  }
+ },
+ {
+  "run": 5,
+  "observations": "Customer",
+  "items": [
+   {
+    "text": "Water saved is 1,406,482.75 l vs outsourced local laundry.",
+    "kpi_ids": [
+     "water_saved"
+    ],
+    "signal_ids": [],
+    "unmatched": []
+   },
+   {
+    "text": "NorthStar Pori is flagged for discussion due to 15.22% more washes per garment than peers.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "washes_per_garment_above_peers"
+    ],
+    "unmatched": []
+   },
+   {
+    "text": "NorthStar Pori has 63.35% more late service cycles than peers, flagged for discussion.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "late_service_cycles_above_peers"
+    ],
+    "unmatched": []
+   }
+  ],
+  "meta": {
+   "seconds": 4,
+   "prompt_tokens": 4480
+  }
+ },
+ {
+  "run": 6,
+  "prompt": 1,
+  "answer": "NorthStar Foods Group achieved significant value creation in 2025, with water saved at 1,406,482.75 l vs outsourced local laundry, emissions saved at 255,073.83 kg CO2e vs outsourced local laundry, and energy saved at 171,644.64 kWh vs outsourced local laundry. The on-time service cycle share was 98.33%, and service requests per 100 wearers were 0.44. The account health rating was green, indicating strong performance across key metrics. Eighteen Sites were flagged for discussion, with the top signals focusing on water usage, service reliability, and emissions. Caveats include synthetic data and baseline assumptions.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_overview({\"period\":\"2025\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 6,
+   "tokens": {
+    "prompt": 9311,
+    "output": 187,
+    "largestPrompt": 6668
+   }
+  }
+ },
+ {
+  "run": 6,
+  "prompt": 2,
+  "answer": "Water saved: 1,406,482.75 l vs outsourced local laundry.  \nEmissions saved: 255,073.83 kg CO2e vs outsourced local laundry.  \n\nNorthStar Pori: Washes per garment 15.22% above peers.  \nNorthStar Gdańsk: Washes per garment 12.98% above peers.  \nNorthStar Kraków: Washes per garment 12.14% above peers.  \nNorthStar Lahti: Washes per garment 11.02% above peers.  \n\nCaveats: Baseline factors are illustrative. Savings may be overstated. Every value names its baseline, for example \"vs outsourced local laundry\".",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: set_priorities({\"priorities\":[\"Water\",\"Emissions\",\"Service reliability\"]})"
+  ],
+  "unmatched": [],
+  "priority_change": {
+   "priorities": [
+    "Water",
+    "Emissions",
+    "Service reliability",
+    "Circularity",
+    "Garment utilisation",
+    "Traceability",
+    "Improvement"
+   ]
+  },
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 6,
+   "tokens": {
+    "prompt": 9360,
+    "output": 193,
+    "largestPrompt": 6721
+   }
+  }
+ },
+ {
+  "run": 6,
+  "prompt": 3,
+  "answer": "The sites with the greatest textile-allocation optimization potential are:\n- NorthStar Pori, gap: 15.22%\n- NorthStar Gdańsk, gap: 12.98%\n- NorthStar Kraków, gap: 12.14%\n- NorthStar Lahti, gap: 11.02%\n\nThese sites have gaps in garment allocation above the median of the Customer's other Sites, indicating potential for optimization. The lever is to check wearer counts and spares, then right-size the allocation. The owner is Joint.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_signal_groups({\"period\":\"2025\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 5,
+   "tokens": {
+    "prompt": 6830,
+    "output": 140,
+    "largestPrompt": 4192
+   }
+  }
+ },
+ {
+  "run": 6,
+  "prompt": 4,
+  "answer": "To improve performance next year, focus on the following:\n\n- **Water**: NorthStar Pori, Gdańsk, Kraków, and Lahti have higher washes per garment than peers, flagged for discussion. Review garment change routines.\n- **Service reliability**: NorthStar Pori has late service cycles 63% above peers. Investigate late cycles by stage.\n- **Emissions**: NorthStar Pori has higher emissions saved than peers. Check garment allocation and handling for efficiency.\n\nCaveats: Data is synthetic, and savings may be overstated. Some figures depend on assumptions.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_overview({\"period\":\"2025\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 5,
+   "tokens": {
+    "prompt": 8500,
+    "output": 143,
+    "largestPrompt": 5976
+   }
+  }
+ },
+ {
+  "run": 6,
+  "prompt": 5,
+  "answer": "Water saved: 1,406,482.75 l vs outsourced local laundry  \nEnergy saved: 171,644.64 kWh vs outsourced local laundry  \nEmissions saved: 255,073.83 kg CO2e vs outsourced local laundry  \n\nCaveats: Baseline factors are illustrative. Savings may be overstated. The B_LOCAL process factor is near Scope 1+2+3 levels, while the actuals are near Scope 1+2. Emissions saved may be overstated. A TEAM_ASSUMPTION low case of 0.30 kgCO2e/kg for the B_LOCAL process factor gives a lower figure.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_kpis({\"baseline_id\":\"B_LOCAL\",\"kpi_ids\":[\"water_saved\",\"energy_saved\",\"emissions_saved\"],\"period\":\"2025\",\"site_id\":\"all\",\"unit\":\"total\"})",
+   "round 1: get_kpis({\"unit\":\"total\",\"baseline_id\":\"B_LOCAL\",\"kpi_ids\":[\"water_saved\",\"energy_saved\",\"emissions_saved\"],\"period\":\"2025\",\"site_id\":\"all\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 2,
+   "seconds": 7,
+   "tokens": {
+    "prompt": 6262,
+    "output": 278,
+    "largestPrompt": 3739
+   }
+  }
+ },
+ {
+  "run": 6,
+  "prompt": 6,
+  "answer": "1. Water saved: 2,912,706.85 l vs in-house customer laundry.  \n2. Emissions saved: 275,156.82 kg CO2e vs in-house customer laundry.  \n3. Energy saved: 206,789.86 kWh vs in-house customer laundry.  \n4. On-time service cycle share: 98.33% (based on a sample of tracked garments).  \n5. Service requests per 100 wearers: 0.44 per 100 wearers per month.  \n\nCaveats: Water, emissions and energy saved figures are illustrative and may be overstated. On-time service cycle share is based on a sample of tracked garments.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_overview({\"period\":\"2025\"})",
+   "round 1: get_signal_groups({})",
+   "round 1: get_kpis({\"site_id\":\"all\",\"period\":\"2025\",\"baseline_id\":\"B_INHOUSE\",\"unit\":\"total\",\"kpi_ids\":[\"water_saved\",\"emissions_saved\",\"energy_saved\",\"on_time_service_cycle_share\",\"service_requests_per_100_wearers\"]})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 3,
+   "seconds": 9,
+   "tokens": {
+    "prompt": 11695,
+    "output": 291,
+    "largestPrompt": 9058
+   }
+  }
+ },
+ {
+  "run": 6,
+  "prompt": 7,
+  "answer": "The data does not hold euros.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 1,
+   "calls": 0,
+   "seconds": 1,
+   "tokens": {
+    "prompt": 2526,
+    "output": 8,
+    "largestPrompt": 2526
+   }
+  }
+ },
+ {
+  "run": 6,
+  "observations": "KAM",
+  "items": [
+   {
+    "text": "Water saved: 1,406,482.75 l vs outsourced local laundry.",
+    "kpi_ids": [
+     "water_saved"
+    ],
+    "signal_ids": [],
+    "unmatched": []
+   },
+   {
+    "text": "NorthStar Pori is flagged for discussion due to 15.22% more washes per garment than peers.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "washes_per_garment_above_peers"
+    ],
+    "unmatched": []
+   },
+   {
+    "text": "Service request rate for NorthStar Gdańsk is 224.68% above peers.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "service_request_rate_above_peers"
+    ],
+    "unmatched": []
+   }
+  ],
+  "meta": {
+   "seconds": 4,
+   "prompt_tokens": 5058
+  }
+ },
+ {
+  "run": 6,
+  "observations": "Customer",
+  "items": [
+   {
+    "text": "Water saved is 1,406,482.75 l vs outsourced local laundry.",
+    "kpi_ids": [
+     "water_saved"
+    ],
+    "signal_ids": [],
+    "unmatched": []
+   },
+   {
+    "text": "NorthStar Pori is flagged for discussion with a gap of 15.22% above peers in washes per garment.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "washes_per_garment_above_peers"
+    ],
+    "unmatched": []
+   },
+   {
+    "text": "Garment allocation at NorthStar Malmö is 43.6% above peers, flagged for discussion.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "garment_allocation_above_peers"
+    ],
+    "unmatched": []
+   }
+  ],
+  "meta": {
+   "seconds": 4,
+   "prompt_tokens": 4480
+  }
+ },
+ {
+  "run": 7,
+  "prompt": 1,
+  "answer": "NorthStar Foods Group achieved significant value creation in 2025. Water saved was 1,406,482.75 l vs outsourced local laundry. Emissions saved were 255,073.83 kg CO2e vs outsourced local laundry. Energy saved was 171,644.64 kWh vs outsourced local laundry. On-time service cycle share was 98.33%, and service requests per 100 wearers were 0.44 per month. Garments in circulation were 31,670, and washed kg were 502,074.7. Repairs were 15,233. The account health was rated green. Caveats: Data is synthetic and may be overstated.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_overview({\"period\":\"2025\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 6,
+   "tokens": {
+    "prompt": 9311,
+    "output": 199,
+    "largestPrompt": 6668
+   }
+  }
+ },
+ {
+  "run": 7,
+  "prompt": 2,
+  "answer": "Water saved: 1,406,482.75 l vs outsourced local laundry.  \nEmissions saved: 255,073.83 kg CO2e vs outsourced local laundry.  \n\nNorthStar Pori: washes_per_garment_above_peers, gap: 15.22%.  \nNorthStar Gdańsk: washes_per_garment_above_peers, gap: 12.98%.  \nNorthStar Kraków: washes_per_garment_above_peers, gap: 12.14%.  \nNorthStar Lahti: washes_per_garment_above_peers, gap: 11.02%.  \n\nCaveats: Baseline factors are illustrative. Savings may be overstated. Every value names its baseline, for example \"vs outsourced local laundry\".",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: set_priorities({\"priorities\":[\"Water\",\"Emissions\",\"Service reliability\"]})"
+  ],
+  "unmatched": [],
+  "priority_change": {
+   "priorities": [
+    "Water",
+    "Emissions",
+    "Service reliability",
+    "Circularity",
+    "Garment utilisation",
+    "Traceability",
+    "Improvement"
+   ]
+  },
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 7,
+   "tokens": {
+    "prompt": 9360,
+    "output": 213,
+    "largestPrompt": 6721
+   }
+  }
+ },
+ {
+  "run": 7,
+  "prompt": 3,
+  "answer": "The sites with the greatest textile-allocation optimization potential are:\n- NorthStar Pori, gap: 15.22% above peers\n- NorthStar Gdańsk, gap: 12.98% above peers\n- NorthStar Kraków, gap: 12.14% above peers\n- NorthStar Lahti, gap: 11.02% above peers\n\nCaveats: The gaps are calculated as a share of the median of the Customer's other Sites.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_signal_groups({\"period\":\"2025\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 4,
+   "tokens": {
+    "prompt": 6830,
+    "output": 129,
+    "largestPrompt": 4192
+   }
+  }
+ },
+ {
+  "run": 7,
+  "prompt": 4,
+  "answer": "To improve performance next year, focus on the following:\n\n- **Water**: NorthStar Pori, Gdańsk, Kraków, and Lahti have higher washes per garment than peers, flagged for discussion. Review garment change routines.\n- **Service reliability**: NorthStar Pori has late service cycles 63% above peers. Investigate late cycles by stage.\n- **Emissions**: NorthStar Pori has higher repair rates than peers. Check fit, working conditions, and handling for garments.\n- **Garment utilisation**: NorthStar Malmö, Kraków, Vaasa, Lappeenranta, and Gothenburg have higher garment allocations than peers. Check wearer counts and spares, then right-size the allocation.\n\nCaveats: Data is synthetic, and savings may be overstated.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_overview({\"period\":\"2025\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 6,
+   "tokens": {
+    "prompt": 8500,
+    "output": 188,
+    "largestPrompt": 5976
+   }
+  }
+ },
+ {
+  "run": 7,
+  "prompt": 5,
+  "answer": "Water saved: 1,406,482.75 l vs outsourced local laundry  \nEnergy saved: 171,644.64 kWh vs outsourced local laundry  \nEmissions saved: 255,073.83 kg CO2e vs outsourced local laundry  \n\nCaveats: Baseline factors are illustrative. Savings may be overstated. The B_LOCAL process factor is near Scope 1+2+3 levels, while the actuals are near Scope 1+2. Emissions saved may be overstated. A TEAM_ASSUMPTION low case of 0.30 kgCO2e/kg for the B_LOCAL process factor gives a lower figure.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_kpis({\"baseline_id\":\"B_LOCAL\",\"kpi_ids\":[\"water_saved\",\"energy_saved\",\"emissions_saved\"],\"period\":\"2025\",\"site_id\":\"all\",\"unit\":\"total\"})",
+   "round 1: get_kpis({\"site_id\":\"all\",\"unit\":\"total\",\"baseline_id\":\"B_LOCAL\",\"kpi_ids\":[\"water_saved\",\"energy_saved\",\"emissions_saved\"],\"period\":\"2025\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 2,
+   "seconds": 7,
+   "tokens": {
+    "prompt": 6262,
+    "output": 278,
+    "largestPrompt": 3739
+   }
+  }
+ },
+ {
+  "run": 7,
+  "prompt": 6,
+  "answer": "1. Water saved: 2,912,706.85 l vs in-house customer laundry.  \n2. Emissions saved: 275,156.82 kg CO2e vs in-house customer laundry.  \n3. Energy saved: 206,789.86 kWh vs in-house customer laundry.  \n4. On-time service cycle share: 98.33% (based on a sample of tracked garments).  \n5. Service requests per 100 wearers: 0.44 per 100 wearers per month.  \n\nCaveats: Water, emissions, and energy saved figures are illustrative and may be overstated. On-time service cycle share is based on a sample of tracked garments.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_overview({\"period\":\"2025\"})",
+   "round 1: get_signal_groups({})",
+   "round 1: get_kpis({\"period\":\"2025\",\"baseline_id\":\"B_INHOUSE\",\"unit\":\"total\",\"kpi_ids\":[\"water_saved\",\"emissions_saved\",\"energy_saved\",\"on_time_service_cycle_share\",\"service_requests_per_100_wearers\"],\"site_id\":\"all\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 3,
+   "seconds": 10,
+   "tokens": {
+    "prompt": 11695,
+    "output": 292,
+    "largestPrompt": 9058
+   }
+  }
+ },
+ {
+  "run": 7,
+  "prompt": 7,
+  "answer": "The data does not hold euros.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 1,
+   "calls": 0,
+   "seconds": 1,
+   "tokens": {
+    "prompt": 2526,
+    "output": 8,
+    "largestPrompt": 2526
+   }
+  }
+ },
+ {
+  "run": 7,
+  "observations": "KAM",
+  "items": [
+   {
+    "text": "Water saved: 1,406,482.75 l vs outsourced local laundry.",
+    "kpi_ids": [
+     "water_saved"
+    ],
+    "signal_ids": [],
+    "unmatched": []
+   },
+   {
+    "text": "NorthStar Pori is flagged for discussion due to washes per garment above peers (15.22% above median).",
+    "kpi_ids": [],
+    "signal_ids": [
+     "washes_per_garment_above_peers"
+    ],
+    "unmatched": []
+   },
+   {
+    "text": "Service request rate for NorthStar Gdańsk is 224.68% above median, flagged for discussion.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "service_request_rate_above_peers"
+    ],
+    "unmatched": []
+   }
+  ],
+  "meta": {
+   "seconds": 4,
+   "prompt_tokens": 5058
+  }
+ },
+ {
+  "run": 7,
+  "observations": "Customer",
+  "items": [
+   {
+    "text": "Water saved is 1,406,482.75 l vs outsourced local laundry.",
+    "kpi_ids": [
+     "water_saved"
+    ],
+    "signal_ids": [],
+    "unmatched": []
+   },
+   {
+    "text": "NorthStar Pori is flagged for discussion with a gap of 15.22% above peers in washes per garment.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "washes_per_garment_above_peers"
+    ],
+    "unmatched": []
+   },
+   {
+    "text": "Garment allocation at NorthStar Malmö is 43.6% above peers, flagged for discussion.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "garment_allocation_above_peers"
+    ],
+    "unmatched": []
+   }
+  ],
+  "meta": {
+   "seconds": 4,
+   "prompt_tokens": 4480
+  }
+ },
+ {
+  "run": 8,
+  "prompt": 1,
+  "answer": "NorthStar Foods Group achieved significant value in 2025, with water saved at 1,406,482.75 l vs outsourced local laundry, emissions saved at 255,073.83 kg CO2e vs outsourced local laundry, and energy saved at 171,644.64 kWh vs outsourced local laundry. On-time service cycle share was 98.33%, and service requests per 100 wearers were 0.44 per month. Garments in circulation were 31,670, and washed kg were 502,074.7. Repairs were 15,233, and active wearers were 9,647.33. Emissions allocated were 73,785.1 kg CO2e, and water use allocated were 3,363,226.9 l. The account health was rated green. Caveats: Baseline factors are illustrative. Savings may be overstated.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_overview({\"period\":\"2025\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 8,
+   "tokens": {
+    "prompt": 9311,
+    "output": 255,
+    "largestPrompt": 6668
+   }
+  }
+ },
+ {
+  "run": 8,
+  "prompt": 2,
+  "answer": "Water saved: 1,406,482.75 l vs outsourced local laundry.  \nEmissions saved: 255,073.83 kg CO2e vs outsourced local laundry.  \n\nNorthStar Pori: washes_per_garment_above_peers, gap: 15.22%.  \nNorthStar Gdańsk: washes_per_garment_above_peers, gap: 12.98%.  \nNorthStar Kraków: washes_per_garment_above_peers, gap: 12.14%.  \nNorthStar Lahti: washes_per_garment_above_peers, gap: 11.02%.  \n\nCaveats: Baseline factors are illustrative. Savings may be overstated. Every value names its baseline, for example \"vs outsourced local laundry\".",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: set_priorities({\"priorities\":[\"Water\",\"Emissions\",\"Service reliability\"]})"
+  ],
+  "unmatched": [],
+  "priority_change": {
+   "priorities": [
+    "Water",
+    "Emissions",
+    "Service reliability",
+    "Circularity",
+    "Garment utilisation",
+    "Traceability",
+    "Improvement"
+   ]
+  },
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 7,
+   "tokens": {
+    "prompt": 9360,
+    "output": 213,
+    "largestPrompt": 6721
+   }
+  }
+ },
+ {
+  "run": 8,
+  "prompt": 3,
+  "answer": "The sites with the greatest textile-allocation optimization potential are:\n- NorthStar Pori (gap: 15.22%)\n- NorthStar Gdańsk (gap: 12.98%)\n- NorthStar Kraków (gap: 12.14%)\n- NorthStar Lahti (gap: 11.02%)\n\nThese sites have gaps in garment allocation above the median of the Customer's other Sites, indicating potential for optimization. The lever is to check wearer counts and spares, then right-size the allocation. The owner is Joint.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_signal_groups({\"period\":\"2025\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 4,
+   "tokens": {
+    "prompt": 6830,
+    "output": 143,
+    "largestPrompt": 4192
+   }
+  }
+ },
+ {
+  "run": 8,
+  "prompt": 4,
+  "answer": "To improve performance next year, focus on the following:\n\n- **Water**: Reduce washes per garment on sites like NorthStar Pori, Gdańsk, Kraków, and Lahti, which are 15-13% above the median. Review garment change routines. Owner: Customer.\n- **Service reliability**: Address late service cycles at NorthStar Pori, which are 63% above the median. Investigate late cycles by stage. Owner: Lindström.\n- **Emissions**: Optimize garment allocation at sites like Malmö, Kraków, Vaasa, Lappeenranta, and Gothenburg, which are 30-44% above the median. Check wearer counts and spares. Owner: Joint.\n\nCaveats: Baseline factors are illustrative. Savings may be overstated. Data is synthetic.",
+  "retried": [
+   "These numbers are in no tool result: 31. Remove them or use the exact figure from a result."
+  ],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_overview({\"period\":\"2025\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 13,
+   "tokens": {
+    "prompt": 13225,
+    "output": 374,
+    "largestPrompt": 5976
+   }
+  }
+ },
+ {
+  "run": 8,
+  "prompt": 5,
+  "answer": "Water saved: 1,406,482.75 l vs outsourced local laundry  \nEnergy saved: 171,644.64 kWh vs outsourced local laundry  \nEmissions saved: 255,073.83 kg CO2e vs outsourced local laundry  \n\nCaveats: Baseline factors are illustrative. Savings may be overstated. The B_LOCAL process factor is near Scope 1+2+3 levels, while the actuals are near Scope 1+2. Emissions saved may be overstated. A TEAM_ASSUMPTION low case of 0.30 kgCO2e/kg for the B_LOCAL process factor gives a lower figure.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_kpis({\"site_id\":\"all\",\"unit\":\"total\",\"baseline_id\":\"B_LOCAL\",\"kpi_ids\":[\"water_saved\",\"energy_saved\",\"emissions_saved\"],\"period\":\"2025\"})",
+   "round 1: get_kpis({\"kpi_ids\":[\"water_saved\",\"energy_saved\",\"emissions_saved\"],\"period\":\"2025\",\"site_id\":\"all\",\"unit\":\"total\",\"baseline_id\":\"B_LOCAL\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 2,
+   "seconds": 7,
+   "tokens": {
+    "prompt": 6262,
+    "output": 278,
+    "largestPrompt": 3739
+   }
+  }
+ },
+ {
+  "run": 8,
+  "prompt": 6,
+  "answer": "1. Water saved: 1,406,482.75 l vs outsourced local laundry.  \n2. Emissions saved: 255,073.83 kg CO2e vs outsourced local laundry.  \n3. Service reliability: On-time service cycle share is 98.33%, with a gap of 0.633487% for NorthStar Pori.  \n4. Garment utilisation: NorthStar Malmö has a gap of 43.60% above peers in garment allocation.  \n5. Circularity: NorthStar Gothenburg has a gap of 19.13% above peers in repair rate.  \n\nCaveats: Emissions and water saved figures are illustrative and may be overstated. The gap values are relative to the median of other Sites.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_overview({\"period\":\"2025\"})",
+   "round 1: get_signal_groups({})",
+   "round 1: set_priorities({\"priorities\":[\"Water\",\"Emissions\",\"Service reliability\",\"Circularity\",\"Garment utilisation\"]})"
+  ],
+  "unmatched": [],
+  "priority_change": {
+   "priorities": [
+    "Water",
+    "Emissions",
+    "Service reliability",
+    "Circularity",
+    "Garment utilisation",
+    "Traceability",
+    "Improvement"
+   ]
+  },
+  "meta": {
+   "rounds": 2,
+   "calls": 3,
+   "seconds": 11,
+   "tokens": {
+    "prompt": 14921,
+    "output": 264,
+    "largestPrompt": 12284
+   }
+  }
+ },
+ {
+  "run": 8,
+  "prompt": 7,
+  "answer": "The data does not hold euros.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 1,
+   "calls": 0,
+   "seconds": 1,
+   "tokens": {
+    "prompt": 2526,
+    "output": 8,
+    "largestPrompt": 2526
+   }
+  }
+ },
+ {
+  "run": 8,
+  "observations": "KAM",
+  "items": [
+   {
+    "text": "Water saved: 1,406,482.75 l vs outsourced local laundry.",
+    "kpi_ids": [
+     "water_saved"
+    ],
+    "signal_ids": [],
+    "unmatched": []
+   },
+   {
+    "text": "NorthStar Pori is flagged for discussion due to 15.22% more washes per garment than peers.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "washes_per_garment_above_peers"
+    ],
+    "unmatched": []
+   },
+   {
+    "text": "Service request rate for NorthStar Gdańsk is 224.68% above peers.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "service_request_rate_above_peers"
+    ],
+    "unmatched": []
+   }
+  ],
+  "meta": {
+   "seconds": 4,
+   "prompt_tokens": 5058
+  }
+ },
+ {
+  "run": 8,
+  "observations": "Customer",
+  "items": [
+   {
+    "text": "Water saved is 1,406,482.75 l vs outsourced local laundry.",
+    "kpi_ids": [
+     "water_saved"
+    ],
+    "signal_ids": [],
+    "unmatched": []
+   },
+   {
+    "text": "NorthStar Pori is flagged for discussion with a gap of 15.22% above peers in washes per garment.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "washes_per_garment_above_peers"
+    ],
+    "unmatched": []
+   },
+   {
+    "text": "Garment allocation at NorthStar Malmö is 43.60% above peers, flagged for discussion.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "garment_allocation_above_peers"
+    ],
+    "unmatched": []
+   }
+  ],
+  "meta": {
+   "seconds": 4,
+   "prompt_tokens": 4480
+  }
+ },
+ {
+  "run": 9,
+  "prompt": 1,
+  "answer": "NorthStar Foods Group achieved significant value creation in 2025, with water saved at 1,406,482.75 l vs outsourced local laundry, emissions saved at 255,073.83 kg CO2e vs outsourced local laundry, and energy saved at 171,644.64 kWh vs outsourced local laundry. The on-time service cycle share was 98.33%, and service requests per 100 wearers were 0.44 per month. The account health rating was green, indicating strong performance across key metrics. Eighteen Sites were flagged for discussion, with the top signals being washes per garment above peers, service request rate above peers, and late service cycles above peers. Caveats include synthetic data and baseline assumptions.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_overview({\"period\":\"2025\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 6,
+   "tokens": {
+    "prompt": 9311,
+    "output": 199,
+    "largestPrompt": 6668
+   }
+  }
+ },
+ {
+  "run": 9,
+  "prompt": 2,
+  "answer": "Water saved: 1,406,482.75 l vs outsourced local laundry.  \nEmissions saved: 255,073.83 kg CO2e vs outsourced local laundry.  \n\nNorthStar Pori: washes_per_garment_above_peers, gap: 15.22%.  \nNorthStar Gdańsk: washes_per_garment_above_peers, gap: 12.98%.  \nNorthStar Kraków: washes_per_garment_above_peers, gap: 12.14%.  \nNorthStar Lahti: washes_per_garment_above_peers, gap: 11.02%.  \n\nCaveats: Baseline factors are illustrative. Savings may be overstated. Every value names its baseline, for example \"vs outsourced local laundry\".",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: set_priorities({\"priorities\":[\"Water\",\"Emissions\",\"Service reliability\"]})"
+  ],
+  "unmatched": [],
+  "priority_change": {
+   "priorities": [
+    "Water",
+    "Emissions",
+    "Service reliability",
+    "Circularity",
+    "Garment utilisation",
+    "Traceability",
+    "Improvement"
+   ]
+  },
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 7,
+   "tokens": {
+    "prompt": 9360,
+    "output": 213,
+    "largestPrompt": 6721
+   }
+  }
+ },
+ {
+  "run": 9,
+  "prompt": 3,
+  "answer": "The sites with the greatest textile-allocation optimization potential are:\n- NorthStar Pori, gap: 15.22%\n- NorthStar Gdańsk, gap: 12.98%\n- NorthStar Kraków, gap: 12.14%\n- NorthStar Lahti, gap: 11.02%\n\nThese sites have gaps in garment allocation above the median of the Customer's other Sites, indicating potential for optimization. The lever is to check wearer counts and spares, then right-size the allocation. The owner is Joint.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_signal_groups({\"period\":\"2025\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 4,
+   "tokens": {
+    "prompt": 6830,
+    "output": 140,
+    "largestPrompt": 4192
+   }
+  }
+ },
+ {
+  "run": 9,
+  "prompt": 4,
+  "answer": "To improve performance next year, focus on the following:\n\n- **Water**: NorthStar Pori, Gdańsk, Kraków, and Lahti have higher washes per garment than peers, flagging for discussion. Review garment change routines.\n- **Service reliability**: NorthStar Pori has late service cycles 63% above peers. Investigate late cycles by stage.\n- **Emissions**: NorthStar Pori has higher emissions saved than peers. Check garment fit and handling.\n- **Garment utilisation**: NorthStar Malmö, Kraków, Vaasa, Lappeenranta, and Gothenburg have higher garment allocation than peers. Check wearer counts and spares.\n\nCaveats: Baseline factors are illustrative. Savings may be overstated. Data is synthetic.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_overview({\"period\":\"2025\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 6,
+   "tokens": {
+    "prompt": 8500,
+    "output": 184,
+    "largestPrompt": 5976
+   }
+  }
+ },
+ {
+  "run": 9,
+  "prompt": 5,
+  "answer": "Water saved: 1,406,482.75 l vs outsourced local laundry  \nEnergy saved: 171,644.64 kWh vs outsourced local laundry  \nEmissions saved: 255,073.83 kg CO2e vs outsourced local laundry  \n\nCaveats: Baseline factors are illustrative. Savings may be overstated. The B_LOCAL process factor is near Scope 1+2+3 levels, while the actuals are near Scope 1+2. Emissions saved may be overstated. A TEAM_ASSUMPTION low case of 0.30 kgCO2e/kg for the B_LOCAL process factor gives a lower figure.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_kpis({\"baseline_id\":\"B_LOCAL\",\"kpi_ids\":[\"water_saved\",\"energy_saved\",\"emissions_saved\"],\"period\":\"2025\",\"site_id\":\"all\",\"unit\":\"total\"})",
+   "round 1: get_kpis({\"baseline_id\":\"B_LOCAL\",\"kpi_ids\":[\"water_saved\",\"energy_saved\",\"emissions_saved\"],\"period\":\"2025\",\"site_id\":\"all\",\"unit\":\"total\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 2,
+   "seconds": 7,
+   "tokens": {
+    "prompt": 6262,
+    "output": 278,
+    "largestPrompt": 3739
+   }
+  }
+ },
+ {
+  "run": 9,
+  "prompt": 6,
+  "answer": "1. Water savings: 1,406,482.75 l saved vs outsourced local laundry.  \n2. Emissions saved: 255,073.83 kg CO2e saved vs outsourced local laundry.  \n3. Service reliability: On-time service cycle share is 98.33%, with 190 late service cycles.  \n4. Garment allocation: NorthStar Malmö, Kraków, Vaasa, Lappeenranta, and Gothenburg have 30% or more above median garment allocation.  \n5. Service request rate: NorthStar Gdańsk has 2.25 times the median service requests per 100 wearers.  \n\nCaveats: Emissions and water savings are based on illustrative baselines. Water and emissions saved may be overstated.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_overview({\"period\":\"2025\"})",
+   "round 1: get_signal_groups({})",
+   "round 1: set_priorities({\"priorities\":[\"Water\",\"Emissions\",\"Service reliability\",\"Circularity\",\"Garment utilisation\"]})"
+  ],
+  "unmatched": [],
+  "priority_change": {
+   "priorities": [
+    "Water",
+    "Emissions",
+    "Service reliability",
+    "Circularity",
+    "Garment utilisation",
+    "Traceability",
+    "Improvement"
+   ]
+  },
+  "meta": {
+   "rounds": 2,
+   "calls": 3,
+   "seconds": 11,
+   "tokens": {
+    "prompt": 14921,
+    "output": 262,
+    "largestPrompt": 12284
+   }
+  }
+ },
+ {
+  "run": 9,
+  "prompt": 7,
+  "answer": "The data does not hold euros.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 1,
+   "calls": 0,
+   "seconds": 1,
+   "tokens": {
+    "prompt": 2526,
+    "output": 8,
+    "largestPrompt": 2526
+   }
+  }
+ },
+ {
+  "run": 9,
+  "observations": "KAM",
+  "items": [
+   {
+    "text": "Water saved: 1,406,482.75 l vs outsourced local laundry.",
+    "kpi_ids": [
+     "water_saved"
+    ],
+    "signal_ids": [],
+    "unmatched": []
+   },
+   {
+    "text": "NorthStar Pori is flagged for discussion due to 15.22% more washes per garment than peers.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "washes_per_garment_above_peers"
+    ],
+    "unmatched": []
+   },
+   {
+    "text": "Service request rate for NorthStar Gdańsk is 224.68% above peers.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "service_request_rate_above_peers"
+    ],
+    "unmatched": []
+   }
+  ],
+  "meta": {
+   "seconds": 4,
+   "prompt_tokens": 5058
+  }
+ },
+ {
+  "run": 9,
+  "observations": "Customer",
+  "items": [
+   {
+    "text": "Water saved is 1,406,482.75 l vs outsourced local laundry.",
+    "kpi_ids": [
+     "water_saved"
+    ],
+    "signal_ids": [],
+    "unmatched": []
+   },
+   {
+    "text": "NorthStar Pori is flagged for discussion with a 15.22% gap in washes per garment above peers.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "washes_per_garment_above_peers"
+    ],
+    "unmatched": []
+   },
+   {
+    "text": "Garment allocation at NorthStar Malmö is 43.6% above peers, flagged for discussion.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "garment_allocation_above_peers"
+    ],
+    "unmatched": []
+   }
+  ],
+  "meta": {
+   "seconds": 4,
+   "prompt_tokens": 4480
+  }
+ },
+ {
+  "run": 10,
+  "prompt": 1,
+  "answer": "NorthStar Foods Group achieved significant value creation in 2025, with water saved at 1,406,482.75 l vs outsourced local laundry, emissions saved at 255,073.83 kg CO2e vs outsourced local laundry, and energy saved at 171,644.64 kWh vs outsourced local laundry. The account health rating is green, indicating strong performance across key metrics. Several Sites are flagged for discussion, including NorthStar Pori, NorthStar Gdańsk, and NorthStar Kraków for water efficiency, and NorthStar Gdańsk, NorthStar Łódź, and NorthStar Västerås for service reliability. Caveats include synthetic data and baseline assumptions.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_overview({\"period\":\"2025\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 6,
+   "tokens": {
+    "prompt": 9311,
+    "output": 182,
+    "largestPrompt": 6668
+   }
+  }
+ },
+ {
+  "run": 10,
+  "prompt": 2,
+  "answer": "Water saved: 1,406,482.75 l vs outsourced local laundry.  \nEmissions saved: 255,073.83 kg CO2e vs outsourced local laundry.  \n\nNorthStar Pori: washes_per_garment_above_peers, gap: 15.22%.  \nNorthStar Gdańsk: washes_per_garment_above_peers, gap: 12.98%.  \nNorthStar Kraków: washes_per_garment_above_peers, gap: 12.14%.  \nNorthStar Lahti: washes_per_garment_above_peers, gap: 11.02%.  \n\nCaveats: Baseline factors are illustrative. Savings may be overstated. Every value names its baseline, for example \"vs outsourced local laundry\".",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: set_priorities({\"priorities\":[\"Water\",\"Emissions\",\"Service reliability\"]})"
+  ],
+  "unmatched": [],
+  "priority_change": {
+   "priorities": [
+    "Water",
+    "Emissions",
+    "Service reliability",
+    "Circularity",
+    "Garment utilisation",
+    "Traceability",
+    "Improvement"
+   ]
+  },
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 7,
+   "tokens": {
+    "prompt": 9360,
+    "output": 213,
+    "largestPrompt": 6721
+   }
+  }
+ },
+ {
+  "run": 10,
+  "prompt": 3,
+  "answer": "The sites with the greatest textile-allocation optimization potential are:\n- NorthStar Pori, with a gap of 15.22% above the median.\n- NorthStar Gdańsk, with a gap of 12.98% above the median.\n- NorthStar Kraków, with a gap of 12.14% above the median.\n- NorthStar Lahti, with a gap of 11.02% above the median.\n\nThese sites are flagged for discussion, and the lever is to check wearer counts and spares, then right-size the allocation. The owner is Joint.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_signal_groups({\"period\":\"2025\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 4,
+   "tokens": {
+    "prompt": 6830,
+    "output": 150,
+    "largestPrompt": 4192
+   }
+  }
+ },
+ {
+  "run": 10,
+  "prompt": 4,
+  "answer": "To improve performance next year, focus on the following:\n\n- **Water**: NorthStar Pori, Gdańsk, Kraków, and Lahti have higher washes per garment than peers, flagged for discussion. Review garment change routines.\n- **Service reliability**: NorthStar Pori has late service cycles 63% above peers. Investigate late cycles by stage.\n- **Emissions**: NorthStar Pori has higher repair rates than peers. Check fit, working conditions, and handling for garments.\n- **Garment utilisation**: NorthStar Malmö, Kraków, Vaasa, Lappeenranta, and Gothenburg have higher garment allocation than peers. Check wearer counts and spares, then right-size the allocation.\n\nCaveats: Data is synthetic; savings may be overstated.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_overview({\"period\":\"2025\"})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 1,
+   "seconds": 6,
+   "tokens": {
+    "prompt": 8500,
+    "output": 187,
+    "largestPrompt": 5976
+   }
+  }
+ },
+ {
+  "run": 10,
+  "prompt": 5,
+  "answer": "Water saved: 1,406,482.75 l vs outsourced local laundry  \nEnergy saved: 171,644.64 kWh vs outsourced local laundry  \nEmissions saved: 255,073.83 kg CO2e vs outsourced local laundry  \n\nCaveats: Baseline factors are illustrative. Savings may be overstated. The B_LOCAL process factor is near Scope 1+2+3 levels, while the actuals are near Scope 1+2. Emissions saved may be overstated. A TEAM_ASSUMPTION low case of 0.30 kgCO2e/kg for the B_LOCAL process factor gives a lower figure.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_kpis({\"unit\":\"total\",\"baseline_id\":\"B_LOCAL\",\"kpi_ids\":[\"water_saved\",\"energy_saved\",\"emissions_saved\"],\"period\":\"2025\",\"site_id\":\"all\"})",
+   "round 1: get_kpis({\"period\":\"2025\",\"site_id\":\"all\",\"unit\":\"total\",\"baseline_id\":\"B_LOCAL\",\"kpi_ids\":[\"water_saved\",\"energy_saved\",\"emissions_saved\"]})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 2,
+   "seconds": 7,
+   "tokens": {
+    "prompt": 6262,
+    "output": 278,
+    "largestPrompt": 3739
+   }
+  }
+ },
+ {
+  "run": 10,
+  "prompt": 6,
+  "answer": "1. Water saved: 2,912,706.85 l vs in-house customer laundry.  \n2. Emissions saved: 275,156.82 kg CO2e vs in-house customer laundry.  \n3. Energy saved: 206,789.86 kWh vs in-house customer laundry.  \n4. On-time service cycle share: 98.33% (based on a sample of tracked garments).  \n5. Service requests per 100 wearers: 0.44 per 100 wearers per month.  \n\nCaveats: Water, emissions and energy saved figures are illustrative and may be overstated. On-time service cycle share is based on a sample of tracked garments.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [
+   "round 1: get_overview({\"period\":\"2025\"})",
+   "round 1: get_signal_groups({})",
+   "round 1: get_kpis({\"site_id\":\"all\",\"period\":\"2025\",\"baseline_id\":\"B_INHOUSE\",\"unit\":\"total\",\"kpi_ids\":[\"water_saved\",\"emissions_saved\",\"energy_saved\",\"on_time_service_cycle_share\",\"service_requests_per_100_wearers\"]})"
+  ],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 2,
+   "calls": 3,
+   "seconds": 10,
+   "tokens": {
+    "prompt": 11695,
+    "output": 291,
+    "largestPrompt": 9058
+   }
+  }
+ },
+ {
+  "run": 10,
+  "prompt": 7,
+  "answer": "The data does not hold euros.",
+  "retried": [],
+  "remaining_problems": [],
+  "log": [],
+  "unmatched": [],
+  "priority_change": null,
+  "meta": {
+   "rounds": 1,
+   "calls": 0,
+   "seconds": 1,
+   "tokens": {
+    "prompt": 2526,
+    "output": 8,
+    "largestPrompt": 2526
+   }
+  }
+ },
+ {
+  "run": 10,
+  "observations": "KAM",
+  "items": [
+   {
+    "text": "Water saved: 1,406,482.75 l vs outsourced local laundry.",
+    "kpi_ids": [
+     "water_saved"
+    ],
+    "signal_ids": [],
+    "unmatched": []
+   },
+   {
+    "text": "NorthStar Pori is flagged for discussion due to 15.22% more washes per garment than peers.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "washes_per_garment_above_peers"
+    ],
+    "unmatched": []
+   },
+   {
+    "text": "Service request rate for NorthStar Gdańsk is 224.68% above peers.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "service_request_rate_above_peers"
+    ],
+    "unmatched": []
+   }
+  ],
+  "meta": {
+   "seconds": 4,
+   "prompt_tokens": 5058
+  }
+ },
+ {
+  "run": 10,
+  "observations": "Customer",
+  "items": [
+   {
+    "text": "Water saved: 1,406,482.75 l vs outsourced local laundry.",
+    "kpi_ids": [
+     "water_saved"
+    ],
+    "signal_ids": [],
+    "unmatched": []
+   },
+   {
+    "text": "NorthStar Pori is flagged for discussion due to 15.22% more washes per garment than peers.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "washes_per_garment_above_peers"
+    ],
+    "unmatched": []
+   },
+   {
+    "text": "NorthStar Pori has 63.35% more late service cycles than peers, flagged for discussion.",
+    "kpi_ids": [],
+    "signal_ids": [
+     "late_service_cycles_above_peers"
+    ],
+    "unmatched": []
+   }
+  ],
+  "meta": {
+   "seconds": 4,
+   "prompt_tokens": 4480
+  }
+ }
+]

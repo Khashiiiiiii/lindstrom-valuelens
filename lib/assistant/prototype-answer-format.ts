@@ -9,6 +9,7 @@
 //   node lib/assistant/prototype-answer-format.ts --dry       # print the system prompts only
 
 import { writeFileSync } from "node:fs";
+import { pathToFileURL } from "node:url";
 
 import type { KpiAnswer, KpiQuery, KpiResult, Period } from "../data.ts";
 import { firstScreen, getMasterData, getOpportunitySignals, listKpis, proposedNextSteps, runKpi, signalGroups } from "../data.ts";
@@ -44,6 +45,8 @@ const PROMPTS: { view: View; prompt: string; expected: string }[] = [
   { view: "Customer", prompt: "How can we improve our performance next year?", expected: "Recommendations and steering questions" },
   { view: "Customer", prompt: "Compare our circular service with local laundry.", expected: "Baseline comparison" },
   { view: "KAM", prompt: "Prepare five discussion points for the annual steering committee.", expected: "Customer-ready narrative" },
+  // Not in the workbook: checks the reply when no tool covers the question.
+  { view: "Customer", prompt: "What did the service cost us in euros last year?", expected: "The data does not hold it" },
 ];
 
 // ---------------------------------------------------------------- request context
@@ -80,13 +83,15 @@ const RULES = `
 Rules
 1. Only write numbers that appear in a tool result. Never calculate, add, average or convert a number. The one exception: you may write a share as a percent.
 2. Give each figure its unit and what it covers: which Site (or all Sites) and which period.
-3. For water saved, energy saved or emissions saved, always name the baseline with the result's baseline_label.
+3. Right after every water saved, energy saved or emissions saved figure, write its baseline_label, for example "vs outsourced local laundry". Keep each figure with its own name: energy is in kWh, emissions in kg CO2e, water in l.
 4. If a result has value null, write "not evaluated" and its not_evaluated_reason. If a result is withheld, write "not available in this view".
 5. If no tool result covers what is asked (for example cost, euros, prices, satisfaction, hygiene or safety), write "The data does not hold <that>." Never estimate.
 6. If results you used have caveats, end with one line "Caveats: ..." giving each caveat once.
-7. An opportunity signal flags a Site for discussion. It is not proof of a problem. Give each lever with its owner (Customer, Lindström or Joint). A proposed next step is to be agreed in the meeting; never call it agreed.
-8. Use Site names, not site ids. Say Site, service request and service cycle (not location, complaint or delivery).
-9. Plain words, short sentences, no em dashes, no headings, no tables.`;
+7. An opportunity signal only flags a Site for discussion. Never write issue, problem, inefficient, poor or cause about it; write "flagged for discussion". Give each lever with its lever_owner, as "owner: Customer", "owner: Lindström" or "owner: Joint". A proposed next step is to be agreed in the meeting; never call it agreed.
+8. Name a Site as an outlier or as having optimisation potential only if it is in a fired signal group, with its gap. When the question is about one topic, first pick the signal group whose signal_name matches it, not simply the first group, and name that signal. Textile or garment allocation means "Garment allocation above peers"; washing frequency means "Washes per garment above peers".
+9. Use Site names, not site ids. Say Site, service request and service cycle (not location, complaint or delivery).
+10. Always write in English, whatever language the prompt is in.
+11. Plain words, short sentences, no em dashes, no headings, no tables.`;
 
 function answerSystem(req: Request): string {
   return `You are the ValueLens assistant in Lindström's Customer Value & Sustainability Review dashboard. Answer one prompt. There is no earlier conversation and you cannot ask a question back.
@@ -95,8 +100,10 @@ ${contextBlock(req)}
 
 How to work
 - Get every figure from the tools. You may call several tools at once. You have at most ${MAX_ROUNDS} rounds of tool calls.
-- Call set_priorities only when the prompt asks to focus on or put first some topics. Then say in the answer that the priorities changed.
-- Keep the answer under 180 words, unless the prompt asks for a number of points.
+- Call set_priorities only when the prompt asks to focus on or put first some topics. It returns the refreshed overview: answer with its figures and say that the priorities changed.
+- Unless the prompt names a Site, answer for the whole Customer: leave site_id out.
+- Keep the answer under 180 words, unless the prompt asks for a number of points. Then write exactly that many numbered points and nothing else but the Caveats line.
+- Give each Site's gap on its own. Never write a range such as "15-31%".
 ${RULES}`;
 }
 
@@ -109,6 +116,7 @@ What to write
 - At most ${MAX_OBSERVATIONS} observations. Fewer if the results do not give ${MAX_OBSERVATIONS} different points. Order them by the Customer priorities, then by size of gap.
 - Each observation is 1 or 2 sentences, at most 40 words, and makes one point: a figure, a comparison between Sites, or a fired signal group.
 - Say only what the results say. No trends, causes or forecasts they do not state.
+- Put only KPI ids in kpi_ids and only signal ids in signal_ids. Give a signal_id only when the observation names one of its Sites.
 - For each observation, list the kpi_ids and signal_ids it uses.
 - Do not repeat a figure in two observations.
 ${RULES}
@@ -163,7 +171,7 @@ function tools(view: View): OllamaTool[] {
   return [
     fn(
       "get_overview",
-      "The dashboard's first screen for the whole Customer: the 9 common tiles with their KPI results, the Site count, Optimisation potential (fired signal results and groups) and up to 3 priority blocks with their KPI results.",
+      "The dashboard's first screen for the whole Customer: the 9 common tiles with their KPI results, the Site count, the fired opportunity signal groups with their Sites, gaps, levers and owners (use these for outlier and optimisation questions), and up to 3 priority blocks with their KPI results.",
       { period },
     ),
     fn(
@@ -171,7 +179,7 @@ function tools(view: View): OllamaTool[] {
       `Runs KPIs for one scope: one Site or the whole Customer, one period, one baseline and one unit. To compare Sites, call it once per Site. Period comparisons are the improvement_* KPIs.\n\nKPIs by evidence area:\n${kpiText}`,
       {
         kpi_ids: { type: "array", items: { type: "string", enum: listing.map((k) => k.id) } },
-        site_id: { type: "string", enum: sites.map((s) => s.site_id), description: "One Site. Leave site_id out to get all Sites together." },
+        site_id: { type: "string", enum: ["all", ...sites.map((s) => s.site_id)], description: "One Site, or \"all\" (the default) for the whole Customer." },
         period,
         baseline_id: { type: "string", enum: BASELINES, description: "Handprint KPIs only. B_LOCAL outsourced local laundry (default), B_HOME home washing, B_INHOUSE in-house laundry." },
         unit: { type: "string", enum: UNITS, description: "Footprint KPIs only. Default total." },
@@ -185,7 +193,7 @@ function tools(view: View): OllamaTool[] {
     ),
     fn(
       "set_priorities",
-      "Moves these Customer priorities to the top of the dashboard, in this order. The others follow in their current order. Returns the new order.",
+      "Moves these Customer priorities to the top of the dashboard, in this order. The others follow in their current order. Returns the new order and the refreshed overview with its figures.",
       { priorities: { type: "array", items: { type: "string", enum: Object.values(PRIORITY_NAMES) } } },
       ["priorities"],
     ),
@@ -216,7 +224,8 @@ function check(value: unknown, allowed: string[], field: string): string | undef
 
 function runTool(state: RunState, name: string, input: any): unknown {
   const { req } = state;
-  const priorities = state.priority_change?.priorities ?? req.priorities;
+  // Priority ids, not names (the earlier version passed names after a set_priorities call).
+  const priorities = state.priority_change?.priorities.map((n) => PRIORITY_ID[n]) ?? req.priorities;
   if (name === "get_overview") {
     const period = (check(input.period, PERIODS, "period") ?? req.period) as Period;
     const fs = firstScreen({ customer_id: req.customer_id, view: req.view, period, priorities });
@@ -230,6 +239,8 @@ function runTool(state: RunState, name: string, input: any): unknown {
       site_count: fs.site_count,
       tiles: fs.tiles.map((t) => ({ name: t.name, results: t.answers.map(compact) })),
       optimisation_potential: fs.optimisation_potential,
+      // Fix: the fired signal groups with Site names, so outlier questions are answered from what the model has.
+      opportunity_signals: signalPayload(state, priorities),
       priority_blocks: fs.priority_blocks.map((b) => ({
         priority: PRIORITY_NAMES[b.priority_id],
         results: b.answers.map(compact),
@@ -245,7 +256,11 @@ function runTool(state: RunState, name: string, input: any): unknown {
     const bad = ids.filter((id) => typeof id !== "string" || !known.includes(id));
     if (bad.length) throw new Error(`Unknown KPI ids in this view: ${bad.join(", ")}. Use ids from the tool description.`);
     const query: KpiQuery = {
-      scope: { customer_id: req.customer_id, site_id: check(input.site_id, sites.map((s) => s.site_id), "site_id") ?? req.site_id },
+      // Fix: "all" (or the customer id) means the whole Customer, instead of an error the model answers by picking one Site.
+      scope: {
+        customer_id: req.customer_id,
+        site_id: (typeof input.site_id === "string" && /^(all( sites)?|customer|cust\d+)$/i.test(input.site_id.trim()) ? undefined : check(input.site_id, sites.map((s) => s.site_id), "site_id")) ?? req.site_id,
+      },
       period: (check(input.period, PERIODS, "period") ?? req.period) as Period,
       view: req.view,
       baseline_id: check(input.baseline_id, BASELINES, "baseline_id") as KpiQuery["baseline_id"],
@@ -255,10 +270,31 @@ function runTool(state: RunState, name: string, input: any): unknown {
     addSources(state, answers);
     return answers.map(compact);
   }
-  if (name === "get_signal_groups") {
+  if (name === "get_signal_groups") return signalPayload(state, priorities);
+  if (name === "set_priorities") {
+    const all = Object.values(PRIORITY_NAMES);
+    const asked: unknown[] = Array.isArray(input.priorities) ? input.priorities : [];
+    const bad = asked.filter((p) => typeof p !== "string" || !all.includes(p));
+    if (asked.length === 0 || bad.length) throw new Error(`priorities must be a list of: ${all.join(", ")}.`);
+    const current = resolvePriorities(req.customer_id, priorities).map((p) => PRIORITY_NAMES[p]);
+    const rest = [...current, ...all.filter((p) => !current.includes(p))].filter((p) => !asked.includes(p));
+    state.priority_change = { priorities: [...(asked as string[]), ...rest] };
+    // Fix: setting priorities fetches no figures, so the server hands back the refreshed overview with it.
+    return { priorities: state.priority_change.priorities, overview_with_new_priorities: runTool(state, "get_overview", {}) };
+  }
+  throw new Error(`Unknown tool ${name}.`);
+}
+
+const DEFINITION_NUMBERS = getOpportunitySignals().catalogue.flatMap((e) => [...e.definition.matchAll(/\d+(?:\.\d+)?/g)].map((m) => Number(m[0])));
+const PRIORITY_ID = Object.fromEntries(Object.entries(PRIORITY_NAMES).map(([id, n]) => [n, id]));
+
+function signalPayload(state: RunState, priorities?: string[]) {
+  const { req } = state;
+  {
     const groups = signalGroups({ customer_id: req.customer_id, view: req.view, priorities });
     state.signal_groups = groups;
     for (const g of groups) state.extraNumbers.push(g.fired_count, g.largest_gap, g.largest_gap * 100, ...g.results.flatMap((r) => [r.gap, r.gap * 100]));
+    state.extraNumbers.push(...DEFINITION_NUMBERS);
     const catalogue = getOpportunitySignals().catalogue;
     return {
       period: "2025",
@@ -283,17 +319,6 @@ function runTool(state: RunState, name: string, input: any): unknown {
       })),
     };
   }
-  if (name === "set_priorities") {
-    const all = Object.values(PRIORITY_NAMES);
-    const asked: unknown[] = Array.isArray(input.priorities) ? input.priorities : [];
-    const bad = asked.filter((p) => typeof p !== "string" || !all.includes(p));
-    if (asked.length === 0 || bad.length) throw new Error(`priorities must be a list of: ${all.join(", ")}.`);
-    const current = resolvePriorities(req.customer_id, priorities).map((p) => PRIORITY_NAMES[p]);
-    const rest = [...current, ...all.filter((p) => !current.includes(p))].filter((p) => !asked.includes(p));
-    state.priority_change = { priorities: [...(asked as string[]), ...rest] };
-    return { priorities: state.priority_change.priorities };
-  }
-  throw new Error(`Unknown tool ${name}.`);
 }
 
 // ---------------------------------------------------------------- unmatched numbers (draft matching rule)
@@ -316,7 +341,9 @@ function unmatchedNumbers(text: string, sources: KpiAnswer[], extra: number[]): 
     .replace(/\b(CUST|S|L|P|B_)\w*\d+\b/g, " ")
     .replace(/\b20\d\d(-H[12]|-\d\d)?\b/g, " ")
     .replace(/\bH[12]\b/g, " ")
-    .replace(/^\s*\d+[.)]\s/gm, " ");
+    .replace(/^\s*\d+[.)]\s/gm, " ")
+    // Fix: a range "15-31%" is two numbers, not 15 and -31.
+    .replace(/(\d)\s*[-–]\s*(?=\d)/g, "$1 to ");
   const out: string[] = [];
   for (const m of cleaned.matchAll(/-?\d(?:[\d,]|\s(?=\d{3}\b))*(?:\.\d+)?/g)) {
     const raw = m[0].trim().replace(/,$/, "");
@@ -328,6 +355,53 @@ function unmatchedNumbers(text: string, sources: KpiAnswer[], extra: number[]): 
     if (!known.some((k) => Math.abs(Math.abs(k) - n) <= tol)) out.push(raw);
   }
   return [...new Set(out)];
+}
+
+// ---------------------------------------------------------------- server checks before an answer goes out
+
+/** Fix: the signal groups whose Sites the answer names, each with its lever and owner. The server attaches them. */
+function namedSignalGroups(text: string, state: RunState): SignalGroup[] {
+  return state.signal_groups.filter((g) => g.results.some((r) => text.includes(siteName(r.site_id).replace(/^NorthStar\s+/, ""))));
+}
+
+const RULE7_WORDS = /\b(issues?|problems?|inefficien\w*|overuse|poor|failing|proves?)\b/i;
+
+function answerProblems(text: string, state: RunState): string[] {
+  const out: string[] = [];
+  const unmatched = unmatchedNumbers(text, state.sources, state.extraNumbers);
+  if (unmatched.length) out.push(`These numbers are in no tool result: ${unmatched.join(", ")}. Remove them or use the exact figure from a result.`);
+  const word = text.match(RULE7_WORDS);
+  if (word) out.push(`Do not write "${word[0]}". An opportunity signal only flags a Site for discussion.`);
+  // Fix: only the saved figures actually written need a baseline. Each sentence or line with "saved" and a number must
+  // name one of the baselines the results used.
+  const labels = [...new Set(state.sources.flatMap((s) => (!("withheld" in s) && s.detail?.kind === "handprint" ? [s.detail.baseline_label] : [])))];
+  const tails = labels.map((l) => l.replace(/^vs\s+/, "").split(" ").slice(-2).join(" ").toLowerCase());
+  const unlabelled = text
+    .split(/\n|(?<=[.!?])\s+(?=[A-Z])/)
+    .filter((seg) => !/^\s*caveats?:/i.test(seg) && /\b(saved|saves|saving)\b/i.test(seg) && /\d/.test(seg) && !tails.some((t) => seg.toLowerCase().includes(t)));
+  if (labels.length && unlabelled.length) out.push(`Name the baseline (${labels.map((l) => `"${l}"`).join(" or ")}) after each saved figure in: ${unlabelled.map((s) => `"${s.trim().slice(0, 60)}"`).join("; ")}.`);
+  // Fix: an answer that names a signal (by its name or its lever) must list only that signal's Sites. Catches a
+  // garment-allocation lever placed over the washes-per-garment Sites.
+  const catalogue = getOpportunitySignals().catalogue;
+  const lower = text.toLowerCase();
+  const city = (id: string) => siteName(id).replace(/^NorthStar\s+/, "");
+  const namedGroups = state.signal_groups.filter((g) => {
+    const name = catalogue.find((e) => e.id === g.signal_id)!.name.toLowerCase();
+    return lower.includes(name) || lower.includes(g.lever.toLowerCase().replace(/\.$/, ""));
+  });
+  if (namedGroups.length) {
+    const allowed = new Set(namedGroups.flatMap((g) => g.results.map((r) => city(r.site_id))));
+    const others = sites.map((s) => city(s.site_id)).filter((c) => !allowed.has(c) && new RegExp(`(^|[^\\p{L}])${c}([^\\p{L}]|$)`, "u").test(text));
+    if (others.length)
+      out.push(
+        `${others.join(", ")} ${others.length === 1 ? "is" : "are"} not in the signal you describe. ${namedGroups
+          .map((g) => `"${catalogue.find((e) => e.id === g.signal_id)!.name}" fired on: ${g.results.map((r) => `${city(r.site_id)} (gap ${(r.gap * 100).toFixed(2)}%)`).join(", ")}`)
+          .join(". ")}. List each Site under the signal it fired on.`,
+      );
+  }
+  // Lever owners are no longer checked here: the server attaches the named signal groups, with their owners, to the
+  // response (see namedSignalGroups), and the dashboard shows them under the answer.
+  return out;
 }
 
 // ---------------------------------------------------------------- model calls
@@ -379,11 +453,25 @@ async function assistantAnswer(req: Request, prompt: string) {
     messages.push(reply.message);
     const uses = (reply.message.tool_calls ?? []).slice(0, MAX_CALLS - calls);
     if (uses.length === 0) {
-      const answer = clean(reply.message.content ?? "");
+      let answer = clean(reply.message.content ?? "");
+      // Fix: the server checks the answer and sends it back once with what is wrong. What survives the retry is flagged.
+      const found = answerProblems(answer, state);
+      let retried: string[] = [];
+      if (found.length && answer) {
+        retried = found;
+        messages.push({ role: "user", content: `Your answer breaks these rules:\n${found.map((p) => `- ${p}`).join("\n")}\nWrite the whole answer again, using only the tool results above. Do not mention this check.` });
+        const again = await chat({ messages });
+        tokens.prompt += again.prompt_eval_count ?? 0;
+        tokens.output += again.eval_count ?? 0;
+        const fixed = clean(again.message.content ?? "");
+        if (fixed) answer = fixed;
+      }
       return {
+        retried,
+        remaining_problems: answerProblems(answer, state),
         answer: answer || `(model_error: no text, done_reason ${reply.done_reason})`,
         sources: state.sources,
-        signal_groups: state.signal_groups,
+        signal_groups: namedSignalGroups(answer, state),
         priority_change: state.priority_change,
         unmatched_numbers: unmatchedNumbers(answer, state.sources, state.extraNumbers),
         log: state.log,
@@ -427,18 +515,40 @@ const OBSERVATION_SCHEMA = {
 
 async function observations(req: Request) {
   const state: RunState = { req, sources: [], signal_groups: [], priority_change: null, extraNumbers: [], log: [] };
-  const input = { first_screen: runTool(state, "get_overview", {}), signal_groups: runTool(state, "get_signal_groups", {}) };
+  // The overview now carries the fired signal groups, so it is the only input.
+  const input = { first_screen: runTool(state, "get_overview", {}) };
   const started = Date.now();
-  const reply = await chat({
-    messages: [
-      { role: "system", content: observationsSystem(req) },
-      { role: "user", content: JSON.stringify(input) },
-    ],
-    format: OBSERVATION_SCHEMA,
-  });
-  const parsed = JSON.parse(clean(reply.message.content)) as { observations: { text: string; kpi_ids: string[]; signal_ids: string[] }[] };
+  type Obs = { text: string; kpi_ids: string[]; signal_ids: string[] };
+  const messages: OllamaMessage[] = [
+    { role: "system", content: observationsSystem(req) },
+    { role: "user", content: JSON.stringify(input) },
+  ];
+  const reply = await chat({ messages, format: OBSERVATION_SCHEMA });
+  let parsed = JSON.parse(clean(reply.message.content)) as { observations: Obs[] };
+  const problems = (list: Obs[]) =>
+    list.flatMap((o, i) => answerProblems(o.text, state).filter((p) => !p.startsWith("Give the lever owner")).map((p) => `Observation ${i + 1}: ${p}`));
+  const retried = problems(parsed.observations);
+  if (retried.length) {
+    messages.push(reply.message, { role: "user", content: `Your observations break these rules:\n${retried.map((p) => `- ${p}`).join("\n")}\nReply with the full JSON again.` });
+    const again = await chat({ messages, format: OBSERVATION_SCHEMA });
+    try {
+      parsed = JSON.parse(clean(again.message.content));
+    } catch {}
+  }
+  // Fix: the server owns the tags. A signal id stays only if the text names one of that signal's Sites; a signal id
+  // given as a KPI id moves to signal_ids; unknown KPI ids are dropped.
+  const knownKpis = new Set(listKpis(req.view).map((k) => k.id));
+  const firedIds = new Set<string>(state.signal_groups.map((g) => g.signal_id));
+  const tidy = (o: Obs): Obs => {
+    const asSignals = o.kpi_ids.filter((id) => firedIds.has(id));
+    const signal_ids = [...new Set([...o.signal_ids, ...asSignals])].filter((id) =>
+      state.signal_groups.find((g) => g.signal_id === id)?.results.some((r) => o.text.includes(siteName(r.site_id).replace(/^NorthStar\s+/, ""))),
+    );
+    return { text: o.text, kpi_ids: o.kpi_ids.filter((id) => knownKpis.has(id)), signal_ids };
+  };
   return {
-    observations: parsed.observations.slice(0, MAX_OBSERVATIONS).map((o) => {
+    retried,
+    observations: parsed.observations.slice(0, MAX_OBSERVATIONS).map(tidy).map((o) => {
       const sources = state.sources.filter((s) => o.kpi_ids.includes(s.kpi_id));
       const signal_groups = state.signal_groups.filter((g) => o.signal_ids.includes(g.signal_id));
       const extra = [sites.length, ...signal_groups.flatMap((g) => [g.fired_count, g.largest_gap, g.largest_gap * 100, ...g.results.flatMap((r) => [r.gap, r.gap * 100])])];
@@ -516,4 +626,5 @@ async function main() {
   console.error(`wrote ${file.pathname}`);
 }
 
-await main();
+export { assistantAnswer, observations, PROMPTS, MODEL, NUM_CTX, THINK, CUSTOMER_ID, PERIOD };
+if (import.meta.url === pathToFileURL(process.argv[1]).href) await main();
