@@ -3,7 +3,21 @@
 
 import { AssistantFailureError } from "./errors.ts";
 
-export const OLLAMA_URL = "http://127.0.0.1:11434";
+/** OLLAMA_URL overrides it, e.g. a tunnel to a GPU machine when the app is deployed. */
+export const OLLAMA_URL = (process.env.OLLAMA_URL ?? "http://127.0.0.1:11434").replace(/\/+$/, "");
+
+/**
+ * Extra headers sent with every Ollama request, from OLLAMA_HEADERS as a JSON object of strings, e.g. the shared
+ * secret a tunnel checks. Malformed JSON throws at startup, so a bad deploy fails loudly instead of sending no secret.
+ */
+export function ollamaHeaders(raw: string | undefined = process.env.OLLAMA_HEADERS): Record<string, string> {
+  if (!raw) return {};
+  const parsed: unknown = JSON.parse(raw);
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed) || Object.values(parsed).some((v) => typeof v !== "string")) {
+    throw new Error("OLLAMA_HEADERS must be a JSON object of string values.");
+  }
+  return parsed as Record<string, string>;
+}
 export const MODEL = "qwen3:4b-q8_0";
 export const NUM_CTX = 16384;
 export const TEMPERATURE = 0.3;
@@ -43,13 +57,13 @@ export interface ChatReply {
 export type Chat = (request: ChatRequest, signal: AbortSignal) => Promise<ChatReply>;
 
 /** A Chat against a running Ollama. */
-export function ollamaChat(baseUrl: string = OLLAMA_URL): Chat {
+export function ollamaChat(baseUrl: string = OLLAMA_URL, extraHeaders: Record<string, string> = ollamaHeaders()): Chat {
   return async (request, signal) => {
     let res: Response;
     try {
       res = await fetch(`${baseUrl}/api/chat`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...extraHeaders, "Content-Type": "application/json" },
         body: JSON.stringify({
           model: MODEL,
           stream: false,
@@ -97,11 +111,11 @@ const PS_TIMEOUT_MS = 2000;
  * (size_vram below size), which makes answers several times slower. A model that is not loaded, or an /api/ps that
  * fails, logs nothing, since the model call already reports an Ollama that is down.
  */
-export function ollamaGpuCheck(baseUrl: string = OLLAMA_URL): GpuCheck {
+export function ollamaGpuCheck(baseUrl: string = OLLAMA_URL, extraHeaders: Record<string, string> = ollamaHeaders()): GpuCheck {
   return async () => {
     let models: unknown;
     try {
-      const res = await fetch(`${baseUrl}/api/ps`, { signal: AbortSignal.timeout(PS_TIMEOUT_MS) });
+      const res = await fetch(`${baseUrl}/api/ps`, { headers: extraHeaders, signal: AbortSignal.timeout(PS_TIMEOUT_MS) });
       models = ((await res.json()) as { models?: unknown } | null)?.models;
     } catch {
       return;
