@@ -43,7 +43,7 @@ test("a Site's health uses the Site rating, and a half year is not rated", () =>
 test("the dashboard_emphasis text names the industry and its texts", () => {
   const { emphasis } = kamCards("fi", page, meta)!;
   assert.equal(emphasis?.title, "Näkymän painotus (esimerkki)");
-  assert.equal(emphasis?.industry, "Food & Beverage");
+  assert.equal(emphasis?.industry, "Elintarvikkeet ja juomat");
   assert.deepEqual(emphasis?.texts[1], { term: "Water efficiency", text: "Prioritize water use/savings and washed-kg efficiency." });
 });
 

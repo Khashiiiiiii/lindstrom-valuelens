@@ -34,7 +34,7 @@ test("each source shows its value, data status, baseline and caveats, and a With
     },
     { withheld: true, label: "Account health", note: "KAM view only" },
   ]);
-  assert.deepEqual(answerCard("fi", answer, meta).sources[1], { withheld: true, label: "Account health", note: "Vain KAM-näkymä" });
+  assert.deepEqual(answerCard("fi", answer, meta).sources[1], { withheld: true, label: "Asiakkuuden tila", note: "Vain KAM-näkymä" });
 });
 
 test("an answer with unmatched numbers carries a warning that names them, and one without has none", () => {

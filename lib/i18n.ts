@@ -7,7 +7,7 @@
 
 import type { KpiResult } from "./data.ts";
 import type { Entry, Plural, Text } from "./i18n/dictionary.ts";
-import { DICTIONARY } from "./i18n/dictionary.ts";
+import { DICTIONARY, KPI_ID_NAMES } from "./i18n/dictionary.ts";
 
 export { AI_TRANSLATION_NOTE } from "./i18n/dictionary.ts";
 
@@ -28,6 +28,9 @@ type VarsFor<K extends DictionaryKey> = K extends PluralKey ? [vars: Vars & { n:
 
 /** The same entries, looked up by a string that may not be a key. */
 const ENTRIES: Record<string, Entry | undefined> = DICTIONARY;
+
+/** The KPI name key for a Withheld KPI id, looked up by a string that may not be one. */
+const NAME_KEYS: Record<string, string | undefined> = KPI_ID_NAMES;
 
 const LOCALES: Record<Lang, string> = { en: "en-GB", sv: "sv-SE", fi: "fi-FI" };
 
@@ -51,8 +54,10 @@ export function t<K extends DictionaryKey>(lang: Lang, key: K, ...[vars]: VarsFo
  * The text for a value from data/processed, such as a KPI name or a breakdown key, in the language. A value with no
  * entry shows in English. A data id with no entry reads as words, so "unknown_route" shows as "Unknown route". For
  * a unit, the number n, such as a KpiResult value, picks the "one" or "other" form. With no number it is "other".
+ * A Withheld KPI id shows as its KPI name.
  */
-export function dataLabel(lang: Lang, value: string, n?: number | null): string {
+export function dataLabel(lang: Lang, id_or_value: string, n?: number | null): string {
+  const value = NAME_KEYS[id_or_value] ?? id_or_value;
   const english = ENTRIES[value] === undefined && SNAKE_ID.test(value) ? idAsWords(value) : value;
   return lookup(lang, value, n ?? undefined, english);
 }

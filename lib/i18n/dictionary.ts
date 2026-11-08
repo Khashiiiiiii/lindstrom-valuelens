@@ -1,6 +1,7 @@
 // The EN, SV and FI strings for the dashboard and the PowerPoint deck, ported from the prototype's
-// variant-d-dict.js (#25). An agent reviewed every SV and FI string against the term list and rules in #20. No
-// native speaker has checked them.
+// variant-d-dict.js (#25). An agent reviewed every SV and FI string against the term list and rules in #20, and
+// again in #38. No native speaker has checked them. app/translations.test.ts checks that no page or deck shows a
+// key without SV or FI text.
 //
 // A key is the English string, or the JSON id of a data value such as "energy_recovery". Where one English
 // string needs two translations, the key takes a context suffix such as "_owner" or "_unit". An entry sets `en`
@@ -68,10 +69,17 @@ export const DICTIONARY = {
     sv: "Ingen utlöst signal för den här prioriteringen.",
     fi: "Tälle painopisteelle ei ole lauennutta signaalia.",
   },
-  "fired results across {n} signals": {
-    en: { one: "fired results across {n} signal", other: "fired results across {n} signals" },
-    sv: { one: "utlösta resultat i {n} signal", other: "utlösta resultat i {n} signaler" },
-    fi: "lauennutta tulosta {n} signaalissa",
+  // The Optimisation potential unit, for example "18 fired results across 6 signals". The fired-result count picks
+  // the form of the first part, and the signal count the form of the second.
+  "fired results": {
+    en: { one: "fired result", other: "fired results" },
+    sv: { one: "utlöst resultat", other: "utlösta resultat" },
+    fi: { one: "lauennut tulos", other: "lauennutta tulosta" },
+  },
+  "across {n} signals": {
+    en: { one: "across {n} signal", other: "across {n} signals" },
+    sv: { one: "i {n} signal", other: "i {n} signaler" },
+    fi: "{n} signaalissa",
   },
   "Top: {x}": { sv: "Främst: {x}", fi: "Kärjessä: {x}" },
   "Signals judge all of 2025.": { sv: "Signalerna bedömer hela 2025.", fi: "Signaalit arvioivat koko vuoden 2025." },
@@ -346,6 +354,10 @@ export const DICTIONARY = {
   "l": { sv: "l", fi: "l" },
   "kWh": { sv: "kWh", fi: "kWh" },
   "kg CO2e": { sv: "kg CO2e", fi: "kg CO2e" },
+  // The public figure units on the Data and assumptions page. FI writes the litre as "l", as in "Water, L/kg".
+  "kWh/kg": { sv: "kWh/kg", fi: "kWh/kg" },
+  "L/kg": { sv: "L/kg", fi: "l/kg" },
+  "kgCO2e/kg": { sv: "kgCO2e/kg", fi: "kgCO2e/kg" },
   "kg per active wearer": { sv: "kg per aktiv bärare", fi: "kg aktiivista käyttäjää kohden" },
   "l per active wearer": { sv: "l per aktiv bärare", fi: "l aktiivista käyttäjää kohden" },
   "kWh per active wearer": { sv: "kWh per aktiv bärare", fi: "kWh aktiivista käyttäjää kohden" },
@@ -355,7 +367,7 @@ export const DICTIONARY = {
   // (ADR 0008).
   "Garment allocation above peers": {
     sv: "Högre plaggtilldelning än kundens övriga anläggningar",
-    fi: "Suurempi vaatemitoitus kuin asiakkaan muissa toimipaikoissa",
+    fi: "Suurempi vaatteiden kohdistus kuin asiakkaan muissa toimipaikoissa",
   },
   "Allocated garments with no scan activity above peers": {
     sv: "Fler tilldelade plagg utan skanningar än kundens övriga anläggningar",
@@ -519,6 +531,67 @@ export const DICTIONARY = {
   "Rationale": { sv: "Motivering", fi: "Perustelu" },
   "Mixed waste share": { sv: "Andel blandat avfall", fi: "Sekajätteen osuus" },
   "Page {x}": { sv: "Sida {x}", fi: "Sivu {x}" },
+  // Threshold and guard parameters. `en` is the id as words, as dataLabel shows an id with no entry.
+  "threshold": { en: "Threshold", sv: "Tröskelvärde", fi: "Kynnysarvo" },
+  "green_threshold": { en: "Green threshold", sv: "Gräns för grön", fi: "Vihreän raja" },
+  "amber_threshold": { en: "Amber threshold", sv: "Gräns för gul", fi: "Keltaisen raja" },
+  "test_level": { en: "Test level", sv: "Testnivå", fi: "Testitaso" },
+  "scan_coverage_threshold_points": {
+    en: "Scan coverage threshold points",
+    sv: "Gräns för skanningstäckning, procentenheter",
+    fi: "Skannauskattavuuden raja, prosenttiyksikköä",
+  },
+  "minimum_volume": { en: "Minimum volume", sv: "Minsta volym", fi: "Vähimmäismäärä" },
+  "minimum_sampled_cycles": {
+    en: "Minimum sampled cycles",
+    sv: "Minsta antal servicecykler i stickprovet",
+    fi: "Otoksen palvelukierrosten vähimmäismäärä",
+  },
+  "minimum_late_cycles": {
+    en: "Minimum late cycles",
+    sv: "Minsta antal försenade servicecykler",
+    fi: "Myöhästyneiden palvelukierrosten vähimmäismäärä",
+  },
+  "minimum_wearer_months": { en: "Minimum wearer months", sv: "Minsta antal bärarmånader", fi: "Käyttäjäkuukausien vähimmäismäärä" },
+  "minimum_active_wearers": {
+    en: "Minimum active wearers",
+    sv: "Minsta antal aktiva bärare",
+    fi: "Aktiivisten käyttäjien vähimmäismäärä",
+  },
+  "minimum_allocated_pieces": {
+    en: "Minimum allocated pieces",
+    sv: "Minsta antal tilldelade plagg",
+    fi: "Kohdistettujen vaatteiden vähimmäismäärä",
+  },
+  "minimum_allocated_pieces_monthly_average": {
+    en: "Minimum allocated pieces monthly average",
+    sv: "Minsta antal tilldelade plagg, månadsmedel",
+    fi: "Kohdistettujen vaatteiden vähimmäismäärä, kuukausikeskiarvo",
+  },
+  "minimum_packed_pieces": { en: "Minimum packed pieces", sv: "Minsta antal packade plagg", fi: "Pakattujen kappaleiden vähimmäismäärä" },
+  "minimum_service_requests": {
+    en: "Minimum service requests",
+    sv: "Minsta antal serviceärenden",
+    fi: "Palvelupyyntöjen vähimmäismäärä",
+  },
+  "minimum_repairs": { en: "Minimum repairs", sv: "Minsta antal reparationer", fi: "Korjausten vähimmäismäärä" },
+  // Peers are the Customer's other Sites (ADR 0008).
+  "minimum_peers": {
+    en: "Minimum peers",
+    sv: "Minsta antal övriga anläggningar hos kunden",
+    fi: "Asiakkaan muiden toimipaikkojen vähimmäismäärä",
+  },
+  // Industries (dashboard emphasis) and Site types (Site table), as master-data.json writes them
+  "Food & Beverage": { sv: "Livsmedel och dryck", fi: "Elintarvikkeet ja juomat" },
+  "Manufacturing": { sv: "Tillverkning", fi: "Valmistava teollisuus" },
+  "Healthcare": { sv: "Hälso- och sjukvård", fi: "Terveydenhuolto" },
+  "Office & Operations": { sv: "Kontor och drift", fi: "Toimisto ja toiminnot" },
+  "Production Plant": { sv: "Produktionsanläggning", fi: "Tuotantolaitos" },
+  "Manufacturing Plant": { sv: "Tillverkningsanläggning", fi: "Valmistuslaitos" },
+  "Distribution Center": { sv: "Distributionscentral", fi: "Jakelukeskus" },
+  "Service Center": { sv: "Servicecenter", fi: "Palvelukeskus" },
+  "Hospital": { sv: "Sjukhus", fi: "Sairaala" },
+  "Central Laundry Hub": { sv: "Centralt tvätteri", fi: "Keskuspesula" },
   "Finland": { sv: "Finland", fi: "Suomi" },
   "Sweden": { sv: "Sverige", fi: "Ruotsi" },
   "Poland": { sv: "Polen", fi: "Puola" },
@@ -527,3 +600,18 @@ export const DICTIONARY = {
     fi: "Lindströmin logo on Wikimedia Commonsista, ja sen lisenssi on CC BY-SA 4.0.",
   },
 } satisfies Record<string, Entry>;
+
+/**
+ * The KPI ids that the Customer view withholds, each with its KPI name's key. A Withheld assistant source has only
+ * its id, and dataLabel shows it by the name's entry, so the name's text lives in one place.
+ */
+export const KPI_ID_NAMES = {
+  turnaround_by_stage: "Turnaround by stage",
+  account_health: "Account health",
+  account_health_on_time_service_cycle_share: "Account health on-time service cycle share",
+  account_health_service_requests_per_100_wearers_per_month: "Account health service requests per 100 wearers per month",
+  account_health_scan_coverage: "Account health scan coverage",
+  improvement_on_time_service_cycles: "Improvement on-time service cycles",
+  improvement_service_requests: "Improvement service requests",
+  improvement_scan_coverage: "Improvement scan coverage",
+} as const satisfies Record<string, keyof typeof DICTIONARY>;

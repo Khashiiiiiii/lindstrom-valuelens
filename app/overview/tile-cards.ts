@@ -91,7 +91,7 @@ export function tileCards(lang: Lang, { page, meta, site_id, series }: TileData)
       card.figures.push({
         label: null,
         value: formatNumber(lang, fired_count),
-        unit: t(lang, "fired results across {n} signals", { n: signal_count }),
+        unit: `${t(lang, "fired results", { n: fired_count })} ${t(lang, "across {n} signals", { n: signal_count })}`,
         data_status: statusLabel(lang, meta.signals.map((s) => s.data_status)),
         baseline: null,
         caveats: [],

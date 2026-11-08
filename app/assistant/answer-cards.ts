@@ -40,7 +40,7 @@ export function observationCard(lang: Lang, observation: Observation, meta: Meta
   return answerCard(lang, { answer: text, ...rest, priority_change: null }, meta);
 }
 
-/** A source's figure, or for a Withheld source its KPI id as words and "KAM view only". */
+/** A source's figure, or for a Withheld source its KPI name and "KAM view only". */
 export function sourceCard(lang: Lang, source: KpiAnswer): SourceCard {
   if ("withheld" in source) return { withheld: true, label: dataLabel(lang, source.kpi_id), note: t(lang, "KAM view only") };
   return { withheld: false, ...kpiFigure(lang, source) };

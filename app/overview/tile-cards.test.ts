@@ -191,3 +191,20 @@ test("a series whose first point is Withheld has no sparkline", () => {
   };
   assert.equal(tileCards("en", { page, meta, site_id: null, series: withheld }).find((c) => c.id === "repairs")!.figures[0].sparkline, null);
 });
+
+test("the Optimisation potential unit takes its form from the fired results, and the signals from their own count", () => {
+  const unit = (lang: "en" | "sv" | "fi", site_id: "S030" | "S032") => {
+    const customer_id = site_id === "S030" ? "CUST002" : "CUST003";
+    const site = { customer_id, site_id, period: "2025", view: "Customer" } as const;
+    const tiles = tileCards(lang, { page: overviewPage(site), meta: metadataPage(site), site_id, series: null });
+    const figure = tiles.find((c) => c.id === "optimisation_potential")!.figures[0];
+    return `${figure.value} ${figure.unit}`;
+  };
+  // S032 has 1 fired result of 1 signal, S030 has 2 fired results of 1 signal.
+  assert.equal(unit("en", "S032"), "1 fired result across 1 signal");
+  assert.equal(unit("sv", "S032"), "1 utlöst resultat i 1 signal");
+  assert.equal(unit("fi", "S032"), "1 lauennut tulos 1 signaalissa");
+  assert.equal(unit("en", "S030"), "2 fired results across 1 signal");
+  assert.equal(unit("sv", "S030"), "2 utlösta resultat i 1 signal");
+  assert.equal(unit("fi", "S030"), "2 lauennutta tulosta 1 signaalissa");
+});
