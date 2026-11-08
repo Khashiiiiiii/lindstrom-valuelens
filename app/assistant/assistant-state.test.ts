@@ -38,9 +38,9 @@ test("a reply that arrives with the modal closed puts a dot on the button until 
 test("an error keeps the prompt, and Try again sends the same prompt again", () => {
   const error = { code: "timeout", message: "The model took longer than 90 s." } as const;
   const failed = run(INITIAL, { type: "open" }, { type: "ask", prompt: "Show me an error.", priorities: [], request_id: 1, at: 0 }, { type: "failed", request_id: 1, error });
-  assert.deepEqual([failed.prompt, failed.error, failed.answer, failed.pending], ["Show me an error.", error, null, null]);
+  assert.deepEqual([failed.prompt, failed.errors.ask, failed.answer, failed.pending], ["Show me an error.", error, null, null]);
   const retried = run(failed, { type: "ask", prompt: failed.prompt!, priorities: [], request_id: 2, at: 9_000 });
-  assert.deepEqual([retried.prompt, retried.error, retried.pending], ["Show me an error.", null, { kind: "ask", request_id: 2, started_at: 9_000 }]);
+  assert.deepEqual([retried.prompt, retried.errors.ask, retried.pending], ["Show me an error.", null, { kind: "ask", request_id: 2, started_at: 9_000 }]);
 });
 
 test("no observations show before the first click, and each click replaces the earlier observations", () => {
@@ -65,8 +65,8 @@ test("an observations error shows on the Observations tab and keeps the Ask tab'
   const error = { code: "model_unavailable", message: "Ollama is not running." } as const;
   const answered = run(INITIAL, { type: "ask", prompt: "Hi", priorities: [], request_id: 1, at: 0 }, { type: "answer", request_id: 1, answer });
   const failed = run(answered, { type: "observe", request_id: 2, at: 0 }, { type: "failed", request_id: 2, error });
-  assert.deepEqual([failed.observations_error, failed.error, failed.answer, failed.observations], [error, null, answer, null]);
-  assert.equal(run(failed, { type: "observe", request_id: 3, at: 0 }).observations_error, null);
+  assert.deepEqual([failed.errors.observe, failed.errors.ask, failed.answer, failed.observations], [error, null, answer, null]);
+  assert.equal(run(failed, { type: "observe", request_id: 3, at: 0 }).errors.observe, null);
 });
 
 const kam = { type: "scope", customer_id: "CUST001", view: "KAM" } as const;

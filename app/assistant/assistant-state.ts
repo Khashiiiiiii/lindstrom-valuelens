@@ -9,6 +9,9 @@ import type { PageState } from "../page-state.ts";
 /** The modal's two tabs: Ask, with the prompt box, and Observations, with "Generate observations". */
 export type AssistantTab = "ask" | "observations";
 
+/** The two kinds of request: a prompt from the Ask tab, or "Generate observations". */
+export type RequestKind = "ask" | "observe";
+
 /** The Customer and view that the answers and observations belong to. */
 export type AssistantScope = Pick<PageState, "customer_id" | "view">;
 
@@ -20,12 +23,12 @@ export interface AssistantState {
   /** The priority list the last prompt was sent with. The server built the answer's priority_change from it. */
   asked_priorities: CustomerPriorityId[] | null;
   /** The request that runs, or null. There is at most one, a prompt or a "Generate observations". */
-  pending: { kind: "ask" | "observe"; request_id: number; started_at: number } | null;
+  pending: { kind: RequestKind; request_id: number; started_at: number } | null;
   answer: AssistantAnswer | null;
-  error: AssistantFailure | null;
   /** Null until the first "Generate observations" reply. They never load with the page. */
   observations: Observation[] | null;
-  observations_error: AssistantFailure | null;
+  /** The last error of each kind of request. Each tab shows its own, so an observations error keeps the answer. */
+  errors: Record<RequestKind, AssistantFailure | null>;
   /** A reply arrived while the modal was closed. The AI button shows a dot until the modal opens. */
   unread: boolean;
   /** The scope of the answer and observations, or null before the first scope action. */
@@ -53,9 +56,8 @@ export const INITIAL: AssistantState = {
   asked_priorities: null,
   pending: null,
   answer: null,
-  error: null,
   observations: null,
-  observations_error: null,
+  errors: { ask: null, observe: null },
   unread: false,
   scope: null,
 };
@@ -76,12 +78,12 @@ export function assistantState(state: AssistantState, action: AssistantAction): 
       const prompt = action.prompt.trim();
       if (state.pending !== null || prompt === "") return state;
       const pending = { kind: "ask", request_id: action.request_id, started_at: action.at } as const;
-      return { ...state, prompt, asked_priorities: action.priorities, pending, answer: null, error: null };
+      return { ...state, prompt, asked_priorities: action.priorities, pending, answer: null, errors: { ...state.errors, ask: null } };
     }
     case "observe": {
       if (state.pending !== null) return state;
       const pending = { kind: "observe", request_id: action.request_id, started_at: action.at } as const;
-      return { ...state, pending, observations: null, observations_error: null };
+      return { ...state, pending, observations: null, errors: { ...state.errors, observe: null } };
     }
     case "answer":
     case "observations":
@@ -91,7 +93,7 @@ export function assistantState(state: AssistantState, action: AssistantAction): 
       const replied = { ...state, pending: null, unread: !state.open };
       if (action.type === "answer") return { ...replied, answer: action.answer };
       if (action.type === "observations") return { ...replied, observations: action.observations };
-      return pending.kind === "ask" ? { ...replied, error: action.error } : { ...replied, observations_error: action.error };
+      return { ...replied, errors: { ...state.errors, [pending.kind]: action.error } };
     }
     case "scope": {
       const scope = { customer_id: action.customer_id, view: action.view };

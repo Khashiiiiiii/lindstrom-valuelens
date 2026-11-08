@@ -84,3 +84,58 @@ test("an SV or FI deck uses the dictionary and shows the AI translation note, an
   assert.ok(english.includes("Look back") && english.includes("Thank you"));
   assert.ok(!english.includes("AI translation"));
 });
+
+/** A chart part of the deck: its title and, per series, the name and the cached category labels and values. */
+interface Chart {
+  name: string;
+  xml: string;
+  series: { name: string; labels: string[]; values: string[]; ptCount: number }[];
+}
+
+async function charts(file: Uint8Array): Promise<Chart[]> {
+  const zip = await JSZip.loadAsync(file);
+  const names = Object.keys(zip.files).filter((name) => /^ppt\/charts\/chart\d+\.xml$/.test(name));
+  return Promise.all(
+    names.map(async (name) => {
+      const xml = await zip.file(name)!.async("string");
+      const series = [...xml.matchAll(/<c:ser>([\s\S]*?)<\/c:ser>/g)].map(([, ser]) => {
+        const values = ser.match(/<c:val>([\s\S]*?)<\/c:val>/)![1];
+        return {
+          name: points(ser.match(/<c:tx>([\s\S]*?)<\/c:tx>/)![1])[0],
+          labels: points(ser.match(/<c:cat>([\s\S]*?)<\/c:cat>/)![1]),
+          values: points(values),
+          ptCount: Number(values.match(/<c:ptCount val="(\d+)"\/>/)![1]),
+        };
+      });
+      return { name, xml, series };
+    }),
+  );
+}
+
+/** The values of the cached points in an XML block, in point order. */
+function points(block: string): string[] {
+  return [...block.matchAll(/<c:pt idx="\d+">\s*<c:v>([^<]*)<\/c:v>/g)].map((m) => m[1]);
+}
+
+test("the deck has native charts of washed kg, on-time share, emissions saved and the waste routes, with every cached value set", async () => {
+  const found = await charts(await deckFile(NORTHSTAR));
+  assert.equal(found.length, 4);
+  const titles = found.map((c) => decodeXml(c.xml.match(/<c:title>[\s\S]*?<a:t>([^<]*)<\/a:t>/)![1])).sort();
+  assert.deepEqual(titles, [
+    "Emissions saved per month, kg CO2e",
+    "On-time service cycle share per month",
+    "Textile waste by treatment route",
+    "Washed kg per month",
+  ]);
+  for (const chart of found) {
+    for (const s of chart.series) {
+      assert.ok(s.name, `${chart.name} names its series`);
+      assert.equal(s.values.length, s.ptCount, `${chart.name} caches every point`);
+      assert.equal(s.labels.length, s.values.length, `${chart.name} labels every point`);
+      for (const v of s.values) assert.ok(v !== "" && Number.isFinite(Number(v)), `${chart.name} caches "${v}" as a number`);
+    }
+  }
+  const monthly = found.filter((c) => c.series[0].labels.length === 12);
+  assert.equal(monthly.length, 3);
+  assert.deepEqual(monthly[0].series[0].labels, ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]);
+});

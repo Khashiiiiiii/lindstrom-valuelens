@@ -143,13 +143,18 @@ export async function deckFile(request: DeckRequest): Promise<Uint8Array<ArrayBu
   ];
   for (const r of kpis(["active_wearers", "garments_in_circulation", "washed_kg"])) glance.push({ label: dataLabel(lang, r.name), ...formatValue(lang, r) });
   glance.forEach((g, i) => stat(s, g, { x: 0.6 + i * 3.1, y: 1.75, w: 2.85, h: 1.6 }));
-  monthTable(s, lang, t(lang, "Washed kg per month"), master.months, monthly("washed_kg"), 3.75);
+  monthChart(s, lang, "bar", t(lang, "Washed kg per month"), master.months, monthly("washed_kg"), { x: 0.6, y: 3.6, w: 12.15, h: 2.6 });
   caption(s, t(lang, "Full year 2025, by month."), { x: 0.6, y: 6.3, w: 12.15, h: 0.3 });
 
   // 4. Look back: service performance
   s = deck.content(t(lang, "Look back"), t(lang, "Service performance"));
   kpis(["on_time_service_cycle_share", "turnaround_hours_median", "service_requests_per_100_wearers"]).forEach((r, i) => stat(s, { label: dataLabel(lang, r.name), ...formatValue(lang, r) }, { x: 0.6 + i * 4.1, y: 1.75, w: 3.85, h: 1.6 }));
-  monthTable(s, lang, t(lang, "On-time service cycle share per month"), master.months, monthly("on_time_service_cycle_share"), 3.75);
+  monthChart(s, lang, "line", t(lang, "On-time service cycle share per month"), master.months, monthly("on_time_service_cycle_share"), {
+    x: 0.6,
+    y: 3.6,
+    w: 12.15,
+    h: 2.6,
+  });
   caption(s, t(lang, "Full year 2025, by month."), { x: 0.6, y: 6.3, w: 12.15, h: 0.3 });
 
   // 5. Show value: sustainability, with the baseline caveat and the deferred Financial Value note
@@ -158,7 +163,7 @@ export async function deckFile(request: DeckRequest): Promise<Uint8Array<ArrayBu
     const baseline = r.detail?.kind === "handprint" ? `, ${dataLabel(lang, r.detail.baseline_label)}` : "";
     stat(s, { label: `${dataLabel(lang, r.name)}${baseline}`, ...formatValue(lang, r) }, { x: 0.6 + i * 4.1, y: 1.75, w: 3.85, h: 1.6 });
   });
-  monthTable(s, lang, t(lang, "Emissions saved per month, kg CO2e"), master.months, monthly("emissions_saved"), 3.75);
+  monthChart(s, lang, "bar", t(lang, "Emissions saved per month, kg CO2e"), master.months, monthly("emissions_saved"), { x: 0.6, y: 3.6, w: 12.15, h: 2.1 });
   const tileCaveats = getViewsAndReview().data.first_screen.common_tiles.flatMap((tile) => tile.caveats ?? []);
   const context = getPublicReference().data.context_lines.group_emissions_intensity;
   const notes = [
@@ -171,17 +176,30 @@ export async function deckFile(request: DeckRequest): Promise<Uint8Array<ArrayBu
   // 6. Show value: circularity and the waste routes
   s = deck.content(t(lang, "Show value"), t(lang, "Circularity and textile waste"));
   const waste = kpi("textile_waste_by_treatment_route");
-  if (waste?.breakdown) {
-    text(s, dataLabel(lang, waste.name), { x: 0.6, y: 1.75, w: 6.2, h: 0.4 }, { fontSize: 14, bold: true, color: INK });
-    const rows: pptxgen.TableRow[] = waste.breakdown.map((b) => [
-      cell(dataLabel(lang, b.key)),
-      cell(`${formatNumber(lang, b.value, { maximumFractionDigits: 0 })} ${dataLabel(lang, waste.unit, b.value)}`, { align: "right" }),
-    ]);
-    rows.push([
-      cell(dataLabel(lang, "total"), { bold: true }),
-      cell(`${formatValue(lang, waste).value} ${formatValue(lang, waste).unit}`, { align: "right", bold: true }),
-    ]);
-    table(s, rows, { x: 0.6, y: 2.25, w: 6.2, h: 0 }, [3.7, 2.5]);
+  // A split with no kg has no slices to draw, as on the Overview.
+  if (waste?.breakdown && waste.value) {
+    const routes = waste.breakdown;
+    s.addChart("doughnut", [{ name: dataLabel(lang, waste.name), labels: routes.map((b) => dataLabel(lang, b.key)), values: routes.map((b) => b.value) }], {
+      ...chartText(dataLabel(lang, waste.name)),
+      x: 0.6,
+      y: 1.75,
+      w: 6.2,
+      h: 4.4,
+      holeSize: 55,
+      chartColors: [NAVY, RED, PALE, MUTED, LINE],
+      dataBorder: { pt: 1.5, color: WHITE },
+      showPercent: true,
+      showValue: false,
+      dataLabelColor: WHITE,
+      dataLabelFontSize: 11,
+      showLegend: true,
+      legendPos: "r",
+      legendFontFace: FONT,
+      legendFontSize: 12,
+      legendColor: INK,
+    });
+    const total = formatValue(lang, waste);
+    caption(s, `${capitalized(dataLabel(lang, "total"))}: ${total.value} ${total.unit}`, { x: 0.6, y: 6.25, w: 6.2, h: 0.3 });
   }
   kpis(["repairs", "repair_rate", "recycled_or_reused_share", "avoided_product_co2e_estimated"]).forEach((r, i) =>
       stat(s, { label: dataLabel(lang, r.name), ...formatValue(lang, r) }, {
@@ -492,12 +510,72 @@ function table(s: Slide, rows: pptxgen.TableRow[], box: Box, colW: number[], fon
 }
 
 /**
- * A KPI's 12 monthly values as a 2-row table, in place of a chart until #37. The title names the unit. A Withheld
- * month shows empty.
+ * A KPI's 12 monthly values as a native chart, a column chart or a line chart. The title names the unit. The chart
+ * does not show when its first month is Withheld, as on the Overview, and a later Withheld or not evaluated month
+ * is a gap. A share has a percent axis.
  */
-function monthTable(s: Slide, lang: Lang, title: string, months: readonly string[], values: (KpiResult | null)[], y: number): void {
-  text(s, title, { x: 0.6, y, w: 12.15, h: 0.35 }, { fontSize: 13, bold: true, color: INK });
-  const head = months.map((m) => cell(monthName(lang, m, "short").replace(".", ""), { bold: true, align: "center", color: MUTED }));
-  const row = values.map((r) => cell(r ? formatValue(lang, r).value : "", { align: "center" }));
-  table(s, [head, row], { x: 0.6, y: y + 0.45, w: 12.15, h: 0 }, months.map(() => 12.15 / months.length), 11);
+function monthChart(
+  s: Slide,
+  lang: Lang,
+  kind: "bar" | "line",
+  title: string,
+  months: readonly string[],
+  results: (KpiResult | null)[],
+  box: Box,
+): void {
+  const first = results[0];
+  if (!first) return;
+  const share = first.unit === "share";
+  const values = results.map((r) => r?.value ?? null);
+  const shown = values.filter((v): v is number => v !== null);
+  s.addChart(
+    kind,
+    // pptxgenjs writes a null value as an empty point, which keynoteCharts drops so the month is a gap.
+    [{ name: title, labels: months.map((m) => monthName(lang, m, "short").replace(".", "")), values: values as number[] }],
+    {
+      ...chartText(title),
+      ...box,
+      chartColors: [NAVY],
+      valAxisLabelFormatCode: share ? "0%" : "#,##0",
+      valGridLine: { color: LINE, size: 0.75 },
+      catGridLine: { style: "none" },
+      catAxisLineShow: false,
+      valAxisLineShow: false,
+      ...(kind === "bar"
+        ? { barDir: "col", barGapWidthPct: 55 }
+        : // A share axis starts a point below the lowest month, so the line does not sit flat at the top.
+          {
+            lineSize: 2.5,
+            lineDataSymbol: "circle",
+            lineDataSymbolSize: 7,
+            valAxisMinVal: Math.max(0, Math.floor(Math.min(...shown) * 100 - 1) / 100),
+            valAxisMaxVal: 1,
+          }),
+    },
+  );
+}
+
+/** The title, axis and label text every chart shares: the deck font, ink titles and muted axes, no legend. */
+function chartText(title: string): pptxgen.IChartOpts {
+  return {
+    showTitle: true,
+    title,
+    titleFontFace: FONT,
+    titleFontSize: 13,
+    titleBold: true,
+    titleColor: INK,
+    altText: title,
+    showLegend: false,
+    catAxisLabelFontFace: FONT,
+    catAxisLabelFontSize: 11,
+    catAxisLabelColor: MUTED,
+    valAxisLabelFontFace: FONT,
+    valAxisLabelFontSize: 10,
+    valAxisLabelColor: MUTED,
+    dataLabelFontFace: FONT,
+  };
+}
+
+function capitalized(value: string): string {
+  return value.charAt(0).toUpperCase() + value.slice(1);
 }

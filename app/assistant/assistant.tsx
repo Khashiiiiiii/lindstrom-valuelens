@@ -7,6 +7,7 @@
 
 import "./assistant.css";
 
+import type { ReactNode, Ref } from "react";
 import { useEffect, useLayoutEffect, useReducer, useRef, useState } from "react";
 
 import type {
@@ -20,6 +21,7 @@ import type {
 import { SUGGESTED_PROMPTS } from "../../lib/assistant/contract.ts";
 import type { Lang } from "../../lib/i18n.ts";
 import { monthName, t } from "../../lib/i18n.ts";
+import type { Metadata } from "../../lib/pages/metadata.ts";
 import { translationNote } from "../menu.ts";
 import type { PageState } from "../page-state.ts";
 import { pageRequest } from "../page-state.ts";
@@ -27,7 +29,7 @@ import { PriorityBanner } from "../priority-banner.tsx";
 import { errorMessage, useDashboard } from "../shell.tsx";
 import type { AnswerCard, SourceCard } from "./answer-cards.ts";
 import { answerCard, observationCard } from "./answer-cards.ts";
-import type { AssistantAction, AssistantTab } from "./assistant-state.ts";
+import type { AssistantAction, AssistantState, AssistantTab, RequestKind } from "./assistant-state.ts";
 import { assistantState, initialState, inScope, workingSeconds } from "./assistant-state.ts";
 
 const TABS: { tab: AssistantTab; label: "Ask" | "Observations" }[] = [
@@ -131,11 +133,21 @@ export function Assistant() {
   const customer = meta.customers.find((c) => c.customer_id === page.customer_id);
   const site = meta.sites.find((s) => s.site_id === page.site_id);
   const card = state.answer && answerCard(lang, state.answer, meta);
-  // The counter shows on the tab whose request runs. The FAB ring shows on every tab.
-  const working = (kind: "ask" | "observe") =>
+  // The counter shows on the tab whose request runs. The ring on the AI button shows on every tab.
+  const working = (kind: RequestKind) =>
     state.pending?.kind === kind && <div className="ai-working">{t(lang, "Working... {n} s", { n: workingSeconds(state, now) })}</div>;
   const note = translationNote(lang);
   const title = t(lang, "AI assistant");
+  // The translation note and the priority banner open both tabs. The scope line closes both.
+  const top = (
+    <>
+      {note && <div className="note">{note}</div>}
+      {page.undo_priorities && <PriorityBanner lang={lang} onUndo={() => pageDispatch({ type: "undo" })} />}
+    </>
+  );
+  const scopeLine = `${[t(lang, page.view === "KAM" ? "KAM view" : "Customer view"), periodName(lang, page.period), site?.site_name]
+    .filter(Boolean)
+    .join(", ")}.`;
 
   return (
     <>
@@ -166,78 +178,24 @@ export function Assistant() {
                 &times;
               </button>
             </div>
-            <div className="ai-body" aria-live="polite">
-              {note && <div className="note">{note}</div>}
-              {page.undo_priorities && <PriorityBanner lang={lang} onUndo={() => pageDispatch({ type: "undo" })} />}
-              {state.tab === "ask" ? (
-                <>
-                  <div className="muted">{t(lang, "Try one of these:")}</div>
-                  <div className="chips">
-                    {SUGGESTED_PROMPTS.map((p) => (
-                      <button key={p} className="chip" disabled={busy} onClick={() => ask(p)}>
-                        {p}
-                      </button>
-                    ))}
-                  </div>
-                  {state.prompt !== null && (state.pending?.kind === "ask" || state.answer || state.error) && (
-                    <div className="ai-bubble me">{state.prompt}</div>
-                  )}
-                  {working("ask")}
-                  {state.error && <Failure lang={lang} error={state.error} onRetry={() => state.prompt !== null && ask(state.prompt)} />}
-                  {card && <Answer lang={lang} card={card} />}
-                </>
-              ) : (
-                <>
-                  <div className="ai-row">
-                    <button className="primary" disabled={busy} onClick={observe}>
-                      {t(lang, "Generate observations")}
-                    </button>
-                    {working("observe")}
-                  </div>
-                  {state.observations_error && <Failure lang={lang} error={state.observations_error} onRetry={observe} />}
-                  {state.observations === null
-                    ? state.pending?.kind !== "observe" && !state.observations_error && (
-                        <div className="muted">{t(lang, 'No AI observations yet. They appear only when you click "Generate observations".')}</div>
-                      )
-                    : state.observations.map((o, i) => (
-                        <div key={i} className="ai-observation">
-                          <div className="figlabel">{t(lang, "AI observation {n}", { n: String(i + 1) })}</div>
-                          <Answer lang={lang} card={observationCard(lang, o, meta)} />
-                        </div>
-                      ))}
-                </>
-              )}
-            </div>
-            <div className="ai-foot">
-              {state.tab === "ask" && (
-              <div className="ai-row">
-                <textarea
-                  ref={promptBox}
-                  rows={2}
-                  value={draft}
-                  disabled={busy}
-                  aria-label={title}
-                  placeholder={t(lang, "Ask about {x}...", { x: customer?.customer_name ?? page.customer_id })}
-                  onChange={(e) => setDraft(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      ask(draft);
-                    }
-                  }}
-                />
-                <button className="primary" disabled={busy || draft.trim() === ""} onClick={() => ask(draft)}>
-                  {t(lang, "Ask")}
-                </button>
-              </div>
-              )}
-              <div className="muted ai-context">
-                {[t(lang, page.view === "KAM" ? "KAM view" : "Customer view"), periodName(lang, page.period), site?.site_name]
-                  .filter(Boolean)
-                  .join(", ")}
-                .{state.tab === "ask" && ` ${t(lang, "Each question stands alone.")}`}
-              </div>
-            </div>
+            {state.tab === "ask" ? (
+              <AskTab
+                lang={lang}
+                state={state}
+                top={top}
+                context={`${scopeLine} ${t(lang, "Each question stands alone.")}`}
+                working={working("ask")}
+                card={card}
+                ask={ask}
+                draft={draft}
+                setDraft={setDraft}
+                promptBox={promptBox}
+                label={title}
+                placeholder={t(lang, "Ask about {x}...", { x: customer?.customer_name ?? page.customer_id })}
+              />
+            ) : (
+              <ObservationsTab lang={lang} state={state} top={top} context={scopeLine} working={working("observe")} meta={meta} observe={observe} />
+            )}
           </div>
         </>
       )}
@@ -251,6 +209,118 @@ export function Assistant() {
         <AiIcon />
         {state.unread && <span className="ai-dot" />}
       </button>
+    </>
+  );
+}
+
+interface TabProps {
+  lang: Lang;
+  state: AssistantState;
+  /** The top of the tab body: the translation note and the priority banner. */
+  top: ReactNode;
+  /** The muted line at the foot: the view, period and Site. */
+  context: string;
+  /** The "Working... N s" counter while this tab's request runs, else false. */
+  working: ReactNode;
+}
+
+/** The Ask tab: the suggested prompts, the last prompt and its answer or error, and the prompt box. */
+function AskTab({
+  lang,
+  state,
+  top,
+  context,
+  working,
+  card,
+  ask,
+  draft,
+  setDraft,
+  promptBox,
+  label,
+  placeholder,
+}: TabProps & {
+  card: AnswerCard | null;
+  ask: (prompt: string) => void;
+  draft: string;
+  setDraft: (draft: string) => void;
+  promptBox: Ref<HTMLTextAreaElement>;
+  label: string;
+  placeholder: string;
+}) {
+  const busy = state.pending !== null;
+  const error = state.errors.ask;
+  return (
+    <>
+      <div className="ai-body" aria-live="polite">
+        {top}
+        <div className="muted">{t(lang, "Try one of these:")}</div>
+        <div className="chips">
+          {SUGGESTED_PROMPTS.map((p) => (
+            <button key={p} className="chip" disabled={busy} onClick={() => ask(p)}>
+              {p}
+            </button>
+          ))}
+        </div>
+        {state.prompt !== null && (state.pending?.kind === "ask" || state.answer || error) && <div className="ai-bubble me">{state.prompt}</div>}
+        {working}
+        {error && <Failure lang={lang} error={error} onRetry={() => state.prompt !== null && ask(state.prompt)} />}
+        {card && <Answer lang={lang} card={card} />}
+      </div>
+      <div className="ai-foot">
+        <div className="ai-row">
+          <textarea
+            ref={promptBox}
+            rows={2}
+            value={draft}
+            disabled={busy}
+            aria-label={label}
+            placeholder={placeholder}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                ask(draft);
+              }
+            }}
+          />
+          <button className="primary" disabled={busy || draft.trim() === ""} onClick={() => ask(draft)}>
+            {t(lang, "Ask")}
+          </button>
+        </div>
+        <div className="muted ai-context">{context}</div>
+      </div>
+    </>
+  );
+}
+
+/** The Observations tab: "Generate observations", then the last observations or their error. */
+function ObservationsTab({ lang, state, top, context, working, meta, observe }: TabProps & { meta: Metadata; observe: () => void }) {
+  const error = state.errors.observe;
+  return (
+    <>
+      <div className="ai-body" aria-live="polite">
+        {top}
+        <div className="ai-row">
+          <button className="primary" disabled={state.pending !== null} onClick={observe}>
+            {t(lang, "Generate observations")}
+          </button>
+          {working}
+        </div>
+        {error && <Failure lang={lang} error={error} onRetry={observe} />}
+        {state.observations === null
+          ? state.pending?.kind !== "observe" &&
+            !error && <div className="muted">{t(lang, 'No AI observations yet. They appear only when you click "Generate observations".')}</div>
+          : state.observations.map((o, i) => (
+              // Each reply replaces the whole list, so the position names an observation.
+              <div key={i} className="ai-observation">
+                <div className="figlabel">{t(lang, "AI observation {n}", { n: String(i + 1) })}</div>
+                <Answer lang={lang} card={observationCard(lang, o, meta)} />
+              </div>
+            ))}
+      </div>
+      <div className="ai-foot">
+        <div className="muted ai-context">{context}</div>
+      </div>
     </>
   );
 }
