@@ -1,5 +1,5 @@
-// POST /api/assistant (#34): a stub that answers in the contract's shape (#15) until the assistant's route lands.
+// POST /api/assistant (#40): an Assistant answer from local Qwen in Ollama. ASSISTANT_STUB=1 serves the #34 stub.
 
-import { stubAnswer, stubRoute } from "../../../lib/assistant/stub.ts";
+import { assistantRoute } from "../../../lib/assistant/route.ts";
 
-export const POST = stubRoute(stubAnswer, 4000);
+export const POST = assistantRoute();
