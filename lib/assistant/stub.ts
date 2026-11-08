@@ -77,8 +77,9 @@ const PRIORITY_WORDS: [RegExp, CustomerPriorityId][] = [
 ];
 
 /**
- * For a focus prompt, the priorities it names in the order it names them, then the rest of the current list. Null
- * when the prompt asks for no focus, names no priority, or leaves the order as it is.
+ * For a prompt with "focus" or "priorit" in it, the priorities it names in the order it names them, then the rest
+ * of the current list. A named priority that is not in the list joins it. Null when the prompt has neither word,
+ * names no priority, or leaves the order as it is.
  */
 function stubPriorityChange(prompt: string, current: CustomerPriorityId[]): PriorityChange | null {
   if (!/focus|priorit/i.test(prompt)) return null;

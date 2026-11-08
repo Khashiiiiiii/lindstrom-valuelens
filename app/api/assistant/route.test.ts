@@ -31,7 +31,7 @@ test("POST /api/assistant answers each suggested prompt with runKpi answers as i
   }
 });
 
-test("POST /api/assistant moves the priorities a focus prompt names to the top, and no other suggested prompt changes them", async () => {
+test(`POST /api/assistant moves the priorities a "Focus on" prompt names to the top, and no other suggested prompt changes them`, async () => {
   for (const prompt of SUGGESTED_PROMPTS) {
     const reply = (await (await post({ ...request, prompt })).json()) as AssistantAnswer;
     const expected = prompt === SUGGESTED_PROMPTS[1] ? { priorities: ["water", "emissions", "service_reliability"] } : null;

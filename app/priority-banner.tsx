@@ -4,6 +4,7 @@
 import type { Lang } from "../lib/i18n.ts";
 import { t } from "../lib/i18n.ts";
 
+/** The banner text and an Undo button that calls onUndo. */
 export function PriorityBanner({ lang, onUndo }: { lang: Lang; onUndo: () => void }) {
   return (
     <div className="banner" role="status">

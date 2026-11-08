@@ -3,20 +3,22 @@
 // alone, so a new prompt replaces the last answer, and each "Generate observations" replaces the last observations.
 
 import type { AssistantAnswer, AssistantFailure, Observation } from "../../lib/assistant/contract.ts";
+import type { CustomerPriorityId } from "../../lib/data.ts";
+import type { PageState } from "../page-state.ts";
 
+/** The modal's two tabs: Ask, with the prompt box, and Observations, with "Generate observations". */
 export type AssistantTab = "ask" | "observations";
 
 /** The Customer and view that the answers and observations belong to. */
-export interface AssistantScope {
-  customer_id: string;
-  view: "KAM" | "Customer";
-}
+export type AssistantScope = Pick<PageState, "customer_id" | "view">;
 
 export interface AssistantState {
   open: boolean;
   tab: AssistantTab;
   /** The last prompt sent. It shows as the asker's bubble, and "Try again" sends it again. */
   prompt: string | null;
+  /** The priority list the last prompt was sent with. The server built the answer's priority_change from it. */
+  asked_priorities: CustomerPriorityId[] | null;
   /** The request that runs, or null. There is at most one, a prompt or a "Generate observations". */
   pending: { kind: "ask" | "observe"; request_id: number; started_at: number } | null;
   answer: AssistantAnswer | null;
@@ -35,7 +37,7 @@ export type AssistantAction =
   | { type: "close" }
   | { type: "tab"; tab: AssistantTab }
   /** request_id names the request, so a reply to it can be matched. at is the time in ms. */
-  | { type: "ask"; prompt: string; request_id: number; at: number }
+  | { type: "ask"; prompt: string; priorities: CustomerPriorityId[]; request_id: number; at: number }
   | { type: "observe"; request_id: number; at: number }
   | { type: "answer"; request_id: number; answer: AssistantAnswer }
   | { type: "observations"; request_id: number; observations: Observation[] }
@@ -48,6 +50,7 @@ export const INITIAL: AssistantState = {
   open: false,
   tab: "ask",
   prompt: null,
+  asked_priorities: null,
   pending: null,
   answer: null,
   error: null,
@@ -73,7 +76,7 @@ export function assistantState(state: AssistantState, action: AssistantAction): 
       const prompt = action.prompt.trim();
       if (state.pending !== null || prompt === "") return state;
       const pending = { kind: "ask", request_id: action.request_id, started_at: action.at } as const;
-      return { ...state, prompt, pending, answer: null, error: null };
+      return { ...state, prompt, asked_priorities: action.priorities, pending, answer: null, error: null };
     }
     case "observe": {
       if (state.pending !== null) return state;
@@ -92,10 +95,19 @@ export function assistantState(state: AssistantState, action: AssistantAction): 
     }
     case "scope": {
       const scope = { customer_id: action.customer_id, view: action.view };
-      if (state.scope?.customer_id === scope.customer_id && state.scope.view === scope.view) return state;
-      return { ...INITIAL, open: state.open, tab: state.tab, scope };
+      return inScope(state, scope) ? state : { ...INITIAL, open: state.open, tab: state.tab, scope };
     }
   }
+}
+
+/** The state before the first request, for the page's Customer and view. */
+export function initialState(scope: AssistantScope): AssistantState {
+  return { ...INITIAL, scope: { customer_id: scope.customer_id, view: scope.view } };
+}
+
+/** Whether the answer and observations belong to this Customer and view. A switch of either clears them. */
+export function inScope(state: AssistantState, scope: AssistantScope): boolean {
+  return state.scope?.customer_id === scope.customer_id && state.scope.view === scope.view;
 }
 
 /** The whole seconds the pending request has run at time `now`, for the "Working... N s" counter. 0 with none. */

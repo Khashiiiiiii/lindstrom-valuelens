@@ -199,7 +199,7 @@ export function Shell({ children }: { children: ReactNode }) {
             </div>
           )}
           {note && <div className="note">{note}</div>}
-          {state?.undo && <PriorityBanner lang={lang} onUndo={() => dispatch({ type: "undo" })} />}
+          {state?.undo_priorities && <PriorityBanner lang={lang} onUndo={() => dispatch({ type: "undo" })} />}
           {error && <div className="card warn">{error}</div>}
           {state && meta ? (
             <DashboardContext.Provider value={{ lang, state, dispatch, meta }}>{children}</DashboardContext.Provider>

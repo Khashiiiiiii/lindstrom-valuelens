@@ -19,7 +19,7 @@ test("the first Customer starts with its default priorities, all of 2025, the KA
     period: "2025",
     view: "KAM",
     priorities: ["water", "service_reliability", "emissions"],
-    undo: null,
+    undo_priorities: null,
   });
 });
 
@@ -35,7 +35,7 @@ test("switching Customer loads its default priorities and clears the Site filter
     period: "2025-H2",
     view: "Customer",
     priorities: ["garment_utilisation", "circularity"],
-    undo: null,
+    undo_priorities: null,
   });
 });
 
@@ -73,31 +73,38 @@ test("clearing the Site chip returns the page request to the Customer scope", ()
 
 test("an assistant priority change applies at once, and Undo restores the list from before the change", () => {
   const before = pageState(pageState(null, { type: "customer", customer: northstar }), { type: "site", site_id: "S008" });
-  const changed = pageState(before, { type: "assistant priorities", priorities: ["emissions", "water"] });
+  const changed = pageState(before, { type: "assistant_priorities", priorities: ["emissions", "water"], from: before.priorities });
   assert.deepEqual(changed.priorities, ["emissions", "water"]);
-  assert.deepEqual(changed.undo, ["water", "service_reliability", "emissions"]);
+  assert.deepEqual(changed.undo_priorities, ["water", "service_reliability", "emissions"]);
   assert.deepEqual(pageState(changed, { type: "undo" }), before);
   assert.equal(pageState(before, { type: "undo" }), before);
 });
 
 test("a second assistant change undoes to the list before it, and a KAM edit or Customer switch drops the Undo", () => {
   let state = pageState(null, { type: "customer", customer: northstar });
-  state = pageState(state, { type: "assistant priorities", priorities: ["emissions"] });
-  state = pageState(state, { type: "assistant priorities", priorities: ["circularity"] });
-  assert.deepEqual(state.undo, ["emissions"]);
-  assert.equal(pageState(state, { type: "priorities", priorities: ["water"] }).undo, null);
-  assert.equal(pageState(state, { type: "customer", customer: apex }).undo, null);
+  state = pageState(state, { type: "assistant_priorities", priorities: ["emissions"], from: state.priorities });
+  state = pageState(state, { type: "assistant_priorities", priorities: ["circularity"], from: state.priorities });
+  assert.deepEqual(state.undo_priorities, ["emissions"]);
+  assert.equal(pageState(state, { type: "priorities", priorities: ["water"] }).undo_priorities, null);
+  assert.equal(pageState(state, { type: "customer", customer: apex }).undo_priorities, null);
+});
+
+test("a KAM edit while the request runs keeps the edit, and the reply's change, built from the old list, is dropped", () => {
+  const sent = pageState(null, { type: "customer", customer: northstar });
+  const edited = pageState(sent, { type: "priorities", priorities: ["circularity"] });
+  const replied = pageState(edited, { type: "assistant_priorities", priorities: ["emissions", "water"], from: sent.priorities });
+  assert.equal(replied, edited);
 });
 
 test("a period, Site or view switch keeps the Undo", () => {
   let state = pageState(null, { type: "customer", customer: northstar });
-  state = pageState(state, { type: "assistant priorities", priorities: ["emissions"] });
+  state = pageState(state, { type: "assistant_priorities", priorities: ["emissions"], from: state.priorities });
   for (const action of [
     { type: "period", period: "2025-H1" },
     { type: "site", site_id: "S008" },
     { type: "view", view: "Customer" },
   ] as const) {
-    assert.deepEqual(pageState(state, action).undo, ["water", "service_reliability", "emissions"], action.type);
+    assert.deepEqual(pageState(state, action).undo_priorities, ["water", "service_reliability", "emissions"], action.type);
   }
 });
 
@@ -106,7 +113,7 @@ test("the stub's priority change reorders the Overview priority blocks, and Undo
   const blocks = (s: typeof state) => overviewPage(pageRequest(s)).priority_blocks.map((b) => b.priority_id);
   assert.deepEqual(blocks(state), ["water", "service_reliability", "emissions"]);
   const reply = stubAnswer({ ...pageRequest(state), prompt: SUGGESTED_PROMPTS[1] }).body as AssistantAnswer;
-  const changed = pageState(state, { type: "assistant priorities", priorities: reply.priority_change!.priorities });
+  const changed = pageState(state, { type: "assistant_priorities", priorities: reply.priority_change!.priorities, from: state.priorities });
   assert.deepEqual(blocks(changed), ["water", "emissions", "service_reliability"]);
   assert.deepEqual(blocks(pageState(changed, { type: "undo" })), ["water", "service_reliability", "emissions"]);
 });

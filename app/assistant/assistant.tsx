@@ -7,7 +7,7 @@
 
 import "./assistant.css";
 
-import { useEffect, useReducer, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useReducer, useRef, useState } from "react";
 
 import type {
   AssistantAnswer,
@@ -27,8 +27,8 @@ import { PriorityBanner } from "../priority-banner.tsx";
 import { errorMessage, useDashboard } from "../shell.tsx";
 import type { AnswerCard, SourceCard } from "./answer-cards.ts";
 import { answerCard, observationCard } from "./answer-cards.ts";
-import type { AssistantTab } from "./assistant-state.ts";
-import { assistantState, INITIAL, workingSeconds } from "./assistant-state.ts";
+import type { AssistantAction, AssistantTab } from "./assistant-state.ts";
+import { assistantState, initialState, inScope, workingSeconds } from "./assistant-state.ts";
 
 const TABS: { tab: AssistantTab; label: "Ask" | "Observations" }[] = [
   { tab: "ask", label: "Ask" },
@@ -38,17 +38,20 @@ const TABS: { tab: AssistantTab; label: "Ask" | "Observations" }[] = [
 /** The AI button at the bottom right and, when it is open, the modal over the page. */
 export function Assistant() {
   const { lang, state: page, dispatch: pageDispatch, meta } = useDashboard();
-  const [state, dispatch] = useReducer(assistantState, INITIAL);
+  const [state, dispatch] = useReducer(assistantState, page, initialState);
   // The answer and observations belong to one Customer and view. A switch clears them during this render, so a
   // KAM-only answer never shows in the Customer view, not even for one frame.
-  if (state.scope?.customer_id !== page.customer_id || state.scope.view !== page.view) {
-    dispatch({ type: "scope", customer_id: page.customer_id, view: page.view });
-  }
+  if (!inScope(state, page)) dispatch({ type: "scope", customer_id: page.customer_id, view: page.view });
   const [draft, setDraft] = useState("");
   const [now, setNow] = useState(0);
   const lastId = useRef(0);
+  const running = useRef<AbortController | null>(null);
   const promptBox = useRef<HTMLTextAreaElement>(null);
   const busy = state.pending !== null;
+
+  // A view or Customer switch also aborts the running request, so the model stops work on a reply that would be
+  // dropped. The cleanup runs when either changes, and when the shell unmounts.
+  useEffect(() => () => running.current?.abort(), [page.customer_id, page.view]);
 
   // The counter ticks once a second while a request runs.
   useEffect(() => {
@@ -67,48 +70,70 @@ export function Assistant() {
     return () => removeEventListener("keydown", onKey);
   }, [state.open]);
 
-  // The prompt box takes the focus when the modal opens on the Ask tab and when a reply arrives.
+  // The prompt box takes the focus when the modal opens, when the Ask tab opens and when a reply arrives.
   useEffect(() => {
     if (state.open && !busy) promptBox.current?.focus();
   }, [state.open, busy, state.tab]);
 
-  // A reply's priority_change applies to the page at once. The reducer drops a reply that a view or Customer change
-  // made stale, so its change never applies. A new answer is a new object, so each change applies once.
-  useEffect(() => {
+  // A reply's priority_change applies to the page before the answer paints. The reducer drops a reply that a view or
+  // Customer change made stale, so its change never applies. The page state drops a change built from a list the
+  // user edited while the request ran. A new answer is a new object, so each change applies once.
+  useLayoutEffect(() => {
     const change = state.answer?.priority_change;
-    if (change) pageDispatch({ type: "assistant priorities", priorities: change.priorities });
-    // pageDispatch is the shell's reducer dispatch, which never changes.
+    if (change && state.asked_priorities) {
+      pageDispatch({ type: "assistant_priorities", priorities: change.priorities, from: state.asked_priorities });
+    }
+    // pageDispatch is the shell's reducer dispatch, which never changes. asked_priorities changes with the answer.
   }, [state.answer]);
 
-  function ask(prompt: string) {
-    if (busy || prompt.trim() === "") return;
+  /** Names a request, starts the counter and sends it. Its reply or error is matched to it by request_id. */
+  function send<R extends AssistantRoute>(
+    route: R,
+    body: AssistantRoutes[R]["request"],
+    start: (request_id: number, at: number) => AssistantAction,
+    reply: (data: AssistantRoutes[R]["reply"], request_id: number) => AssistantAction,
+  ) {
     const request_id = ++lastId.current;
     const at = Date.now();
     setNow(at);
-    setDraft("");
-    dispatch({ type: "ask", prompt, request_id, at });
-    postJson<AssistantAnswer>("/api/assistant", assistantRequest(prompt.trim(), page)).then(
-      (answer) => dispatch({ type: "answer", request_id, answer }),
+    dispatch(start(request_id, at));
+    const controller = new AbortController();
+    running.current = controller;
+    postJson(route, body, controller.signal).then(
+      (data) => dispatch(reply(data, request_id)),
       (error: AssistantFailure) => dispatch({ type: "failed", request_id, error }),
+    );
+  }
+
+  function ask(prompt: string) {
+    const text = prompt.trim();
+    if (busy || text === "") return;
+    setDraft("");
+    const body = assistantRequest(text, page);
+    send(
+      "/api/assistant",
+      body,
+      (request_id, at) => ({ type: "ask", prompt: text, priorities: body.priorities, request_id, at }),
+      (answer, request_id) => ({ type: "answer", request_id, answer }),
     );
   }
 
   function observe() {
     if (busy) return;
-    const request_id = ++lastId.current;
-    const at = Date.now();
-    setNow(at);
-    dispatch({ type: "observe", request_id, at });
-    postJson<ObservationsReply>("/api/observations", observationsRequest(page)).then(
-      (reply) => dispatch({ type: "observations", request_id, observations: reply.observations }),
-      (error: AssistantFailure) => dispatch({ type: "failed", request_id, error }),
+    send(
+      "/api/observations",
+      observationsRequest(page),
+      (request_id, at) => ({ type: "observe", request_id, at }),
+      (data, request_id) => ({ type: "observations", request_id, observations: data.observations }),
     );
   }
 
   const customer = meta.customers.find((c) => c.customer_id === page.customer_id);
   const site = meta.sites.find((s) => s.site_id === page.site_id);
   const card = state.answer && answerCard(lang, state.answer, meta);
-  const working = busy && <div className="ai-working">{t(lang, "Working... {n} s", { n: workingSeconds(state, now) })}</div>;
+  // The counter shows on the tab whose request runs. The FAB ring shows on every tab.
+  const working = (kind: "ask" | "observe") =>
+    state.pending?.kind === kind && <div className="ai-working">{t(lang, "Working... {n} s", { n: workingSeconds(state, now) })}</div>;
   const note = translationNote(lang);
   const title = t(lang, "AI assistant");
 
@@ -143,7 +168,7 @@ export function Assistant() {
             </div>
             <div className="ai-body" aria-live="polite">
               {note && <div className="note">{note}</div>}
-              {page.undo && <PriorityBanner lang={lang} onUndo={() => pageDispatch({ type: "undo" })} />}
+              {page.undo_priorities && <PriorityBanner lang={lang} onUndo={() => pageDispatch({ type: "undo" })} />}
               {state.tab === "ask" ? (
                 <>
                   <div className="muted">{t(lang, "Try one of these:")}</div>
@@ -157,7 +182,7 @@ export function Assistant() {
                   {state.prompt !== null && (state.pending?.kind === "ask" || state.answer || state.error) && (
                     <div className="ai-bubble me">{state.prompt}</div>
                   )}
-                  {working}
+                  {working("ask")}
                   {state.error && <Failure lang={lang} error={state.error} onRetry={() => state.prompt !== null && ask(state.prompt)} />}
                   {card && <Answer lang={lang} card={card} />}
                 </>
@@ -167,11 +192,11 @@ export function Assistant() {
                     <button className="primary" disabled={busy} onClick={observe}>
                       {t(lang, "Generate observations")}
                     </button>
-                    {working}
+                    {working("observe")}
                   </div>
                   {state.observations_error && <Failure lang={lang} error={state.observations_error} onRetry={observe} />}
                   {state.observations === null
-                    ? !busy && !state.observations_error && (
+                    ? state.pending?.kind !== "observe" && !state.observations_error && (
                         <div className="muted">{t(lang, 'No AI observations yet. They appear only when you click "Generate observations".')}</div>
                       )
                     : state.observations.map((o, i) => (
@@ -300,7 +325,7 @@ function Source({ lang, source }: { lang: Lang; source: SourceCard }) {
 
 /** The request body for a prompt and the page state. */
 function assistantRequest(prompt: string, page: PageState): AssistantRequest {
-  return { ...pageRequest(page), prompt, priorities: page.priorities };
+  return { ...observationsRequest(page), prompt };
 }
 
 /** The request body for "Generate observations" and the page state. */
@@ -308,16 +333,28 @@ function observationsRequest(page: PageState): ObservationsRequest {
   return { ...pageRequest(page), priorities: page.priorities };
 }
 
+/** Each assistant route's request and reply body, from the contract (#15). */
+interface AssistantRoutes {
+  "/api/assistant": { request: AssistantRequest; reply: AssistantAnswer };
+  "/api/observations": { request: ObservationsRequest; reply: ObservationsReply };
+}
+
+type AssistantRoute = keyof AssistantRoutes;
+
 /** POST to an assistant route. Rejects with the reply's error, or a model_error when the reply holds none. */
-async function postJson<T>(route: "/api/assistant" | "/api/observations", body: AssistantRequest | ObservationsRequest): Promise<T> {
+async function postJson<R extends AssistantRoute>(
+  route: R,
+  body: AssistantRoutes[R]["request"],
+  signal: AbortSignal,
+): Promise<AssistantRoutes[R]["reply"]> {
   let response: Response;
   try {
-    response = await fetch(route, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+    response = await fetch(route, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body), signal });
   } catch (e) {
     throw { code: "model_error", message: errorMessage(e) } satisfies AssistantFailure;
   }
   const json: unknown = await response.json().catch(() => null);
-  if (response.ok) return json as T;
+  if (response.ok) return json as AssistantRoutes[R]["reply"];
   const error = (json as Partial<AssistantError> | null)?.error;
   throw (error ?? { code: "model_error", message: `${route} answered ${response.status}.` }) satisfies AssistantFailure;
 }
