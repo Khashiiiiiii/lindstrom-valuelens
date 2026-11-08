@@ -42,7 +42,7 @@ test("a Site's health uses the Site rating, and a half year is not rated", () =>
 
 test("the dashboard_emphasis text names the industry and its texts", () => {
   const { emphasis } = kamCards("fi", page, meta)!;
-  assert.equal(emphasis?.title, "Näkymän painotus (esimerkki)");
+  assert.equal(emphasis?.title, "Koontinäytön painotus (esimerkki)");
   assert.equal(emphasis?.industry, "Elintarvikkeet ja juomat");
   assert.deepEqual(emphasis?.texts[1], { term: "Water efficiency", text: "Prioritize water use/savings and washed-kg efficiency." });
 });
@@ -74,4 +74,6 @@ test("turnaround by stage has 12 stacked bars of stage hours, with the period's 
   const site = kamCards("en", overviewPage({ ...request, site_id: "S018" }), meta)!.stages!;
   // S018's February stage medians in service-kpis.json.
   assert.deepEqual(site.bars[1].hours, [20, 41, 22]);
+  const fi = kamCards("fi", overviewPage({ ...request, site_id: "S018" }), meta)!.stages!;
+  assert.deepEqual(fi.bars[1].titles, ["helmi: Noudosta pesulaan 20 tuntia", "helmi: Pesulassa 41 tuntia", "helmi: Pesulasta toimitukseen 22 tuntia"]);
 });

@@ -79,12 +79,12 @@ export const DICTIONARY = {
   "across {n} signals": {
     en: { one: "across {n} signal", other: "across {n} signals" },
     sv: { one: "i {n} signal", other: "i {n} signaler" },
-    fi: "{n} signaalissa",
+    fi: { one: "{n} signaalissa", other: "{n} signaalissa" },
   },
   "Top: {x}": { sv: "Främst: {x}", fi: "Kärjessä: {x}" },
   "Signals judge all of 2025.": { sv: "Signalerna bedömer hela 2025.", fi: "Signaalit arvioivat koko vuoden 2025." },
   "Account health": { sv: "Kundhälsa", fi: "Asiakkuuden tila" },
-  "Dashboard emphasis (illustrative)": { sv: "Panelens tyngdpunkt (exempel)", fi: "Näkymän painotus (esimerkki)" },
+  "Dashboard emphasis (illustrative)": { sv: "Instrumentpanelens tyngdpunkt (exempel)", fi: "Koontinäytön painotus (esimerkki)" },
   "KAM view only": { sv: "Endast KAM-vy", fi: "Vain KAM-näkymä" },
   "green": { sv: "grön", fi: "vihreä" },
   "amber": { sv: "gul", fi: "keltainen" },
@@ -92,7 +92,7 @@ export const DICTIONARY = {
   "not_rated": { en: "not rated", sv: "ej bedömd", fi: "ei arvioitu" },
   "{n} caveat(s)": {
     en: { one: "{n} caveat", other: "{n} caveats" },
-    sv: "{n} förbehåll",
+    sv: { one: "{n} förbehåll", other: "{n} förbehåll" },
     fi: { one: "{n} varauma", other: "{n} varaumaa" },
   },
 
@@ -180,7 +180,7 @@ export const DICTIONARY = {
   },
   "rank {r}, {n} result(s), matches {p}": {
     en: { one: "rank {r}, {n} result, matches {p}", other: "rank {r}, {n} results, matches {p}" },
-    sv: "rang {r}, {n} resultat, matchar {p}",
+    sv: { one: "rang {r}, {n} resultat, matchar {p}", other: "rang {r}, {n} resultat, matchar {p}" },
     fi: { one: "sija {r}, {n} tulos, vastaa: {p}", other: "sija {r}, {n} tulosta, vastaa: {p}" },
   },
   "no priority": { sv: "ingen prioritering", fi: "ei painopistettä" },
@@ -321,7 +321,7 @@ export const DICTIONARY = {
   },
   "wearers": {
     en: { one: "wearer", other: "wearers" },
-    sv: "bärare",
+    sv: { one: "bärare", other: "bärare" },
     fi: { one: "käyttäjä", other: "käyttäjää" },
   },
   "count": { sv: "st", fi: "kpl" },
@@ -332,12 +332,12 @@ export const DICTIONARY = {
   },
   "garments": {
     en: { one: "garment", other: "garments" },
-    sv: "plagg",
+    sv: { one: "plagg", other: "plagg" },
     fi: { one: "vaate", other: "vaatetta" },
   },
   "garments per wearer": {
     en: { one: "garment per wearer", other: "garments per wearer" },
-    sv: "plagg per bärare",
+    sv: { one: "plagg per bärare", other: "plagg per bärare" },
     fi: { one: "vaate käyttäjää kohden", other: "vaatetta käyttäjää kohden" },
   },
   "per 100 wearers per month": { sv: "per 100 bärare och månad", fi: "100 käyttäjää kohden kuukaudessa" },
@@ -346,7 +346,7 @@ export const DICTIONARY = {
     sv: { one: "tvätt per plagg och månad", other: "tvättar per plagg och månad" },
     fi: { one: "pesu vaatetta kohden kuukaudessa", other: "pesua vaatetta kohden kuukaudessa" },
   },
-  "per 1,000 packed pieces": { sv: "per 1 000 packade plagg", fi: "1 000 pakattua kappaletta kohden" },
+  "per 1,000 packed pieces": { sv: "per 1 000 packade plagg", fi: "1 000 pakattua vaatetta kohden" },
   "share": { sv: "andel", fi: "osuus" },
   "rating": { sv: "bedömning", fi: "arvio" },
   // The symbols read the same in all 3 languages. The entries say so, so the dev warning stays quiet.
@@ -491,7 +491,7 @@ export const DICTIONARY = {
   "Change from H1 to H2": { sv: "Förändring från H1 till H2", fi: "Muutos H1:stä H2:een" },
   "{n} result(s)": {
     en: { one: "{n} result", other: "{n} results" },
-    sv: "{n} resultat",
+    sv: { one: "{n} resultat", other: "{n} resultat" },
     fi: { one: "{n} tulos", other: "{n} tulosta" },
   },
   "Every figure comes from synthetic 2025 data.": {
@@ -568,7 +568,7 @@ export const DICTIONARY = {
     sv: "Minsta antal tilldelade plagg, månadsmedel",
     fi: "Kohdistettujen vaatteiden vähimmäismäärä, kuukausikeskiarvo",
   },
-  "minimum_packed_pieces": { en: "Minimum packed pieces", sv: "Minsta antal packade plagg", fi: "Pakattujen kappaleiden vähimmäismäärä" },
+  "minimum_packed_pieces": { en: "Minimum packed pieces", sv: "Minsta antal packade plagg", fi: "Pakattujen vaatteiden vähimmäismäärä" },
   "minimum_service_requests": {
     en: "Minimum service requests",
     sv: "Minsta antal serviceärenden",

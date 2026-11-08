@@ -2,6 +2,7 @@
 // period, give no missing-translation warning in development.
 
 import assert from "node:assert/strict";
+import { readdirSync, readFileSync } from "node:fs";
 import type { TestContext } from "node:test";
 import { test } from "node:test";
 
@@ -9,6 +10,7 @@ import type { Period } from "../lib/data.ts";
 import { getMasterData, getOpportunitySignals, listKpis, runKpi } from "../lib/data.ts";
 import type { Lang } from "../lib/i18n.ts";
 import { dataLabel } from "../lib/i18n.ts";
+import type { Entry } from "../lib/i18n/dictionary.ts";
 import { DICTIONARY } from "../lib/i18n/dictionary.ts";
 import { dataPage } from "../lib/pages/data.ts";
 import { deckFile } from "../lib/pages/deck.ts";
@@ -19,10 +21,11 @@ import type { PageRequest } from "../lib/pages/request.ts";
 import { seriesPage } from "../lib/pages/series.ts";
 import { sitesPage } from "../lib/pages/sites.ts";
 import { sourceCard } from "./assistant/answer-cards.ts";
+import { dataCards } from "./data/data-cards.ts";
 import { menuItems, translationNote } from "./menu.ts";
 import { opportunityCards } from "./opportunities/opportunity-cards.ts";
-import { blockCards } from "./overview/block-cards.ts";
-import { chartSeries } from "./overview/chart-series.ts";
+import { blockCards, priorityList } from "./overview/block-cards.ts";
+import { trendOptions } from "./overview/chart-series.ts";
 import { kamCards } from "./overview/kam-cards.ts";
 import { tileCards } from "./overview/tile-cards.ts";
 import { priorityEditor } from "./priorities/priority-editor.ts";
@@ -63,47 +66,35 @@ function buildPages(request: PageRequest): void {
     tileCards(lang, { page: overview, meta, site_id: request.site_id ?? null, series });
     blockCards(lang, overview, meta);
     kamCards(lang, overview, meta);
-    // The Overview's trend chart select and its point titles.
-    for (const s of series.series.map(chartSeries)) {
-      if (s === null) continue;
-      dataLabel(lang, s.name);
-      for (const v of s.values) if (v !== null && s.unit !== "share") dataLabel(lang, s.unit, v);
-    }
+    priorityList(lang, overview.priority_ids, meta);
+    trendOptions(lang, series.series);
     siteTable(lang, sites, meta);
     opportunityCards(lang, opportunities, meta);
     priorityEditor(lang, meta, { customer_id: request.customer_id, priorities: meta.priorities.map((p) => p.id) });
-    dataPageLabels(lang, data);
+    dataCards(lang, data);
   }
 }
 
-/** The data values the Data and assumptions page shows through dataLabel. */
-function dataPageLabels(lang: Lang, data: ReturnType<typeof dataPage>): void {
-  for (const item of data.items) {
-    if ("baselines" in item) for (const b of item.baselines) dataLabel(lang, b.selection_status);
-    if (item.id === "data_status_legend") for (const e of item.entries) dataLabel(lang, e.data_status);
-    if (item.id === "thresholds_and_guards") {
-      for (const e of item.entries) {
-        dataLabel(lang, e.name);
-        dataLabel(lang, e.data_status);
-        for (const p of e.parameters) dataLabel(lang, p.parameter);
-      }
-    }
-    if ("figures" in item) {
-      for (const f of item.figures) {
-        dataLabel(lang, f.unit);
-        dataLabel(lang, f.data_status);
-      }
-    }
-    if ("low_cases" in item) for (const c of item.low_cases) dataLabel(lang, c.data_status);
-    if ("laundries" in item) for (const l of item.laundries) dataLabel(lang, l.country);
-  }
-}
+test("no page component calls dataLabel, so every data label comes from a .ts module that this file builds", () => {
+  const components = readdirSync(import.meta.dirname, { recursive: true, encoding: "utf8" }).filter((f) => f.endsWith(".tsx"));
+  const calling = components.filter((f) => readFileSync(`${import.meta.dirname}/${f}`, "utf8").includes("dataLabel("));
+  assert.deepEqual(calling, []);
+});
 
 test("every dictionary entry has SV and FI text", () => {
   const missing = Object.entries(DICTIONARY).flatMap(([key, entry]) =>
     LANGS.filter((lang) => !(lang in entry)).map((lang) => `${lang}: ${key}`),
   );
   assert.deepEqual(missing, []);
+});
+
+test("an entry with a count holds a one and an other form in all 3 languages, as #20 sets", () => {
+  const entries: [string, Entry][] = Object.entries(DICTIONARY);
+  const halfPlural = entries.filter(([, entry]) => {
+    const forms = [entry.en, entry.sv, entry.fi].map((text) => typeof text === "object");
+    return forms.includes(true) && forms.includes(false);
+  });
+  assert.deepEqual(halfPlural.map(([key]) => key), []);
 });
 
 test("no page lists a missing translation in SV or FI, for any Customer, view, period or Site", async (ctx) => {

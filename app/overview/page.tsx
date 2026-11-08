@@ -7,16 +7,15 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import { dataLabel, t } from "../../lib/i18n.ts";
+import { t } from "../../lib/i18n.ts";
 import type { Lang } from "../../lib/i18n.ts";
 import type { OverviewPage } from "../../lib/pages/overview.ts";
 import type { SeriesPage } from "../../lib/pages/series.ts";
 import { useDashboard } from "../shell.tsx";
 import { usePageData } from "../use-page-data.ts";
 import type { BlockCard } from "./block-cards.ts";
-import type { ChartSeries } from "./chart-series.ts";
-import { chartSeries } from "./chart-series.ts";
-import { blockCards } from "./block-cards.ts";
+import { trendOptions } from "./chart-series.ts";
+import { blockCards, priorityList } from "./block-cards.ts";
 import { Donut, Gauge, Sparkline, StackedBars, TrendChart } from "./charts.tsx";
 import type { KamCards } from "./kam-cards.ts";
 import { kamCards } from "./kam-cards.ts";
@@ -97,7 +96,7 @@ export default function Overview() {
       <section className="section">
         <div className="h2 rowhead">
           <span>{t(lang, "Your priorities")}</span>
-          <span className="muted">{data.priority_ids.map((id) => dataLabel(lang, meta.priorities.find((p) => p.id === id)?.name ?? id)).join(", ")}</span>
+          <span className="muted">{priorityList(lang, data.priority_ids, meta)}</span>
           <span className="grow" />
           <Link href="/priorities" className="pill">
             {t(lang, "Edit priorities")}
@@ -256,9 +255,7 @@ function KamCharts({ lang, kam }: { lang: Lang; kam: KamCards }) {
 /** The monthly trend chart with its KPI select. It does not show when no series has a first point that is a result. */
 function Trend({ lang, series }: { lang: Lang; series: SeriesPage }) {
   const [kpi_id, setKpi] = useState<string | null>(null);
-  const options = series.series
-    .map(chartSeries)
-    .filter((s): s is ChartSeries => s !== null && s.values.some((v) => v !== null));
+  const options = trendOptions(lang, series.series);
   const selected = options.find((s) => s.kpi_id === kpi_id) ?? options[0];
   if (!selected) return null;
   return (
@@ -269,7 +266,7 @@ function Trend({ lang, series }: { lang: Lang; series: SeriesPage }) {
         <select value={selected.kpi_id} onChange={(e) => setKpi(e.target.value)} aria-label={t(lang, "Monthly trend")}>
           {options.map((s) => (
             <option key={s.kpi_id} value={s.kpi_id}>
-              {dataLabel(lang, s.name)}
+              {s.label}
             </option>
           ))}
         </select>
@@ -280,6 +277,7 @@ function Trend({ lang, series }: { lang: Lang; series: SeriesPage }) {
         highlighted={series.period_months}
         values={selected.values}
         unit={selected.unit}
+        pointUnits={selected.point_units}
       />
       <div className="muted">{t(lang, "Months in the selected period are highlighted.")}</div>
     </div>

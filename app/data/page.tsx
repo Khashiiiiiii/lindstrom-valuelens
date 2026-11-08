@@ -6,12 +6,14 @@
 
 import type { ReactNode } from "react";
 
-import type { Baseline, BaselineFactor, PublicFigure } from "../../lib/data.ts";
+import type { BaselineFactor, PublicFigure } from "../../lib/data.ts";
 import type { DictionaryKey, Lang } from "../../lib/i18n.ts";
-import { dataLabel, formatNumber, monthName, t } from "../../lib/i18n.ts";
-import type { DataPage, DataPageItem, LaundryHead, LaundryWaterAndEnergyFactorsItem } from "../../lib/pages/data.ts";
+import { formatNumber, monthName, t } from "../../lib/i18n.ts";
+import type { DataPage, LaundryWaterAndEnergyFactorsItem } from "../../lib/pages/data.ts";
 import { useDashboard } from "../shell.tsx";
 import { usePageData } from "../use-page-data.ts";
+import type { BaselineCard, DataCard, LaundryCard } from "./data-cards.ts";
+import { dataCards } from "./data-cards.ts";
 
 /** One laundry month of water and energy per washed kg. */
 type LaundryMonth = LaundryWaterAndEnergyFactorsItem["laundries"][number]["months"][number];
@@ -34,7 +36,7 @@ export default function DataAndAssumptions() {
   return (
     <>
       <div className="dataitems">
-        {data.items.map((item) => (
+        {dataCards(lang, data).map((item) => (
           <section key={item.id} className="card dataitem">
             <div className="cardhead">
               <b>{item.name}</b>
@@ -55,7 +57,7 @@ export default function DataAndAssumptions() {
 }
 
 /** The rows of one item, by its kind. */
-function ItemRows({ lang, item }: { lang: Lang; item: DataPageItem }) {
+function ItemRows({ lang, item }: { lang: Lang; item: DataCard }) {
   const n = (value: number) => formatNumber(lang, value);
   switch (item.id) {
     case "baseline_used":
@@ -85,7 +87,7 @@ function ItemRows({ lang, item }: { lang: Lang; item: DataPageItem }) {
         <ul className="datalist">
           {item.entries.map((e) => (
             <li key={e.data_status}>
-              <span className="badge">{dataLabel(lang, e.data_status)}</span> {e.text}
+              <span className="badge">{e.data_status_text}</span> {e.text}
             </li>
           ))}
         </ul>
@@ -106,7 +108,7 @@ function ItemRows({ lang, item }: { lang: Lang; item: DataPageItem }) {
         <Table head={[title, ...months.map((m) => monthName(lang, m, "short"))]} numeric>
           {item.laundries.map((l) => (
             <tr key={l.laundry_id}>
-              <LaundryCell lang={lang} laundry={l} />
+              <LaundryCell laundry={l} />
               {l.months.map((m) => (
                 <td key={m.month} className="num">
                   {n(value(m))}
@@ -128,7 +130,7 @@ function ItemRows({ lang, item }: { lang: Lang; item: DataPageItem }) {
         <Table head={[t(lang, "Laundry"), t(lang, "Textile waste, g per washed kg")]} numeric>
           {item.laundries.map((l) => (
             <tr key={l.laundry_id}>
-              <LaundryCell lang={lang} laundry={l} />
+              <LaundryCell laundry={l} />
               <td className="num">{n(l.waste_g_per_washed_kg)}</td>
             </tr>
           ))}
@@ -139,7 +141,7 @@ function ItemRows({ lang, item }: { lang: Lang; item: DataPageItem }) {
         <Table head={[t(lang, "Laundry"), t(lang, "Process CO2e, kg per kWh")]} numeric>
           {item.laundries.map((l) => (
             <tr key={l.laundry_id}>
-              <LaundryCell lang={lang} laundry={l} />
+              <LaundryCell laundry={l} />
               <td className="num">{n(l.process_kgco2e_per_kwh)}</td>
             </tr>
           ))}
@@ -157,7 +159,7 @@ function ItemRows({ lang, item }: { lang: Lang; item: DataPageItem }) {
                   <div className="muted">{f.scope}</div>
                 </td>
                 <td className="num">
-                  {figureValue(lang, f)} {dataLabel(lang, f.unit)}
+                  {figureValue(lang, f)} {f.unit_text}
                 </td>
                 <td>{f.applicability}</td>
                 <td>
@@ -169,7 +171,7 @@ function ItemRows({ lang, item }: { lang: Lang; item: DataPageItem }) {
                     f.source
                   )}
                   {f.page && <div className="muted">{t(lang, "Page {x}", { x: f.page })}</div>}
-                  <span className="badge">{dataLabel(lang, f.data_status)}</span>
+                  <span className="badge">{f.data_status_text}</span>
                 </td>
               </tr>
             ))}
@@ -179,7 +181,7 @@ function ItemRows({ lang, item }: { lang: Lang; item: DataPageItem }) {
               <li key={c.id}>
                 <b>{t(lang, "Low case")}</b>: {item.baselines.find((b) => b.baseline_id === c.baseline_id)?.baseline_name ?? c.baseline_id},{" "}
                 {t(lang, FACTOR_HEADS[c.factor])} {n(c.value)}{" "}
-                <span className="badge">{dataLabel(lang, c.data_status)}</span>
+                <span className="badge">{c.data_status_text}</span>
                 <div className="muted">{c.rationale}</div>
               </li>
             ))}
@@ -201,13 +203,13 @@ function ItemRows({ lang, item }: { lang: Lang; item: DataPageItem }) {
           {item.entries.map((e) => (
             <tr key={`${e.file}/${e.catalogue_id}`}>
               <td>
-                <b>{dataLabel(lang, e.name)}</b> <span className="badge">{dataLabel(lang, e.data_status)}</span>
+                <b>{e.name_text}</b> <span className="badge">{e.data_status_text}</span>
                 <div className="muted">{e.definition}</div>
               </td>
               <td className="nowrap">
                 {e.parameters.map((p) => (
                   <div key={p.parameter}>
-                    {dataLabel(lang, p.parameter)}: {n(p.value)}
+                    {p.parameter_text}: {n(p.value)}
                   </div>
                 ))}
               </td>
@@ -220,7 +222,7 @@ function ItemRows({ lang, item }: { lang: Lang; item: DataPageItem }) {
 }
 
 /** The 3 washing alternatives with their factors per washed kg and their mixed waste share, the default one first. */
-function BaselineTable({ lang, baselines }: { lang: Lang; baselines: Baseline[] }) {
+function BaselineTable({ lang, baselines }: { lang: Lang; baselines: BaselineCard[] }) {
   const n = (value: number) => formatNumber(lang, value);
   const factors = Object.keys(FACTOR_HEADS) as BaselineFactor[];
   return (
@@ -228,7 +230,7 @@ function BaselineTable({ lang, baselines }: { lang: Lang; baselines: Baseline[] 
       {baselines.map((b) => (
         <tr key={b.baseline_id}>
           <td>
-            <b>{b.baseline_name}</b> <span className={`badge${b.selection_status === "DEFAULT" ? " kam" : ""}`}>{dataLabel(lang, b.selection_status)}</span>
+            <b>{b.baseline_name}</b> <span className={`badge${b.selection_status === "DEFAULT" ? " kam" : ""}`}>{b.selection_text}</span>
             <div className="muted">{b.assumption_note}</div>
           </td>
           {factors.map((f) => (
@@ -274,11 +276,11 @@ function Notes({ notes }: { notes: { text: string }[] }) {
   );
 }
 
-function LaundryCell({ lang, laundry }: { lang: Lang; laundry: LaundryHead }) {
+function LaundryCell({ laundry }: { laundry: LaundryCard }) {
   return (
     <td>
       <b>{laundry.laundry_name}</b>
-      <div className="muted">{dataLabel(lang, laundry.country)}</div>
+      <div className="muted">{laundry.country_text}</div>
     </td>
   );
 }

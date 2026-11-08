@@ -46,12 +46,11 @@ export interface BlockCard {
 export function blockCards(lang: Lang, page: OverviewPage, meta: Metadata): BlockCard[] {
   const shown = page.priority_blocks.filter((b) => b.answers.length === 0 || b.answers.some((a) => !("withheld" in a)));
   return shown.map((block) => {
-    const priority = meta.priorities.find((p) => p.id === block.priority_id);
     const group = page.block_signal_groups.find((g) => g.signal_id === block.signal_group_signal_id);
     const signal = group && meta.signals.find((s) => s.id === group.signal_id);
     return {
       position: block.position,
-      name: dataLabel(lang, priority?.name ?? block.priority_id),
+      name: priorityName(lang, meta, block.priority_id),
       figures: block.answers
         .filter((a): a is KpiResult => !("withheld" in a))
         .map((result) => kpiFigure(lang, result)),
@@ -59,6 +58,15 @@ export function blockCards(lang: Lang, page: OverviewPage, meta: Metadata): Bloc
       no_signal: group ? null : t(lang, "No fired signal for this priority."),
     };
   });
+}
+
+/** The priority names in order, as one line, for the priority row's heading. */
+export function priorityList(lang: Lang, priority_ids: string[], meta: Metadata): string {
+  return priority_ids.map((id) => priorityName(lang, meta, id)).join(", ");
+}
+
+function priorityName(lang: Lang, meta: Metadata, id: string): string {
+  return dataLabel(lang, meta.priorities.find((p) => p.id === id)?.name ?? id);
 }
 
 /** A KPI result as display text: its name, value, unit, data status, baseline and caveats. */

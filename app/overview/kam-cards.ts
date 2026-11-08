@@ -41,8 +41,11 @@ export interface StageBars {
   name: string;
   /** The stage names, in stacking order. */
   legend: string[];
-  /** One bar per data month. hours follows the legend order, and is empty for a month not evaluated. */
-  bars: { month: string; in_period: boolean; hours: number[] }[];
+  /**
+   * One bar per data month. hours follows the legend order, and is empty for a month not evaluated. titles holds
+   * each stage's point title, such as "Jan: In the laundry 41 hours".
+   */
+  bars: { month: string; in_period: boolean; hours: number[]; titles: string[] }[];
   caveats: string[];
 }
 
@@ -132,15 +135,19 @@ function stageBars(lang: Lang, months: KamCharts["turnaround_by_stage"]): StageB
   const first = results[0];
   if (!first) return null;
   const keys = (results.find((r) => r?.breakdown)?.breakdown ?? []).map((b) => b.key);
+  const legend = keys.map((k) => dataLabel(lang, k));
   return {
     name: dataLabel(lang, first.name),
-    legend: keys.map((k) => dataLabel(lang, k)),
+    legend,
     bars: months.map((m, i) => {
       const breakdown = results[i]?.value === null ? null : results[i]?.breakdown;
+      const month = monthName(lang, m.month, "short");
+      const hours = breakdown ? keys.map((k) => breakdown.find((b) => b.key === k)?.value ?? 0) : [];
       return {
-        month: monthName(lang, m.month, "short"),
+        month,
         in_period: m.in_period,
-        hours: breakdown ? keys.map((k) => breakdown.find((b) => b.key === k)?.value ?? 0) : [],
+        hours,
+        titles: hours.map((h, k) => `${month}: ${legend[k]} ${formatNumber(lang, h)} ${dataLabel(lang, "hours", h)}`),
       };
     }),
     caveats: [...first.caveats],

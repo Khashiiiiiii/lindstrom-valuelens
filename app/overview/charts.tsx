@@ -5,8 +5,9 @@
 
 import type { HealthThresholds, Month } from "../../lib/data.ts";
 import type { Lang } from "../../lib/i18n.ts";
-import { dataLabel, formatNumber, monthName, t } from "../../lib/i18n.ts";
+import { formatNumber, monthName, t } from "../../lib/i18n.ts";
 import { drawKey } from "../draw-key.ts";
+import type { StageBars } from "./kam-cards.ts";
 
 /** A value as chart text: a share as a percentage, else a number with at most 2 decimals. */
 function chartNumber(lang: Lang, value: number, unit: string): string {
@@ -57,10 +58,12 @@ export interface TrendChartProps {
   highlighted: Month[];
   values: (number | null)[];
   unit: string;
+  /** The unit after each month's value in the point titles, from trendOptions. */
+  pointUnits: string[];
 }
 
 /** One KPI over the data months, with the selected period's months highlighted. */
-export function TrendChart({ lang, months, highlighted, values, unit }: TrendChartProps) {
+export function TrendChart({ lang, months, highlighted, values, unit, pointUnits }: TrendChartProps) {
   const span = range(values);
   if (span === null) return null;
   const W = 640, H = 230, L = 56, R = 20, T = 12, B = 26;
@@ -90,7 +93,7 @@ export function TrendChart({ lang, months, highlighted, values, unit }: TrendCha
         v === null ? null : (
           <circle key={months[i]} cx={x(i)} cy={y(v)} r={on[i] ? 4 : 3} className={on[i] ? "pt on draw-fade" : "pt draw-fade"}>
             <title>
-              {`${monthName(lang, months[i])} ${months[i].slice(0, 4)}: ${chartNumber(lang, v, unit)}${unit === "share" ? "" : ` ${dataLabel(lang, unit, v)}`}`}
+              {`${monthName(lang, months[i])} ${months[i].slice(0, 4)}: ${chartNumber(lang, v, unit)}${pointUnits[i] ? ` ${pointUnits[i]}` : ""}`}
             </title>
           </circle>
         ),
@@ -195,7 +198,7 @@ export function Donut({ segments, total, unit }: { segments: { key: string; labe
 }
 
 /** One bar per month, stacked by stage. Months outside the selected period are dimmed. */
-export function StackedBars({ lang, legend, bars }: { lang: Lang; legend: string[]; bars: { month: string; in_period: boolean; hours: number[] }[] }) {
+export function StackedBars({ lang, legend, bars }: { lang: Lang; legend: string[]; bars: StageBars["bars"] }) {
   const W = 640, H = 220, L = 34, R = 6, T = 10, B = 26;
   const totals = bars.map((b) => b.hours.reduce((n, h) => n + h, 0));
   const max = Math.ceil(Math.max(...totals, 1) / 20) * 20;
@@ -224,7 +227,7 @@ export function StackedBars({ lang, legend, bars }: { lang: Lang; legend: string
                 stacked += h;
                 return (
                   <rect key={k} x={x} y={top} width={width} height={Math.max(height - 1, 0)} rx={k === bar.hours.length - 1 ? 4 : 0} fill={SERIES_COLOURS[k]} className="draw-grow">
-                    <title>{`${bar.month}: ${legend[k]} ${formatNumber(lang, h)} ${dataLabel(lang, "hours", h)}`}</title>
+                    <title>{bar.titles[k]}</title>
                   </rect>
                 );
               })}
