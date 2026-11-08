@@ -1,36 +1,61 @@
-// The POST /api/assistant handler (#40). It parses the body with the page request parsing plus a prompt, sets one
-// AbortController for the whole answer and returns one JSON body. Nothing is stored between requests. With
-// ASSISTANT_STUB=1 it serves the #34 stub instead, so the dashboard can be built without Ollama.
+// The POST /api/assistant (#40) and POST /api/observations (#43) handlers. Each parses the body with the page request
+// parsing, sets one AbortController for the whole reply and returns one JSON body. Nothing is stored between
+// requests. With ASSISTANT_STUB=1 they serve the #34 stubs instead, so the dashboard can be built without Ollama.
 
 import { resolvePriorities } from "../data.ts";
+import type { PageRequest } from "../pages/request.ts";
 import { BadRequest, parsePageRequest } from "../pages/request.ts";
+import type { AnswerDeps } from "./answer.ts";
 import { answerPrompt } from "./answer.ts";
-import type { AssistantError, AssistantRequest } from "./contract.ts";
+import type { AssistantError, AssistantRequest, ObservationsRequest } from "./contract.ts";
 import { AssistantFailureError, ERROR_STATUS } from "./errors.ts";
 import type { Chat } from "./ollama.ts";
 import { ollamaChat } from "./ollama.ts";
-import { stubAnswer, stubRoute } from "./stub.ts";
+import { generateObservations } from "./observations.ts";
+import type { StubReply } from "./stub.ts";
+import { stubAnswer, stubObservations, stubRoute } from "./stub.ts";
 
 export const ANSWER_TIMEOUT_MS = 90_000;
-const STUB_DELAY_MS = 4000;
+export const OBSERVATIONS_TIMEOUT_MS = 120_000;
+// The stubs wait before they answer, so the dashboard's counter shows.
+const ANSWER_STUB_DELAY_MS = 4000;
+const OBSERVATIONS_STUB_DELAY_MS = 5000;
 
 export interface AssistantRouteOptions {
   chat?: Chat;
   timeoutMs?: number;
 }
 
-/** The POST handler. The stub or the model is picked per request from ASSISTANT_STUB. */
-export function assistantRoute({ chat = ollamaChat(), timeoutMs = ANSWER_TIMEOUT_MS }: AssistantRouteOptions = {}) {
-  const stub = stubRoute(stubAnswer, STUB_DELAY_MS);
+/** The POST /api/assistant handler. The stub or the model is picked per request from ASSISTANT_STUB. */
+export function assistantRoute(options: AssistantRouteOptions = {}) {
+  return modelRoute({ parse: parseAssistantRequest, run: answerPrompt, stub: stubAnswer, stubDelayMs: ANSWER_STUB_DELAY_MS, limitMs: ANSWER_TIMEOUT_MS }, options);
+}
+
+/** The POST /api/observations handler. The stub or the model is picked per request from ASSISTANT_STUB. */
+export function observationsRoute(options: AssistantRouteOptions = {}) {
+  return modelRoute({ parse: parseObservationsRequest, run: generateObservations, stub: stubObservations, stubDelayMs: OBSERVATIONS_STUB_DELAY_MS, limitMs: OBSERVATIONS_TIMEOUT_MS }, options);
+}
+
+interface ModelRoute<Req, Reply> {
+  parse: (body: unknown) => Req;
+  run: (request: Req, deps: AnswerDeps) => Promise<Reply>;
+  stub: (body: unknown) => StubReply<Reply>;
+  stubDelayMs: number;
+  /** The route's time limit, which the timeout message states. */
+  limitMs: number;
+}
+
+function modelRoute<Req, Reply>(route: ModelRoute<Req, Reply>, { chat = ollamaChat(), timeoutMs = route.limitMs }: AssistantRouteOptions) {
+  const stub = stubRoute(route.stub, route.stubDelayMs);
   return async (request: Request): Promise<Response> => {
     if (process.env.ASSISTANT_STUB === "1") return stub(request);
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
-      const parsed = parseAssistantRequest(await request.json().catch(() => null));
-      return Response.json(await answerPrompt(parsed, { chat, signal: controller.signal }));
+      const parsed = route.parse(await request.json().catch(() => null));
+      return Response.json(await route.run(parsed, { chat, signal: controller.signal }));
     } catch (e) {
-      return errorResponse(e, controller.signal);
+      return errorResponse(e, controller.signal, route.limitMs);
     } finally {
       clearTimeout(timer);
     }
@@ -39,16 +64,22 @@ export function assistantRoute({ chat = ollamaChat(), timeoutMs = ANSWER_TIMEOUT
 
 /** The page request plus a prompt, with the priorities as ids. Throws BadRequest. */
 export function parseAssistantRequest(body: unknown): AssistantRequest {
-  const page = parsePageRequest(body);
-  const prompt = (body as { prompt?: unknown }).prompt;
+  const prompt = (body as { prompt?: unknown } | null)?.prompt;
+  const page = parseObservationsRequest(body);
   if (typeof prompt !== "string" || prompt.trim() === "") throw new BadRequest("prompt must be a non-empty string.");
-  return { ...page, prompt: prompt.trim(), priorities: resolvePriorities(page.customer_id, page.priorities) };
+  return { ...page, prompt: prompt.trim() };
 }
 
-function errorResponse(e: unknown, signal: AbortSignal): Response {
+/** The page request with the priorities as ids. Throws BadRequest. */
+export function parseObservationsRequest(body: unknown): ObservationsRequest {
+  const page: PageRequest = parsePageRequest(body);
+  return { ...page, priorities: resolvePriorities(page.customer_id, page.priorities) };
+}
+
+function errorResponse(e: unknown, signal: AbortSignal, limitMs: number): Response {
   let failure: AssistantFailureError;
   if (e instanceof BadRequest) failure = new AssistantFailureError("bad_request", e.message);
-  else if (signal.aborted) failure = new AssistantFailureError("timeout", "The model took longer than 90 s.");
+  else if (signal.aborted) failure = new AssistantFailureError("timeout", `The model took longer than ${limitMs / 1000} s.`);
   else if (e instanceof AssistantFailureError) failure = e;
   else {
     console.error("assistant: unexpected error", e);

@@ -7,6 +7,8 @@ import { POST } from "./route.ts";
 
 // The stub waits before it answers, so the dashboard's counter shows. The tests need no wait.
 process.env.ASSISTANT_STUB_DELAY_MS = "0";
+// These tests cover the stub. lib/assistant/route.test.ts covers the model route.
+process.env.ASSISTANT_STUB = "1";
 
 const post = (body: unknown) =>
   POST(new Request("http://localhost/api/observations", { method: "POST", body: JSON.stringify(body) }));

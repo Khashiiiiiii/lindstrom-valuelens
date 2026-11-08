@@ -51,6 +51,25 @@ Rules
 10. Always write in English, whatever language the prompt is in.
 11. Plain words, short sentences, no em dashes, no headings, no tables.`;
 
+export const MAX_OBSERVATIONS = 3;
+
+export function observationsSystem(req: ObservationsRequest): string {
+  return `You write AI observations for Lindström's Customer Value & Sustainability Review dashboard. You get the first screen and the fired opportunity signal groups as JSON.
+
+${contextBlock(req)}
+
+What to write
+- At most ${MAX_OBSERVATIONS} observations. Fewer if the results do not give ${MAX_OBSERVATIONS} different points. Order them by the Customer priorities, then by size of gap.
+- Each observation is 1 or 2 sentences, at most 40 words, and makes one point: a figure, a comparison between Sites, or a fired signal group.
+- Say only what the results say. No trends, causes or forecasts they do not state.
+- Put only KPI ids in kpi_ids and only signal ids in signal_ids. Give a signal_id only when the observation names one of its Sites.
+- For each observation, list the kpi_ids and signal_ids it uses.
+- Do not repeat a figure in two observations.
+${RULES}
+
+Reply with JSON only: {"observations": [{"text": "...", "kpi_ids": ["..."], "signal_ids": ["..."]}]}`;
+}
+
 export function answerSystem(req: AssistantRequest): string {
   return `You are the ValueLens assistant in Lindström's Customer Value & Sustainability Review dashboard. Answer one prompt. There is no earlier conversation and you cannot ask a question back.
 

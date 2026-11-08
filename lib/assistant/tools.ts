@@ -15,7 +15,7 @@ import {
 } from "../data.ts";
 import type { CheckState } from "./checks.ts";
 import { signalNumbers, siteShortName } from "./checks.ts";
-import type { AssistantRequest, PriorityChange } from "./contract.ts";
+import type { ObservationsRequest, PriorityChange } from "./contract.ts";
 import { customerOf, priorityName } from "./context.ts";
 import type { ChatTool } from "./ollama.ts";
 
@@ -47,7 +47,7 @@ const UNITS = ["total", "per_active_wearer"] as const;
 const GAP_MEANING = "A gap is how far the Site is above the median of the Customer's other Sites, as a share: a gap of 0.25 would mean 25% above.";
 
 /** The tools for one request. */
-export function buildTools(req: AssistantRequest): Tools {
+export function buildTools(req: ObservationsRequest): Tools {
   const master = getMasterData().data;
   const { customer, sites } = customerOf(req.customer_id);
   const siteName = (id: string) => sites.find((s) => s.site_id === id)?.site_name ?? id;
