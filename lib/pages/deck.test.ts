@@ -137,5 +137,49 @@ test("the deck has native charts of washed kg, on-time share, emissions saved an
   }
   const monthly = found.filter((c) => c.series[0].labels.length === 12);
   assert.equal(monthly.length, 3);
-  assert.deepEqual(monthly[0].series[0].labels, ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]);
+  assert.deepEqual(monthly[0].series[0].labels, ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"]);
+});
+
+/**
+ * The cells of a workbook's first sheet by reference, such as "B2". Only numbers and inline strings are read: a
+ * shared string reads as its index, so a workbook that uses them does not match its chart.
+ */
+async function sheetCells(workbook: Uint8Array): Promise<Map<string, string>> {
+  const zip = await JSZip.loadAsync(workbook);
+  const xml = await zip.file("xl/worksheets/sheet1.xml")!.async("string");
+  const cells = new Map<string, string>();
+  for (const [, ref, attrs, body] of xml.matchAll(/<c r="([A-Z]+\d+)"([^>]*)>([\s\S]*?)<\/c>/g)) {
+    cells.set(ref, attrs.includes('t="inlineStr"') ? body.match(/<t[^>]*>([^<]*)<\/t>/)![1] : body.match(/<v>([^<]*)<\/v>/)![1]);
+  }
+  return cells;
+}
+
+/** The cell references of a range in a chart formula, such as "Sheet1!$B$2:$B$13", in order. */
+function rangeCells(formula: string): string[] {
+  const [, col, from, to = from] = formula.match(/^Sheet1!\$([A-Z]+)\$(\d+)(?::\$[A-Z]+\$(\d+))?$/)!;
+  return Array.from({ length: Number(to) - Number(from) + 1 }, (_, i) => `${col}${Number(from) + i}`);
+}
+
+test("every chart's embedded workbook holds the chart's cached values as plain cells, which Keynote reads", async () => {
+  for (const request of [NORTHSTAR, { ...NORTHSTAR, lang: "fi" as const, period: "2025-H1" as const }]) {
+    const file = await deckFile(request);
+    const zip = await JSZip.loadAsync(file);
+    for (const chart of await charts(file)) {
+      const rels = await zip.file(chart.name.replace("charts/", "charts/_rels/") + ".rels")!.async("string");
+      const target = rels.match(/Target="\.\.\/embeddings\/([^"]+\.xlsx)"/)![1];
+      const cells = await sheetCells(await zip.file(`ppt/embeddings/${target}`)!.async("uint8array"));
+      for (const [i, ser] of [...chart.xml.matchAll(/<c:ser>([\s\S]*?)<\/c:ser>/g)].entries()) {
+        const formula = (tag: string) => ser[1].match(new RegExp(`<c:${tag}>[\\s\\S]*?<c:f>([^<]*)</c:f>`))![1];
+        const s = chart.series[i];
+        assert.equal(cells.get(rangeCells(formula("tx"))[0]), s.name, `${chart.name} series name`);
+        assert.deepEqual(rangeCells(formula("cat")).map((ref) => cells.get(ref)), s.labels, `${chart.name} labels`);
+        assert.deepEqual(rangeCells(formula("val")).map((ref) => cells.get(ref)), s.values, `${chart.name} values`);
+      }
+    }
+  }
+});
+
+test("the file has no folder entries, which cloud services fail to open", async () => {
+  const zip = await JSZip.loadAsync(await deckFile(NORTHSTAR));
+  assert.deepEqual(Object.values(zip.files).filter((f) => f.dir).map((f) => f.name), []);
 });

@@ -5,7 +5,7 @@
 //
 // Every figure is a runKpi answer or a value from data/processed (ADR 0001). This module only lays them out,
 // formats and translates them. Caveats and transparency texts stay English, as the spec sets. The charts are
-// tables for now. Native charts come in #37.
+// native PowerPoint charts that also open in Keynote (#37).
 
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -28,6 +28,7 @@ import { DEMO_KAM } from "../demo-kam.ts";
 import type { DictionaryKey, Lang } from "../i18n.ts";
 import { AI_TRANSLATION_NOTE, dataLabel, formatNumber, formatValue, monthName, t } from "../i18n.ts";
 import type { PageRequest } from "./request.ts";
+import { keynoteCharts } from "./keynote-charts.ts";
 import { BadRequest, parsePageRequest } from "./request.ts";
 
 /** A page request with the app language. The deck ignores its view and Site. */
@@ -376,8 +377,8 @@ export async function deckFile(request: DeckRequest): Promise<Uint8Array<ArrayBu
   text(s, t(lang, "Questions and discussion"), { x: 0.6, y: 3.45, w: 8.4, h: 0.6 }, { fontSize: 24, color: PALE });
   text(s, `${DEMO_KAM.name}\n${DEMO_KAM.email}`, { x: 0.6, y: 5.1, w: 6, h: 0.7 }, { fontSize: 14, color: WHITE });
 
-  // JSZip builds the file in a plain ArrayBuffer, never a SharedArrayBuffer.
-  return (await pres.write({ outputType: "uint8array" })) as Uint8Array<ArrayBuffer>;
+  // Keynote cannot read the workbook pptxgenjs embeds behind each chart, so each one is rebuilt.
+  return keynoteCharts((await pres.write({ outputType: "uint8array" })) as Uint8Array);
 }
 
 /** The period as the deck names it: "2025", "H1 2025", "H2 2025" or a month such as "March 2025" in the language. */
@@ -511,8 +512,8 @@ function table(s: Slide, rows: pptxgen.TableRow[], box: Box, colW: number[], fon
 
 /**
  * A KPI's 12 monthly values as a native chart, a column chart or a line chart. The title names the unit. The chart
- * does not show when its first month is Withheld, as on the Overview, and a later Withheld or not evaluated month
- * is a gap. A share has a percent axis.
+ * does not show when its first month is Withheld, as on the Overview, or when no month has a value. A later
+ * Withheld or not evaluated month is a gap. A share has a percent axis.
  */
 function monthChart(
   s: Slide,
@@ -524,10 +525,10 @@ function monthChart(
   box: Box,
 ): void {
   const first = results[0];
-  if (!first) return;
-  const share = first.unit === "share";
   const values = results.map((r) => r?.value ?? null);
   const shown = values.filter((v): v is number => v !== null);
+  if (!first || shown.length === 0) return;
+  const share = first.unit === "share";
   s.addChart(
     kind,
     // pptxgenjs writes a null value as an empty point, which keynoteCharts drops so the month is a gap.
