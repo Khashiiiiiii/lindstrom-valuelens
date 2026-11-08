@@ -9,6 +9,8 @@ import { POST } from "./route.ts";
 
 // The stub waits before it answers, so the dashboard's counter shows. The tests need no wait.
 process.env.ASSISTANT_STUB_DELAY_MS = "0";
+// These tests cover the stub. lib/assistant/route.test.ts covers the model route.
+process.env.ASSISTANT_STUB = "1";
 
 const request = { customer_id: "CUST001", period: "2025", view: "KAM", priorities: ["water", "service_reliability", "emissions"] };
 
